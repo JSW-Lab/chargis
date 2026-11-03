@@ -5,6 +5,7 @@ import android.util.Log
 import ai.pleos.playground.navi.constants.NaviErrorCode
 import ai.pleos.playground.navi.constants.WaypointIndex
 import ai.pleos.playground.navi.data.CurrentLocationInfo
+import ai.pleos.playground.navi.data.DestinationInfo
 import ai.pleos.playground.navi.data.RequestWaypointInfo
 import ai.pleos.playground.navi.data.TripInfo
 import ai.pleos.playground.navi.data.TripRequest
@@ -14,6 +15,8 @@ import ai.pleos.playground.navi.helper.listener.NaviHelperEventListener
 import com.chargis.app.domain.model.ChargingStation
 import com.chargis.app.domain.model.GeoPoint
 import com.chargis.app.domain.model.RouteState
+import com.chargis.app.port.LiveRoutePort
+import com.chargis.app.port.NaviDestination
 import com.chargis.app.port.NaviPort
 import com.chargis.app.port.TripEstimate
 import com.chargis.app.port.TripEstimator
@@ -35,16 +38,18 @@ import kotlin.math.roundToInt
  * NaviHelper는 요청 함수를 부르면 결과가 리스너로 따로 온다. 요청마다 짝을 맞출 번호가 없어 [mutex]로 한 번에 하나씩만 묻는다.
  * 퍼미션: NAVI_ROUTE(get*Info·requestTrip), NAVI_ROUTE_SEARCH(경유지 추가·삭제·재탐색).
  */
-class PleosNavi(context: Context) : TripEstimator {
+class PleosNavi(context: Context) : TripEstimator, LiveRoutePort {
     private val helper = NaviHelper(context.applicationContext)
     private val mutex = Mutex()
     @Volatile private var ready = false
     @Volatile private var trip: CompletableDeferred<TripInfo?>? = null
     @Volatile private var waypoints: CompletableDeferred<List<WaypointInfo>>? = null
     @Volatile private var location: CompletableDeferred<CurrentLocationInfo>? = null
+    @Volatile private var destination: CompletableDeferred<DestinationInfo?>? = null
 
     private val listener = object : NaviHelperEventListener {
         override fun onTripInfo(tripInfo: TripInfo) { trip?.complete(tripInfo) }
+        override fun onDestinationInfo(destinationInfo: DestinationInfo) { destination?.complete(destinationInfo) }
         override fun onWayPointInfo(waypointInfoList: List<WaypointInfo>) { waypoints?.complete(waypointInfoList) }
         override fun onCurrentLocationInfo(currentLocationInfo: CurrentLocationInfo) { location?.complete(currentLocationInfo) }
         override fun onError(errorCode: NaviErrorCode) {
@@ -73,6 +78,11 @@ class PleosNavi(context: Context) : TripEstimator {
     override suspend fun currentLocation(): GeoPoint? = ask<CurrentLocationInfo>({ location = it }) { helper.getCurrentLocationInfo() }
         ?.let { GeoPoint(it.latitude, it.longitude) }
         ?.also { Log.d(TAG, "location ${it.lat},${it.lon}") }
+
+    /** 순정 내비에 설정된 목적지. 목적지가 없거나(답이 없거나 좌표·남은 거리가 0) 연결 전이면 null. */
+    override suspend fun destination(): NaviDestination? = ask<DestinationInfo?>({ destination = it }) { helper.getDestinationInfo() }
+        ?.takeIf { (it.latitude != 0.0 || it.longitude != 0.0) && it.remainDistance > 0 }
+        ?.let { NaviDestination(it.name, GeoPoint(it.latitude, it.longitude), it.remainDistance / 1000.0, (it.remainTime / 60.0).roundToInt()) }
 
     override suspend fun estimate(station: ChargingStation): TripEstimate? {
         val info = ask<TripInfo?>({ trip = it }) {
@@ -157,9 +167,20 @@ class PleosNavi(context: Context) : TripEstimator {
 class HybridNavi(private val demo: NaviPort, private val pleos: PleosNavi) : NaviPort {
     override val routeState: Flow<RouteState?> = demo.routeState
 
+    @Volatile override var lastAddSkippedNavi: Boolean = false
+        private set
+
     override suspend fun addWaypoint(station: ChargingStation): Result<Unit> {
+        lastAddSkippedNavi = false
         demo.addWaypoint(station).onFailure { return Result.failure(it) }
         if (!pleos.isReady) return Result.success(Unit)
+        // 순정 내비에 목적지가 없으면 경유지를 넣지 않는다. 넣으면 내비가 그 충전소를 목적지처럼 안내하려고 앞으로 나와
+        // Chargis가 뒤로 가 버린다(2026-10-28 Pleos 에뮬레이터). 그때는 Chargis 안에서만 안내한다.
+        if (pleos.destination() == null) {
+            lastAddSkippedNavi = true
+            Log.i("ChargisNavi", "navi has no destination; waypoint kept in app only")
+            return Result.success(Unit)
+        }
         val real = pleos.addWaypoint(station)
         val full = real.exceptionOrNull() as? WaypointsFullException
         if (full != null) {
@@ -176,7 +197,8 @@ class HybridNavi(private val demo: NaviPort, private val pleos: PleosNavi) : Nav
     }
 
     override suspend fun requestReRoute(): Result<Unit> {
-        if (pleos.isReady) pleos.requestReRoute()
+        // 내비에 목적지가 없어 경유지를 넣지 않았으면 다시 탐색도 하지 않는다. 부르면 내비가 앞으로 나와 Chargis를 가린다.
+        if (pleos.isReady && !lastAddSkippedNavi) pleos.requestReRoute()
         return demo.requestReRoute()
     }
 }

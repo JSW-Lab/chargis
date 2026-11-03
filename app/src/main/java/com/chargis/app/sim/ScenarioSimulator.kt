@@ -44,7 +44,14 @@ data class Scenario(
     /** 출발점 기준 경로 고도(km, m). 없으면 평지. 가상 차량은 오르막에서 배터리를 더 쓰고 내리막에서 되찾는다 */
     val elevation: List<ElevationPoint>? = null,
     /** 출발할 때 배터리 온도(°C). 없으면 바깥 기온과 같다고 본다(바깥에 세워 둔 차) */
-    val batteryTempC: Double? = null
+    val batteryTempC: Double? = null,
+    /** 출발 시각의 분. 실제 주행은 발권한 시각 그대로 시작한다 */
+    val startMinute: Int = 0,
+    /**
+     * 실제 주행(순정 내비 목적지로 시작). 시뮬레이터가 스스로 달리지 않고, 순정 내비의 남은 거리·위치와 차량 배터리를
+     * [ScenarioSimulator.syncLive]로 받아 따라간다. 시계는 실제 시간으로 흐른다.
+     */
+    val live: Boolean = false
 )
 
 /** 가상 차량의 상태: 출발 전 / 주행 중 / 충전소 정차 / 충전 중 / 도착 */
@@ -89,6 +96,7 @@ class ScenarioSimulator(
     /** 시나리오를 바꾸고 출발 전 상태로 되돌린다. 배속은 유지한다. */
     fun load(next: Scenario) {
         scenario = next
+        liveLocation = if (next.live) next.start else null
         _state.value = initialState(next, _state.value.speedMultiplier)
     }
 
@@ -201,7 +209,9 @@ class ScenarioSimulator(
         if (s.paused || dtSec <= 0) return
         when (s.phase) {
             SimPhase.READY, SimPhase.FINISHED -> Unit
-            SimPhase.DRIVING -> advanceDriving(scenario.speedKmh * dtSec / 3600.0, dtSec)
+            // 실제 주행: 거리는 순정 내비가 알려 주므로([syncLive]) 시간만 흐른다.
+            SimPhase.DRIVING -> if (scenario.live) _state.value = s.copy(simTimeSec = s.simTimeSec + dtSec)
+            else advanceDriving(scenario.speedKmh * dtSec / 3600.0, dtSec)
             SimPhase.STOPPED_AT_STATION -> _state.value = s.copy(simTimeSec = s.simTimeSec + dtSec)
             SimPhase.CHARGING -> advanceCharging(s, dtSec)
         }
@@ -218,8 +228,38 @@ class ScenarioSimulator(
         }
     }
 
-    /** 달린 거리로 지도 위치를 구한다. 데모에서는 출발지와 목적지를 직선으로 잇고 그 위를 비율만큼 이동한다. */
+    /**
+     * 실제 주행: 순정 내비가 알려 준 목적지까지 남은 거리([remainingKm]), 현재 위치, 차량 배터리(%)를 반영한다.
+     * 남은 거리가 줄어든 만큼 달린 것으로 보고, 경유지(수락한 충전소)나 목적지에 닿으면 데모와 같이 정차·도착 처리한다.
+     * 차량 배터리를 모르면 달린 거리로 줄어든 배터리를 어림한다. 내비가 다시 탐색해 남은 거리가 늘어도 되돌아가지는 않는다.
+     */
+    fun syncLive(remainingKm: Double, location: GeoPoint?, soc: Double?) {
+        if (!scenario.live) return
+        location?.let { liveLocation = it }
+        val s = _state.value
+        if (s.phase == SimPhase.DRIVING) {
+            val target = if (remainingKm <= LIVE_ARRIVED_KM) scenario.totalDistanceKm
+            else (scenario.totalDistanceKm - remainingKm).coerceIn(s.traveledKm, scenario.totalDistanceKm)
+            if (target > s.traveledKm) advanceDriving(target - s.traveledKm, 0.0)
+        }
+        if (soc != null) _state.update { it.copy(soc = soc) }
+    }
+
+    /** 실제 주행: 수락한 충전소 근처에서 기어를 P로 바꾸면 그 충전소에 도착한 것으로 본다(직선 어림 거리로는 딱 맞지 않으므로). */
+    fun arriveAtWaypoint(): Boolean {
+        val s = _state.value
+        val wp = waypointKm(s) ?: return false
+        if (s.phase != SimPhase.DRIVING) return false
+        advanceDriving((wp - s.traveledKm).coerceAtLeast(0.0), 0.0)
+        return _state.value.phase == SimPhase.STOPPED_AT_STATION
+    }
+
+    // 실제 주행에서 마지막으로 받은 차량 위치
+    private var liveLocation: GeoPoint? = null
+
+    /** 달린 거리로 지도 위치를 구한다. 데모에서는 출발지와 목적지를 직선으로 잇고 그 위를 비율만큼 이동한다. 실제 주행은 차량 위치다. */
     fun positionAt(traveledKm: Double): GeoPoint {
+        if (scenario.live) liveLocation?.let { return it }
         val t = (traveledKm / scenario.totalDistanceKm).coerceIn(0.0, 1.0)
         val a = scenario.start
         val b = scenario.destination
@@ -316,5 +356,6 @@ class ScenarioSimulator(
 
     private companion object {
         const val JUMP_GUARD_KM = 0.5   // 건너뛰기를 경유지·목적지 0.5km 앞에서 멈춰, 도착 과정은 직접 보이게 한다.
+        const val LIVE_ARRIVED_KM = 0.1 // 실제 주행: 내비 남은 거리가 이만큼 이하면 목적지에 도착한 것으로 본다.
     }
 }

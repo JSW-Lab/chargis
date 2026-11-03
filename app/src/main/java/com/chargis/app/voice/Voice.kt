@@ -21,6 +21,8 @@ interface VoicePhrases {
     fun needAnother(): String
     fun congested(name: String, waitMin: Int, altName: String): String
     fun waypointAdded(name: String): String
+    /** 수락했지만 순정 내비에 목적지가 없어 내비 경유지에는 넣지 않았을 때(Chargis 안에서만 안내). */
+    fun waypointNoNaviDestination(name: String): String
     fun waypointFailed(): String
     fun waypointsFull(): String
     fun ruleNotice(limitMin: Int): String
@@ -50,6 +52,8 @@ interface VoicePhrases {
     fun preconditionManual(): String
     /** 배터리를 직접 넣는 중일 때 충전소에 도착하면 계기판 값을 확인해 달라고 한다. */
     fun checkSoc(): String
+    /** 실제 주행을 발권하려는데 순정 내비에 목적지가 없을 때. */
+    fun liveNoDestination(): String
 }
 
 /** strings.xml에서 문구를 꺼내 숫자·이름을 끼워 넣는 실제 구현체. */
@@ -63,6 +67,7 @@ class AndroidVoicePhrases(private val context: Context) : VoicePhrases {
     override fun congested(name: String, waitMin: Int, altName: String) =
         s(R.string.tts_congested, name, waitMin, altName)
     override fun waypointAdded(name: String) = s(R.string.tts_waypoint_added, name)
+    override fun waypointNoNaviDestination(name: String) = s(R.string.tts_waypoint_no_navi_destination, name)
     override fun waypointFailed() = s(R.string.tts_waypoint_failed)
     override fun waypointsFull() = s(R.string.tts_waypoints_full)
     override fun ruleNotice(limitMin: Int) = s(R.string.tts_rule_notice, limitMin)
@@ -88,6 +93,7 @@ class AndroidVoicePhrases(private val context: Context) : VoicePhrases {
     override fun preconditionStarted() =s(R.string.tts_precondition_started)
     override fun preconditionManual() = s(R.string.tts_precondition_manual)
     override fun checkSoc() = s(R.string.tts_check_soc)
+    override fun liveNoDestination() = s(R.string.tts_live_no_destination)
 
     // strings.xml의 문구 [id]에 [args]를 차례로 끼워 넣는다. 예) "%1$s를 추천합니다" → "B 휴게소를 추천합니다"
     private fun s(id: Int, vararg args: Any) = context.getString(id, *args)

@@ -42,6 +42,9 @@ class AssetCatalog(
 
     fun scenario(id: String): Scenario = scenarios.first { it.id == id }
 
+    /** 번들 샘플 충전소 전부(실제 주행에서 공공데이터가 없을 때 경로 근처의 것을 고른다). 경로상 거리는 원래 시나리오 기준이라 다시 계산해야 한다. */
+    val allStations: List<ChargingStation> = stationDtos.values.map { it.toDomain() }
+
     // 시나리오 한 건을 만든다. 시나리오가 충전소 id만 갖고 있으므로 충전소 목록에서 찾아 붙이고,
     // 시나리오별로 다르게 정한 혼잡도(overrides, 예: 명절이라 대기 30분)가 있으면 덮어쓴다.
     private fun ScenarioDto.toScenario(): Scenario {

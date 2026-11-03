@@ -23,6 +23,9 @@ object VoiceCommandParser {
         "충전 시작" to VoiceCommand.START_CHARGING,
         "충전해" to VoiceCommand.START_CHARGING,
         "충전" to VoiceCommand.START_CHARGING,
+        // Pleos 온디바이스 STT는 듣기 세션이 짧아(약 2.5초) "충전 시작해 줘"가 세션 둘로 나뉘면 뒤쪽 "시작해줘"만 남는다.
+        // 지금 받을 수 있는 명령 안에서만 고르므로, 충전소에 도착해 있을 때만 충전 시작으로 받는다.
+        "시작" to VoiceCommand.START_CHARGING,
         "수락" to VoiceCommand.ACCEPT,
         "좋아" to VoiceCommand.ACCEPT,
         "그래" to VoiceCommand.ACCEPT,

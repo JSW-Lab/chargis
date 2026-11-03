@@ -133,6 +133,10 @@ class ScenarioFlowTest {
         h.controller.accept("rest_e")
         runCurrent()
         drive(h) { h.controller.state.value.phase == TripPhase.Arrived }
+        h.sim.advance(1.0)
+        runCurrent()
+        // 도착 배터리(27%)로는 F까지 못 가지만, 비교 표는 E에서 채우고 떠날 배터리로 본 F를 보여 준다(비어 있으면 안 된다).
+        assertEquals(listOf("rest_f"), h.controller.state.value.candidates.map { it.station.id })
         h.controller.startCharging()
         runCurrent()
 

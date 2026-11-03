@@ -171,9 +171,10 @@ class ScreenTest {
             }
         }
         compose.onNodeWithText("추정 출력").assertIsDisplayed()
+        // 출력 값이 있어도 차량이 준 값이 아니라(Pleos Vehicle SDK에는 충전 출력이 없다) 모델값이므로 늘 "추정"이다.
         current = stop(75.0)
-        compose.onNodeWithText("출력").assertIsDisplayed()
-        compose.onAllNodesWithText("추정 출력").assertCountEquals(0)
+        compose.onNodeWithText("추정 출력").assertIsDisplayed()
+        compose.onNodeWithText("75").assertIsDisplayed()
     }
 
     /** 휴게소 도착: 예상 요금을 100원 단위로 보여 주고, 배터리를 직접 넣는 중이면 고치는 버튼이 있다. */

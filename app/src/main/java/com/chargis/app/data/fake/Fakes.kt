@@ -69,7 +69,8 @@ class FakeVehicle(private val sim: ScenarioSimulator) : VehiclePort {
             socPercent = s.soc,
             rangeKm = s.soc / (ChargeMath.socPerKm(p) * sim.scenario.consumptionFactor),   // 주행가능거리 = 남은 % ÷ 1km당 %
             isDriving = s.isDriving,
-            source = DataSource.SIMULATED,
+            // 실제 주행은 순정 내비 거리와 차량 배터리를 따라가므로 차량 데이터로 표시한다.
+            source = if (sim.scenario.live) DataSource.SDK else DataSource.SIMULATED,
             outsideTempC = sim.scenario.outsideTempC,
             chargePowerKw = sim.chargePowerKw(s),
             odometerKm = s.traveledKm,

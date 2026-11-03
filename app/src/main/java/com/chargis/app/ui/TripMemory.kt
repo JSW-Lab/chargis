@@ -28,6 +28,7 @@ class TripMemory {
     var offer: RecommendationResult.Recommended? = null
     var accepted: Recommendation? = null
     var lastResult: RecommendationResult? = null
+    var stopResult: RecommendationResult? = null              // 정차 화면 비교 표: 이 충전소에서 목표까지 채우고 떠난다고 본 앞으로의 충전소
     var lastRoute: RouteState? = null
     var lastVehicle: VehicleState? = null
     var stations: List<ChargingStation> = emptyList()
@@ -49,6 +50,7 @@ class TripMemory {
         offer = null
         accepted = null
         lastResult = null
+        stopResult = null
         lastEval = null
         noSafeWarned = false
         charges.clear()

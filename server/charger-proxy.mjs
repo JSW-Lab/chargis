@@ -5,7 +5,7 @@
 //
 // 하는 일
 //   - 두 오퍼레이션만 받는다: getChargerInfo(충전기 목록), getChargerStatus(충전기 상태). 나머지 경로는 404.
-//   - 정해 둔 파라미터만 넘긴다(pageNo, numOfRows, zcode, zscode, period, dataType). 값은 숫자·길이를 검사한다.
+//   - 정해 둔 파라미터만 넘긴다(pageNo, numOfRows, zcode, zscode, period, kind, dataType). 값은 숫자·길이를 검사한다.
 //   - 서비스 키는 환경 변수 CHARGER_API_KEY에서 읽어 붙인다. 응답·로그·오류 어디에도 키를 넣지 않는다.
 //   - 같은 요청은 잠시 저장해 두고 재사용한다(목록 10분, 상태 1분). data.go.kr 호출 한도를 아끼고 응답을 빠르게 한다.
 //   - IP마다 1분에 60번까지만 받는다(넘으면 429).
@@ -24,6 +24,7 @@ const PARAMS = {
   zcode: /^\d{2}$/,           // 시도 코드 2자리
   zscode: /^\d{5}$/,          // 시군구 코드 5자리
   period: /^\d{1,2}$/,        // 상태 갱신 기간(분)
+  kind: /^[A-J]0$/,           // 시설 구분 대분류(앱은 C0·A0·B0·E0만 받는다)
   dataType: /^(JSON|XML)$/,
 };
 const TTL_MS = { getChargerInfo: 10 * 60_000, getChargerStatus: 60_000 };
@@ -31,11 +32,22 @@ const RATE_PER_MIN = 60;
 const MAX_CACHE = 200;
 
 /**
+ * data.go.kr은 같은 키를 Encoding(%2B 등)과 Decoding 두 형식으로 보여 준다. 여기서는 Decoding 값을 URLSearchParams가
+ * 한 번 인코딩해 보내므로, Encoding 값을 넣으면 두 번 인코딩되어 "등록되지 않은 서비스키"가 된다. 어느 쪽을 넣어도 되게 푼다.
+ */
+export function decodeServiceKey(key) {
+  const k = key.trim();
+  if (!k.includes('%')) return k;
+  try { return decodeURIComponent(k); } catch { return k; }
+}
+
+/**
  * 요청 처리기를 만든다. 테스트에서 [fetchImpl]과 [now]를 바꿔 끼운다.
  * @param {{apiKey: string, upstream?: string, appToken?: string, fetchImpl?: typeof fetch, now?: () => number}} opts
  */
-export function createHandler({ apiKey, upstream = 'https://apis.data.go.kr/B552584/EvCharger', appToken, fetchImpl = fetch, now = Date.now }) {
-  if (!apiKey) throw new Error('CHARGER_API_KEY가 비어 있습니다');
+export function createHandler({ apiKey: rawKey, upstream = 'https://apis.data.go.kr/B552584/EvCharger', appToken, fetchImpl = fetch, now = Date.now }) {
+  if (!rawKey) throw new Error('CHARGER_API_KEY가 비어 있습니다');
+  const apiKey = decodeServiceKey(rawKey);
   const cache = new Map();   // 정리한 요청 → { at, status, body }
   const hits = new Map();    // IP → { windowStart, count }
 

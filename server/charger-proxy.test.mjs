@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { createHandler } from './charger-proxy.mjs';
+import { createHandler, decodeServiceKey } from './charger-proxy.mjs';
 
 const KEY = 'test-secret-key';
 
@@ -85,4 +85,21 @@ test('공공데이터 서버 오류는 502로 알리고 저장하지 않는다',
   assert.equal(res.status, 502);
   assert.ok(!(await res.text()).includes(KEY));
   await s.close();
+});
+
+test('data.go.kr의 Encoding 키를 넣어도 Decoding 값으로 풀어 쓴다', () => {
+  assert.equal(decodeServiceKey('abc%2Bdef%3D%3D'), 'abc+def==');
+  assert.equal(decodeServiceKey(' abc+def== '), 'abc+def==');
+  assert.equal(decodeServiceKey('bad%zz'), 'bad%zz');
+});
+
+test('시설 구분(kind) 필터를 넘기고, 형식이 다르면 400', async () => {
+  const { get, calls, close } = await setup();
+  try {
+    assert.equal((await get('/getChargerInfo?zcode=41&kind=C0&numOfRows=9999&pageNo=1')).status, 200);
+    assert.match(calls.at(-1), /[?&]kind=C0(&|$)/);
+    assert.equal((await get('/getChargerInfo?zcode=41&kind=H0%27')).status, 400);
+  } finally {
+    await close();
+  }
 });

@@ -160,11 +160,12 @@ class PublicChargerDataTest {
         assertEquals(0.0, first.first { it.id == "PX000007" }.detourKm, 1e-9)
         assertTrue(first.first { it.id == "PX000003" }.detourKm > 0.0)
         assertEquals(StationKind.PUBLIC, first.first { it.id == "PX000003" }.kind)
+        val firstCalls = StationKinds.FETCH_KINDS.size + 1   // 목록은 시설 구분마다 한 번, 상태는 한 번
         data.stationsAlongRoute(route)
-        assertEquals(2, calls)                     // 캐시가 살아 있으면 다시 부르지 않는다
+        assertEquals(firstCalls, calls)            // 캐시가 살아 있으면 다시 부르지 않는다
         clock += 3 * 60 * 1000L                    // 상태 캐시(2분)만 만료
         data.stationsAlongRoute(route)
-        assertEquals(3, calls)
+        assertEquals(firstCalls + 1, calls)
     }
 
     /** 규칙표: 운영기관·종류가 맞는 첫 규칙의 시간 제한을 쓰고, 맞는 규칙이 없으면 "정보 없음"으로 둔다. */
@@ -221,12 +222,14 @@ class PublicChargerDataTest {
     fun publicData_queriesZonesAlongRoute() = runTest {
         val asked = mutableListOf<String>()
         val data = PublicChargerData(
-            http = { op, p -> if (op == "getChargerInfo") asked += p.getValue("zcode"); """{"resultCode":"00","items":{"item":[]}}""" },
+            http = { op, p -> if (op == "getChargerInfo") asked += "${p.getValue("zcode")}:${p["kind"]}"; """{"resultCode":"00","items":{"item":[]}}""" },
             nowMillis = { 0L },
             nowLocal = { now }
         )
         data.stationsAlongRoute(route)
-        assertEquals(SidoCodes.along(route), asked.sorted())
+        // 시도마다, 앱이 쓰는 시설 구분(휴게소·공공·주차·상업)만 따로 묻는다. 공동주택 등은 받지 않는다.
+        val expected = SidoCodes.along(route).flatMap { z -> StationKinds.FETCH_KINDS.map { "$z:$it" } }
+        assertEquals(expected.sorted(), asked.sorted())
         asked.clear()
         data.stationsAlongRoute(route)
         assertTrue(asked.isEmpty())
@@ -241,6 +244,15 @@ class PublicChargerDataTest {
         val proxied = UrlEvChargerHttp("", "https://proxy.example.test/ev/").urlFor("getChargerInfo", mapOf("zcode" to "11"))
         assertTrue(proxied.startsWith("https://proxy.example.test/ev/getChargerInfo?"))
         assertFalse(proxied.contains("serviceKey"))
+    }
+
+    /** data.go.kr의 Encoding 키(%2B…)를 넣어도 두 번 인코딩하지 않고, Decoding 키와 같은 주소를 만든다. */
+    @Test
+    fun http_acceptsEncodedOrDecodedKey() {
+        val fromDecoded = UrlEvChargerHttp("ab+cd==").urlFor("getChargerInfo", mapOf("zcode" to "11"))
+        val fromEncoded = UrlEvChargerHttp("ab%2Bcd%3D%3D").urlFor("getChargerInfo", mapOf("zcode" to "11"))
+        assertEquals(fromDecoded, fromEncoded)
+        assertTrue(fromDecoded.contains("serviceKey=ab%2Bcd%3D%3D"))
     }
 
     // 충전기 한 대(가상). 나머지 값은 공용 고속도로 휴게소 급속 충전기로 둔다.

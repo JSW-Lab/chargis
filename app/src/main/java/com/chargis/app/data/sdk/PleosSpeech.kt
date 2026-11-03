@@ -152,11 +152,24 @@ class PleosStt(
             // 바로 다시 부르면 끝난 세션과 겹칠 수 있어 잠깐 쉰다.
             launch { delay(RESTART_DELAY_MS); if (!closed) runCatching { s.request() } }
         }
+        // 이번 세션에서 마지막으로 들은 중간 결과. 말이 세션 끝에 걸치면 최종 결과 없이 끝나기도 해서
+        // (Pleos 에뮬레이터: 중간 결과 "충전 시작" 뒤 바로 finish), 끝날 때 아직 명령을 못 냈으면 이것으로 고른다.
+        var partial: String? = null
+        var sent = false
         val listener = object : ResultListener {
             override fun onUpdated(text: String, isFinal: Boolean) {
-                if (isFinal) VoiceCommandParser.parse(text, allowed)?.let { trySend(it) }
+                if (!isFinal) {
+                    partial = text
+                    return
+                }
+                VoiceCommandParser.parse(text, allowed)?.let { sent = trySend(it).isSuccess }
             }
-            override fun onEndedRecognition() = again()
+            override fun onEndedRecognition() {
+                if (!sent) partial?.let { VoiceCommandParser.parse(it, allowed) }?.let { trySend(it) }
+                partial = null
+                sent = false
+                again()
+            }
             override fun onError(errorType: SttError) {
                 Log.w(TAG, "stt error $errorType")
                 // 권한이 없으면 멈추고, 그 밖의 오류(못 알아들음 등)는 조금 쉬었다가 다시 듣는다.

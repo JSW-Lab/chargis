@@ -10,6 +10,7 @@
     <string name="tts_need_another">이번 충전만으로는 목적지까지 부족해 다음 충전이 한 번 더 필요합니다.</string>
     <string name="tts_congested">%1$s 대기 약 %2$d분. %3$s 대안과 비교해 선택하세요.</string>
     <string name="tts_waypoint_added">%1$s, 경유지로 추가했습니다.</string>
+    <string name="tts_waypoint_no_navi_destination">%1$s로 안내합니다. 내비게이션에 목적지가 없어 경유지는 넣지 않았습니다.</string>
     <string name="tts_waypoints_full">내비게이션 경유지 두 곳이 이미 차 있어 추가하지 못했습니다. 경유지 하나를 지운 뒤 다시 수락해 주세요.</string>
     <string name="tts_waypoint_failed">경유지를 추가하지 못했습니다. 내비게이션에서 직접 추가해 주세요.</string>
     <string name="tts_rule_notice">이 충전기는 %1$d분 제한이 있습니다.</string>
@@ -29,6 +30,7 @@
     <string name="tts_precondition_advice_manual">배터리가 차가워 충전이 느립니다. 차량 화면에서 배터리 예열을 켜면 충전이 약 %1$d분 빨라집니다.</string>
     <string name="tts_precondition_started">배터리 예열을 켰습니다. 도착할 때까지 배터리를 데웁니다.</string>
     <string name="tts_check_soc">계기판의 배터리 값을 확인해 주세요. 다르면 화면에서 고칠 수 있습니다.</string>
+    <string name="tts_live_no_destination">내비게이션에 목적지를 먼저 설정해 주세요. 그 목적지로 실제 주행 표를 발권합니다.</string>
     <string name="tts_precondition_manual">이 앱에서는 예열을 켤 수 없습니다. 차량 화면에서 배터리 예열을 켜 주세요.</string>
 
     <!-- 칸 이름 -->
@@ -147,7 +149,6 @@
     <string name="target_plus">+5%</string>
     <string name="target_minus_desc">목표를 5퍼센트 낮추기</string>
     <string name="target_plus_desc">목표를 5퍼센트 높이기</string>
-    <string name="label_power">출력</string>
     <string name="label_power_estimated">추정 출력</string>
     <string name="curve_title">예상 출력</string>
     <string name="curve_desc">충전 출력 곡선. 지금 %1$d퍼센트에서 약 %2$d킬로와트, 목표 %3$d퍼센트</string>

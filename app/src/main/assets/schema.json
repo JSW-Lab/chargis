@@ -1,0 +1,47 @@
+{
+  "packageName": "com.chargis.app",
+  "appDescription": "A long-distance EV charging assistant that tells the driver where to charge on the route, up to what battery level, and for how long.",
+  "invokeWord": "차지스",
+  "version": "1.0.0",
+  "actionCalls": [
+    {
+      "type": "function",
+      "function": {
+        "name": "GET_CHARGING_PLAN",
+        "description": "Tells the next recommended EV charging stop on the current trip, the target battery level, and the expected charging time.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "component": "service"
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "GET_CHARGING_STATUS",
+        "description": "Tells the current EV battery level and, while charging, the time left to the target, the charger time limit, and the departure time.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "component": "service"
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "ACCEPT_CHARGING_STOP",
+        "description": "Accepts the charging stop that Chargis just recommended and adds it to the navigation as a waypoint.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "component": "service"
+      }
+    }
+  ]
+}

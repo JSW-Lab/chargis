@@ -32,6 +32,7 @@ import com.chargis.app.data.store.PrefsTripStore
 import com.chargis.app.port.SettingsStore
 import com.chargis.app.port.SttPort
 import com.chargis.app.port.TripStore
+import com.chargis.app.port.LiveRoutePort
 import com.chargis.app.port.NaviPort
 import com.chargis.app.port.VehiclePort
 import com.chargis.app.sim.ScenarioSimulator
@@ -49,7 +50,7 @@ import com.chargis.app.voice.VoicePhrases
  * 나중에 실제 차량 SDK가 나오면 이 파일에서 Fake를 SDK 구현체로 바꾸기만 하면 된다.
  */
 class AppContainer(context: Context) {
-    private val app = context.applicationContext
+    val app: Context = context.applicationContext
 
     // 앱에 함께 들어 있는 샘플 데이터(차종, 충전소, 경로 JSON 파일)를 읽어 온다.
     val catalog = AssetCatalog(
@@ -75,6 +76,8 @@ class AppContainer(context: Context) {
         if (app.packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)) sdkScope.launch { n.connect() }
     }
     val navi: NaviPort = HybridNavi(FakeNavi(simulator), pleosNavi)
+    // 실제 주행: 순정 내비에 설정한 목적지로 여행을 시작한다. Pleos 차량(Automotive)에서만 쓴다.
+    val liveRoute: LiveRoutePort? = pleosNavi.takeIf { app.packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE) }
     val vehicle: VehiclePort = FakeVehicle(simulator)
     // 충전소 정보: 공공데이터를 켜 두었고 키(개발용 빌드) 또는 프록시 주소가 있으면 공공데이터를 먼저,
     // 실패하면 번들 샘플로 넘어간다(B5). 조회할 시도는 경로가 지나는 곳으로 그때그때 고른다.
@@ -86,7 +89,8 @@ class AppContainer(context: Context) {
                     UrlEvChargerHttp(BuildConfig.CHARGER_API_KEY, proxyUrl ?: UrlEvChargerHttp.DEFAULT_BASE, appToken = BuildConfig.CHARGER_API_TOKEN),
                     rules = ChargerRuleTable.parse(readAsset("charger_rules.json"))
                 ),
-                fallback = FakeChargerData(simulator)
+                fallback = FakeChargerData(simulator),
+                onFallback = { e -> android.util.Log.w("ChargisData", "public charger data unavailable; using bundled stations", e) }
             )
         } else {
             FakeChargerData(simulator)

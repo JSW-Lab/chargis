@@ -34,7 +34,9 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:screenOrientation="unspecified">
+            <!-- singleTask: Gleo AI나 런처가 다시 열어도 화면을 하나만 둔다. 둘이 뜨면 여행 컨트롤러도 둘이 되어 안내가 겹친다(2026-11-03 Pleos 에뮬레이터). -->
             <!-- 주행 중에도 쓰는 앱이라는 선언(Distraction Optimization). 없으면 Pleos Connect가 주행 중 앱을 막는다. -->
             <meta-data
                 android:name="distractionOptimized"
@@ -44,6 +46,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Gleo AI 연동: assets/schema.json의 함수를 "패키지명.함수명" action으로 받는다(에뮬레이터 v2.1.0 실측). -->
+        <receiver
+            android:name=".data.sdk.GleoActionReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.chargis.app.GET_CHARGING_PLAN" />
+                <action android:name="com.chargis.app.GET_CHARGING_STATUS" />
+                <action android:name="com.chargis.app.ACCEPT_CHARGING_STOP" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

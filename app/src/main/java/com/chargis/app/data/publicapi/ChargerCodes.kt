@@ -3,7 +3,7 @@ package com.chargis.app.data.publicapi
 import com.chargis.app.domain.model.ConnectorType
 import com.chargis.app.domain.model.StationKind
 
-// 공공데이터 시설 구분·충전기 타입 코드표(PublicChargerData.kt에서 분리). 실제 응답으로 확인이 필요하다.
+// 공공데이터 시설 구분·충전기 타입 코드표(PublicChargerData.kt에서 분리). 2026-11-03 실제 응답(강원·경기)으로 코드가 오는 것을 확인했다.
 
 /**
  * 시설 구분 코드(kind/kindDetail)를 [StationKind]로 바꾸고, 외부인이 쓰기 어려운 시설을 가려낸다.
@@ -21,6 +21,13 @@ object StationKinds {
         "I001", "I002", "I004", "I006", "I007", "I008",
         "J001", "J002", "J003"
     )
+
+    /**
+     * 목록 API에서 받을 시설 구분(대분류): 휴게소·쉼터(C0), 공공시설(A0), 주차시설(B0), 상업시설(E0).
+     * 시도 전체를 받으면 경기도만 156,859대(대부분 공동주택 H0)라 차량에서 받을 수 없다. 앱이 어차피 빼는 시설은 처음부터 받지 않는다.
+     * 휴게소·쉼터는 전국에 2,585대뿐이다(2026-11-03 실키 확인).
+     */
+    val FETCH_KINDS = listOf("C0", "A0", "B0", "E0")
 
     /** 이 충전기가 있는 시설이 외부인에게 열려 있다고 볼 수 있는지(시설 종류만 본다). */
     fun isOpenFacility(item: ChargerItem): Boolean =

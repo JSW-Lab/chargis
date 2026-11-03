@@ -37,7 +37,7 @@ class TripPresenter(
     ): TripUiState {
         val v = m.lastVehicle
         val route = m.lastRoute
-        val clock = Clock(scenario.startHour)
+        val clock = Clock(scenario.startHour, scenario.startMinute)
         return prev.copy(
             phase = m.phase,
             isDriving = v?.isDriving ?: false,
@@ -45,7 +45,7 @@ class TripPresenter(
             dataSource = v?.source ?: prev.dataSource,
             remainingKm = route?.remainingDistanceKm ?: 0.0,
             scenarioTitle = scenario.title,
-            ticketNo = "%s-%02d00".format(scenario.id, scenario.startHour),
+            ticketNo = "%s-%02d%02d".format(scenario.id, scenario.startHour, scenario.startMinute),
             departAt = clock.text(0.0),
             clock = clock.text(sim.simTimeSec),
             eta = route?.remainingTimeMin?.let { min -> clock.text(sim.simTimeSec + min * 60) } ?: prev.eta,
@@ -54,8 +54,7 @@ class TripPresenter(
             receipt = buildReceipt(m, scenario, declinedIds, clock),
             card = buildCard(m, sim, clock),
             stop = buildStop(m, sim, scenario.profile, config, clock)?.copy(manualSoc = manualSoc),
-            candidates = (m.lastResult as? RecommendationResult.Recommended)
-                ?.let { r -> listOf(r.primary) + r.alternatives }.orEmpty(),
+            candidates = candidatesOf(m),
             energy = energy,
             profileName = scenario.profile.displayName,
             dev = DevState(
@@ -65,6 +64,18 @@ class TripPresenter(
                 paused = sim.paused
             )
         )
+    }
+
+    /**
+     * 정차 화면 비교 표("앞으로의 충전소")에 보여 줄 후보.
+     * 정차 중에는 지금 서 있는 충전소는 빼고, 남은 후보가 없으면(도착 배터리로는 다음 충전소까지 못 간다고 나온 경우, S3 E 휴게소)
+     * 이 충전소에서 채우고 떠날 배터리로 본 후보를 쓴다.
+     */
+    private fun candidatesOf(m: TripMemory): List<Recommendation> {
+        fun list(r: RecommendationResult?) = (r as? RecommendationResult.Recommended)?.let { listOf(it.primary) + it.alternatives }.orEmpty()
+        if (m.phase !in STOP_PHASES) return list(m.lastResult)
+        val here = m.accepted?.station?.id
+        return list(m.lastResult).filter { it.station.id != here }.ifEmpty { list(m.stopResult) }
     }
 
     /** 주행 화면 아래쪽에 띄울 카드를 고른다: 추천 / 혼잡 비교 / 충전소로 이동 중 / 경고 / 평소 상태 */
@@ -130,7 +141,9 @@ class TripPresenter(
             TripPhase.NavigatingToCharger, TripPhase.Arrived, TripPhase.Charging -> m.accepted?.station?.id
             else -> null
         }
-        return sc.stations.map { s ->
+        // 실제 주행: 시나리오 충전소는 공공데이터가 없을 때 쓰는 번들 예비라, 띠에는 지금 실제로 고른 후보·수락·충전한 곳만 그린다.
+        val shown = if (sc.live) liveMarkStations(m, sc, traveledKm, chargedIds) else sc.stations
+        return shown.map { s ->
             val state = when {
                 s.id in chargedIds -> MarkState.CHARGED
                 s.id == targetId -> MarkState.TARGET
@@ -140,6 +153,15 @@ class TripPresenter(
             }
             RouteMark(s.id, s.name, (s.distanceAlongRouteKm / sc.totalDistanceKm).toFloat(), state)
         }
+    }
+
+    // 실제 주행 띠에 그릴 충전소(출발점 기준 거리). 후보는 지금 위치 기준 거리라 달린 거리를 더한다.
+    private fun liveMarkStations(m: TripMemory, sc: Scenario, traveledKm: Double, chargedIds: Set<String>): List<ChargingStation> {
+        val candidates = (m.lastResult as? RecommendationResult.Recommended)
+            ?.let { r -> (listOf(r.primary) + r.alternatives).map { it.station } }.orEmpty()
+            .map { it.copy(distanceAlongRouteKm = it.distanceAlongRouteKm + traveledKm) }
+        val kept = sc.stations.filter { it.id in chargedIds || it.id == m.accepted?.station?.id }   // 수락·충전한 곳은 시나리오에 올라가 있다
+        return (kept + candidates).distinctBy { it.id }.sortedBy { it.distanceAlongRouteKm }
     }
 
     /** 통행권 모양 영수증에 들어갈 여행 기록(출발·도착 시각, 충전 내역, 거절한 충전소). */
@@ -239,16 +261,16 @@ class TripPresenter(
     }
 
     /** 시뮬레이터 경과 초를 "14:05" 같은 시각 글자로 바꾼다. 시나리오 출발 시각에서부터 센다. */
-    class Clock(private val startHour: Int) {
+    class Clock(private val startHour: Int, private val startMinute: Int = 0) {
         fun text(simSec: Double): String {
-            val total = startHour * 3600 + simSec.toLong()
+            val total = startHour * 3600 + startMinute * 60 + simSec.toLong()
             val h = (total / 3600) % 24
             val m = (total % 3600) / 60
             return "%02d:%02d".format(h, m)
         }
 
         /** 0시부터 센 분(대기 예측용, B4) */
-        fun minuteOfDay(simSec: Double): Int = ((startHour * 3600 + simSec.toLong()) / 60 % (24 * 60)).toInt()
+        fun minuteOfDay(simSec: Double): Int = ((startHour * 3600 + startMinute * 60 + simSec.toLong()) / 60 % (24 * 60)).toInt()
     }
 
     companion object {

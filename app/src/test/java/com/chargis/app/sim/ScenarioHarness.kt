@@ -47,6 +47,7 @@ internal object KeyPhrases : VoicePhrases {
     override fun needAnother() = "need_another"
     override fun congested(name: String, waitMin: Int, altName: String) = "congested:$name:$waitMin:$altName"
     override fun waypointAdded(name: String) = "waypoint:$name"
+    override fun waypointNoNaviDestination(name: String) = "waypoint_local:$name"
     override fun waypointFailed() = "waypoint_failed"
     override fun waypointsFull() = "waypoints_full"
     override fun ruleNotice(limitMin: Int) = "rule:$limitMin"
@@ -67,6 +68,7 @@ internal object KeyPhrases : VoicePhrases {
     override fun preconditionStarted() = "precondition_started"
     override fun preconditionManual() = "precondition_manual"
     override fun checkSoc() = "check_soc"
+    override fun liveNoDestination() = "live_no_destination"
 }
 
 // 테스트 한 번에 필요한 부품 묶음(시뮬레이터, 컨트롤러, 가짜 스피커)
@@ -78,7 +80,8 @@ internal fun TestScope.harness(
     navi: (ScenarioSimulator) -> NaviPort = ::FakeNavi,
     settings: UserSettings? = null,
     vehicle: (ScenarioSimulator) -> com.chargis.app.port.VehiclePort = ::FakeVehicle,
-    car: com.chargis.app.port.CarSignalsPort? = null
+    car: com.chargis.app.port.CarSignalsPort? = null,
+    liveRoute: com.chargis.app.port.LiveRoutePort? = null
 ): Harness {
     val sim = ScenarioSimulator(catalog.scenarios.first())
     val tts = Recorder()
@@ -95,7 +98,10 @@ internal fun TestScope.harness(
         profiles = catalog.profiles,
         tripStore = store,
         settingsStore = settings?.let(::InMemorySettingsStore),
-        car = car
+        car = car,
+        liveRoute = liveRoute,
+        liveStations = catalog.allStations,
+        now = { java.time.LocalTime.of(14, 30) }
     )
     runCurrent()
     return Harness(sim, controller, tts)

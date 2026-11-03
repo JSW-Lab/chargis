@@ -50,7 +50,7 @@ fun interface EvChargerHttp {
 class UrlEvChargerHttp(
     private val serviceKey: String?,
     private val baseUrl: String = DEFAULT_BASE,
-    private val timeoutMs: Int = 8_000,
+    private val timeoutMs: Int = 20_000,   // 9,999행 한 쪽이 약 8MB·5초(2026-11-03 실측)라 차량 통신에서 넉넉히 둔다
     private val appToken: String? = null
 ) : EvChargerHttp {
     override suspend fun get(operation: String, params: Map<String, String>): String = withContext(Dispatchers.IO) {
@@ -68,13 +68,22 @@ class UrlEvChargerHttp(
 
     /** 호출 주소. 테스트에서 키가 붙는지 확인할 수 있게 따로 뺐다. */
     fun urlFor(operation: String, params: Map<String, String>): String {
-        val key = serviceKey?.takeIf { it.isNotBlank() }?.let { mapOf("serviceKey" to it) }.orEmpty()
+        val key = serviceKey?.takeIf { it.isNotBlank() }?.let { mapOf("serviceKey" to decodeServiceKey(it)) }.orEmpty()
         val query = (params + key + mapOf("dataType" to "JSON"))
             .entries.joinToString("&") { (k, v) -> "$k=${URLEncoder.encode(v, Charsets.UTF_8.name())}" }
         return "${baseUrl.trimEnd('/')}/$operation?$query"
     }
 
     companion object {
+        /**
+         * data.go.kr은 같은 키를 Encoding(%2B 등)과 Decoding 두 형식으로 보여 준다. 주소를 만들 때 한 번 인코딩하므로,
+         * Encoding 값을 넣으면 두 번 인코딩되어 "등록되지 않은 서비스키"가 된다(2026-11-03 실제로 겪음). 어느 쪽을 넣어도 되게 푼다.
+         */
+        fun decodeServiceKey(key: String): String {
+            val k = key.trim()
+            return if ('%' in k) runCatching { java.net.URLDecoder.decode(k, Charsets.UTF_8.name()) }.getOrDefault(k) else k
+        }
+
         const val DEFAULT_BASE = "https://apis.data.go.kr/B552584/EvCharger"
         const val TOKEN_HEADER = "X-Chargis-Token"
     }
@@ -147,7 +156,8 @@ class PublicChargerData(
         var changed = zones != lastZones || connectors != lastConnectors
         val items = zones.flatMap { z ->
             info[z]?.takeIf { now - it.at < infoTtlMs }?.value
-                ?: fetch(z, "getChargerInfo", EvChargerParser::parseInfo).also { info[z] = Cached(it, now); changed = true }
+                ?: StationKinds.FETCH_KINDS.flatMap { k -> fetch(z, "getChargerInfo", EvChargerParser::parseInfo, mapOf("kind" to k)) }
+                    .also { info[z] = Cached(it, now); changed = true }
         }
         val statuses = zones.flatMap { z ->
             status[z]?.takeIf { now - it.at < statusTtlMs }?.value
@@ -162,10 +172,25 @@ class PublicChargerData(
         lastStations
     }
 
+    /**
+     * 한 시도(목록은 시설 구분 하나)를 끝까지 받는다. 한 번에 [PAGE_ROWS]개까지만 오므로 모자라게 온 쪽까지 쪽을 넘긴다.
+     * 실제로 강원(51)은 충전기 18,055대라 한 쪽만 받으면 절반이 빠진다(2026-11-03 실키 확인).
+     */
     private suspend fun <T> fetch(zone: String, op: String, parse: (String) -> List<T>, extra: Map<String, String> = emptyMap()): List<T> {
-        val body = http.get(op, extra + mapOf("pageNo" to "1", "numOfRows" to "9999", "zcode" to zone))
-        EvChargerParser.checkResult(body)
-        return parse(body)
+        val all = mutableListOf<T>()
+        for (page in 1..MAX_PAGES) {
+            val body = http.get(op, extra + mapOf("pageNo" to "$page", "numOfRows" to "$PAGE_ROWS", "zcode" to zone))
+            EvChargerParser.checkResult(body)
+            val rows = parse(body)
+            all += rows
+            if (rows.size < PAGE_ROWS) break
+        }
+        return all
+    }
+
+    private companion object {
+        const val PAGE_ROWS = 9999   // data.go.kr이 한 번에 주는 최대 행 수
+        const val MAX_PAGES = 3      // 시설 구분 하나는 경기도 상업시설(약 7,600대)도 한 쪽에 들어온다. 넉넉히 3쪽까지
     }
 }
 

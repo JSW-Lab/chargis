@@ -29,6 +29,9 @@ interface NaviPort {
     suspend fun addWaypoint(station: ChargingStation): Result<Unit>   // F4: 경유지 추가 + 재탐색
     suspend fun removeWaypoint(station: ChargingStation): Result<Unit> // 수락한 경유지를 다른 곳으로 바꿀 때 이전 것을 지운다
     suspend fun requestReRoute(): Result<Unit>                        // 경로 다시 찾기
+
+    /** 바로 전 [addWaypoint]가 순정 내비에 목적지가 없어 내비 경유지를 넣지 않고 앱 안에서만 성공했는지. */
+    val lastAddSkippedNavi: Boolean get() = false
 }
 
 /** 차량 연결. 배터리 %와 주행/정차 상태를 읽는다. */
@@ -69,6 +72,17 @@ interface TripEstimator {
 }
 
 data class TripEstimate(val distanceKm: Double, val etaMin: Int, val arrivalSocPercent: Int?)
+
+/** 순정 내비에 설정된 목적지와 거기까지 남은 거리·시간. */
+data class NaviDestination(val name: String, val location: GeoPoint, val remainingKm: Double, val remainingMin: Int)
+
+/** 실제 주행(순정 내비 목적지로 여행 시작)에 쓰는 순정 내비 값. Pleos가 아니거나 연결 전이면 모두 null이다. */
+interface LiveRoutePort {
+    /** 순정 내비 목적지와 남은 거리·시간. 목적지가 없으면 null */
+    suspend fun destination(): NaviDestination?
+    /** 차량의 실제 현재 위치. 모르면 null */
+    suspend fun currentLocation(): GeoPoint?
+}
 
 /** 순정 내비의 경유지 두 자리가 이미 다른 곳으로 차 있어 추가하지 못했다. */
 class WaypointsFullException : IllegalStateException("navi waypoints full")

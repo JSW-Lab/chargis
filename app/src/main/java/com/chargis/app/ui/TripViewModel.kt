@@ -5,6 +5,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.chargis.app.AppContainer
+import com.chargis.app.data.sdk.GleoBridge
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 /**
  * 화면과 [TripController]를 이어 주는 안드로이드용 보관함.
@@ -27,10 +31,20 @@ class TripViewModel(container: AppContainer) : ViewModel() {
         settingsStore = container.settingsStore,
         tripStore = container.tripStore,
         stt = container.stt,
-        car = container.car
+        car = container.car,
+        liveRoute = container.liveRoute,
+        liveStations = container.catalog.allStations
     )
 
     val state = controller.state
+
+    init {
+        // Gleo AI 연동: 상태가 바뀔 때마다 Gleo에 줄 답을 미리 만들어 저장하고, Gleo의 "거기로 가자"를 음성 명령 "수락"처럼 처리한다.
+        viewModelScope.launch {
+            state.map(GleoReplies::snapshot).distinctUntilChanged().collect { GleoBridge.save(container.app, it) }
+        }
+        viewModelScope.launch { GleoBridge.acceptRequests.collect { it.complete(controller.acceptForAssistant()) } }
+    }
 
     companion object {
         // 안드로이드가 ViewModel을 만들 때 AppContainer를 넘겨줄 수 있게 하는 "제작 설명서"
