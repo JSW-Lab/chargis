@@ -1,5 +1,6 @@
 package com.chargis.app.ui
 
+import com.chargis.app.port.UxLimits
 import com.chargis.app.domain.model.DataSource
 import com.chargis.app.domain.model.Recommendation
 import com.chargis.app.domain.model.UserSettings
@@ -214,7 +215,10 @@ data class TripUiState(
     val profiles: List<ProfileOption> = emptyList(),
     val profileName: String = "",               // 지금 고른 차종 이름
     val voice: VoiceUi = VoiceUi(),             // 음성 명령 상태(F5)
-    val uxRestricted: Boolean = false,          // 차가 움직여 주행 중 화면 제한이 걸렸는지(CarUxRestrictions, B6). 이때 정차 화면은 가린다
+    val uxLimits: UxLimits = UxLimits.NONE,     // 주행 중 화면 제한(CarUxRestrictions + ActiveRestrictions, B6). 기능별로 적용한다
     val restored: Boolean = false,              // 저장해 둔 여행을 이어서 보여 주는 중인지(B5)
     val loading: Boolean = true                 // 저장해 둔 여행을 아직 불러오는 중인지. 그동안은 발권 화면을 그리지 않는다
-)
+) {
+    /** 차가 움직여 정차 화면(스크롤·상세·입력·설정)을 가려야 하는지 */
+    val uxRestricted: Boolean get() = uxLimits.restricted
+}

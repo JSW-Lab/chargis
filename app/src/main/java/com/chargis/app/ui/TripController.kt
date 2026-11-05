@@ -232,8 +232,8 @@ class TripController(
     private fun withCarSoc(s: Scenario): Scenario = car?.socPercent?.value?.let { s.copy(startSoc = it.toDouble()) } ?: s
 
     private fun CoroutineScope.watchCar(car: CarSignalsPort) {
-        // 주행 중 화면 제한: 정차 화면(스크롤·상세)을 가린다.
-        launch { car.uxRestricted.collect { r -> _state.update { it.copy(uxRestricted = r) } } }
+        // 주행 중 화면 제한: 정차 화면을 가리고, 주행 카드·자막은 글자 수·항목 수 상한을 지킨다.
+        launch { car.uxLimits.collect { l -> _state.update { it.copy(uxLimits = l) } } }
         // 발권 표의 출발 배터리를 차량 값으로 보여 준다.
         launch {
             car.socPercent.collect { soc ->

@@ -1,6 +1,6 @@
 # PT 기술 Q&A 준비 자료
 
-> 2차 PT(2026-12-03~04)의 기술 Q&A에서 팀원이 **앱의 구조와 로직을 직접 설명**할 수 있도록 정리했습니다. 생성형 AI 도구를 써서 개발했으므로, 심사위원은 "이 코드를 이해하고 있는가"를 물을 수 있습니다(설명회 31:40).
+> 2차 PT(2026-12-03~04 예정, 세부 사항은 1차 통과 후 개별 안내라 공지 확인 필요)의 기술 Q&A에서 팀원이 **앱의 구조와 로직을 직접 설명**할 수 있도록 정리했습니다. 생성형 AI 도구를 써서 개발했으므로, 심사위원은 "이 코드를 이해하고 있는가"를 물을 수 있습니다(설명회 31:40).
 > 숫자와 파일 이름은 2026-10-28 코드 기준입니다. 코드가 바뀌면 이 문서도 함께 고칩니다.
 
 ---
@@ -43,7 +43,7 @@ TripController                상태머신 + 화면 상태 조립. 0.5km 또는 
 | SDK | 쓰는 곳(파일) | API | 퍼미션 | 핵심 기능과의 연결 |
 |---|---|---|---|---|
 | Vehicle 2.3.2 | `data/sdk/PleosCarSignals.kt` | `EvBattery` SoC 알림, 기어(`registerGearSelection`), 충전 스위치 | `CAR_ENERGY`, `CAR_DRIVE` | 발권할 때 출발 배터리, P면 가상 주행 정지, 충전 스위치 = 충전 시작·종료, 충전을 마친 뒤 D = 출발 |
-| (AAOS) CarUxRestrictions | 같은 파일 | `CarUxRestrictionsManager` | - | 주행 중이면 정차 화면(상세·스크롤)을 가림 |
+| (AAOS) CarUxRestrictions | 같은 파일, `port/Ports.kt`(UxLimits), `ui/UxText.kt` | `CarUxRestrictionsManager.registerListener`, `isRequiresDistractionOptimization`, `getActiveRestrictions`, `getMaxRestrictedStringLength`, `getMaxCumulativeContentItems` | - | 기능별 적용: DO 필요면 정차 화면(발권·상세·입력·설정·필터)을 가림, 글자 수 상한이면 주행 카드·자막 글자를 자름, 항목 수 상한이 작으면 보조 줄을 뺌 |
 | NaviHelper 3.0.5 | `data/sdk/PleosNavi.kt`, `RoadDistanceRefiner.kt` | `addWaypoint`·`removeWaypoint`·`requestReRoute`, `requestTrip`, `getCurrentLocationInfo` | `NAVI_ROUTE`, `NAVI_ROUTE_SEARCH` | 수락한 충전소를 순정 내비 경유지로 추가, 가까운 충전소 3곳의 실제 도로 거리 |
 | TextToSpeech 3.3.1 | `data/sdk/PleosSpeech.kt`(PleosTts) | `speak`·`stop`, EventListener | `TTS_SERVICE` | 모든 안내를 차량 오디오로 말함(On-device, 앱 등록 불필요) |
 | SpeechToText 3.3.1 | `data/sdk/PleosSpeech.kt`(PleosStt) | `request`·`stop`, ResultListener | `STT_SERVICE` | "수락", "다음", "충전 시작", "출발", "예열" 음성 명령 |
@@ -101,6 +101,7 @@ Idle → TripPlanned → Driving ⇄ AwaitingDecision → NavigatingToCharger �
 | 충전소 데이터는 어디서 오나? | 데모는 가상 샘플입니다. 환경부 공공데이터 어댑터와 키를 숨기는 중계 서버(`server/`)를 만들고 테스트했지만, 실제 키로는 아직 확인하지 못했습니다. |
 | 시간 제한 정보는 어디서 오나? | 공공데이터에는 시간 제한 항목이 없습니다. 운영기관별로 확인한 규칙을 출처와 함께 `charger_rules.json`에 적으면 그 값을 쓰고, 모르면 "정보 없음"으로 표시합니다. 데모의 "40분"은 가정값입니다. |
 | 주행 중 운전자 주의 분산은? | Distraction Optimization을 선언했고, 주행 중에는 카드 1장과 큰 버튼 2개만 보입니다. 같은 충전소는 한 번만 안내하고, CarUxRestrictions가 걸리면 상세 화면을 가립니다. 모든 안내는 음성으로도 나갑니다. |
+| ActiveRestrictions는 어떻게 반영했나? | DO를 선언한 앱도 제한을 직접 적용해야 합니다(운영사무국 답변 2026-11-05). `registerListener`로 바뀔 때마다 `getActiveRestrictions()` 비트를 기능별 값(`UxLimits`)으로 옮깁니다. NO_KEYBOARD·NO_SETUP·NO_FILTERING에 걸리는 직접 입력·설정·필터는 정차 화면에만 있어 함께 가립니다. LIMIT_STRING_LENGTH면 주행 카드와 자막을 `getMaxRestrictedStringLength()` 길이로 자르고, LIMIT_CONTENT 상한이 카드 항목 수(16)보다 작으면 종류·우회, 이유 도장 같은 보조 줄을 뺍니다. NO_VOICE_TRANSCRIPTION: 인식한 말은 화면에 쓰지 않습니다. FULLY_RESTRICTED는 모든 비트가 켜진 값이라 위 규칙이 모두 적용됩니다. 개발용 빌드 오버레이와 Logcat(`ChargisCar`)에 지금 제한이 보입니다. |
 | 음성 인식이 안내 음성을 다시 듣지 않나? | 아직 확인하지 못했습니다(OPEN_ISSUES). Pleos 에뮬레이터 마이크로 확인할 계획입니다. |
 | 배터리 온도·충전 출력은? | Vehicle SDK에 없습니다. 온도는 바깥 기온으로 어림하고, 출력은 충전 곡선에서 읽은 값을 "추정 출력"으로 표시합니다. |
 | 전비가 사양과 다르면? | 출발 직후에는 기온으로 어림하고, 달리면서 최근 40km의 실제 배터리 감소로 보정합니다(S4). 오르막은 고도 몫을 따로 빼서 "전비가 나쁘다"로 오해하지 않습니다(S6). |

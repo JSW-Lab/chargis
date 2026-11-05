@@ -26,7 +26,7 @@ class CarSignalsFlowTest {
         override val socPercent = MutableStateFlow(soc)
         override val parked = MutableStateFlow<Boolean?>(false)
         override val chargeSwitchOn = MutableStateFlow<Boolean?>(false)
-        override val uxRestricted = MutableStateFlow(false)
+        override val uxLimits = MutableStateFlow(com.chargis.app.port.UxLimits.NONE)
     }
 
     /** 차량 배터리 %가 발권 표와 출발 배터리가 된다. */
@@ -146,9 +146,14 @@ class CarSignalsFlowTest {
         val h = harness(car = car)
         runCurrent()
         assertFalse(h.controller.state.value.uxRestricted)
-        car.uxRestricted.value = true
+        car.uxLimits.value = com.chargis.app.port.UxLimits(restricted = true, maxStringLength = 20, maxContentItems = 8, activeBits = 0x1ff)
         runCurrent()
         assertTrue(h.controller.state.value.uxRestricted)
+        assertEquals(20, h.controller.state.value.uxLimits.maxStringLength)
+        assertTrue(h.controller.state.value.uxLimits.trimSecondary)
+        car.uxLimits.value = com.chargis.app.port.UxLimits.NONE
+        runCurrent()
+        assertFalse(h.controller.state.value.uxRestricted)
     }
 
     /** 순정 내비 경유지 두 자리가 차 있으면 수락하지 않고 "경유지 가득" 안내를 한다. */

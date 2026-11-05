@@ -88,6 +88,8 @@ fun sourceLabel(source: DataSource) = stringResource(
  * 음성 안내 자막 줄. 소리를 못 들은 동승자도 읽을 수 있게 화면 맨 아래에 띄운다.
  * 오른쪽에는 음성 명령을 듣는 중이면 마이크와 "말하기: 수락 / 다음"을 붙인다(F5).
  * 자막이 없을 때 [note](예: 이전 여행 복원 안내)가 있으면 그것을 흐리게 보여 준다. 보여 줄 것이 없으면 그리지 않는다.
+ * 자막은 앱이 읽어 주는 안내 문장이고, 음성 명령으로 알아들은 말은 쓰지 않는다(NO_VOICE_TRANSCRIPTION).
+ * 주행 중 글자 수 상한(LIMIT_STRING_LENGTH)이 있으면 그 길이에 맞춰 자른다.
  */
 @Composable
 fun CaptionBar(caption: String?, modifier: Modifier = Modifier, voice: VoiceUi = VoiceUi(), note: String? = null) {
@@ -104,7 +106,7 @@ fun CaptionBar(caption: String?, modifier: Modifier = Modifier, voice: VoiceUi =
             if (text != null) {
                 SpeakerGlyph()
                 Text(
-                    text, style = MaterialTheme.typography.bodyLarge, color = if (caption.isNullOrBlank()) c.inkMuted else c.ink,
+                    uxText(text), style = MaterialTheme.typography.bodyLarge, color = if (caption.isNullOrBlank()) c.inkMuted else c.ink,
                     maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f)
                 )
             } else {

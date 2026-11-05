@@ -249,4 +249,5 @@
     <string name="dev_jump">+%1$dkm</string>
     <string name="dev_speed">%1$d×</string>
     <string name="dev_clock">%1$s · %2$.1fkm</string>
+    <string name="dev_ux" translatable="false">UX 제한 %1$s</string>
 </resources>

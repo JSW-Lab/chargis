@@ -57,6 +57,32 @@ class ScreenTest {
         waitSource = WaitSource.LIVE    // 대기는 알고 있다(시간 제한 칸만 "정보 없음"이 되게)
     )
 
+    /** 주행 중 화면 제한: 글자 수 상한에 맞춰 이름을 자르고, 항목 수 상한이 작으면 종류·우회 보조 줄을 뺀다. 버튼은 남는다. */
+    @Test
+    fun recommendCard_followsUxLimits() {
+        compose.setContent {
+            ChargisTheme(night = true) {
+                androidx.compose.runtime.CompositionLocalProvider(
+                    LocalUxLimits provides com.chargis.app.port.UxLimits(restricted = true, maxStringLength = 3, maxContentItems = 8, activeBits = 0x1ff)
+                ) {
+                    DriveCardScreen(
+                        card = DriveCard.Recommend(rec),
+                        eta = "11:20",
+                        remainingKm = 160.0,
+                        meta = TicketMeta("S5-1100", "11:00"),
+                        routeMarks = emptyList(),
+                        progress = 0.2f,
+                        onAccept = {},
+                        onDecline = {}
+                    )
+                }
+            }
+        }
+        compose.onNodeWithText("I…").assertIsDisplayed()
+        compose.onAllNodesWithText("상업시설 · 왕복 5km 우회 · 10:00~22:00 운영").assertCountEquals(0)
+        compose.onNodeWithText("경유지로 수락").assertIsDisplayed()
+    }
+
     /** 추천 카드: 휴게소가 아닌 곳은 종류·왕복 우회·운영 시간을 덧붙이고, 확인하지 못한 시간 제한은 "정보 없음", 버튼은 "다음 충전소". */
     @Test
     fun recommendCard_showsOffRouteMetaAndUnknownLimit() {

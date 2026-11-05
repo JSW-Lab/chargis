@@ -63,7 +63,8 @@ fun ChargisRoot(controller: TripController) {
     val c = Ticket.colors
     VoicePermission(state.settings.voiceCommands, controller)
 
-    CompositionLocalProvider(LocalContentColor provides c.ink) {
+    // LocalUxLimits: 주행 카드와 자막이 주행 중 화면 제한(글자 수·항목 수 상한)을 꺼내 쓴다.
+    CompositionLocalProvider(LocalContentColor provides c.ink, LocalUxLimits provides state.uxLimits) {
         // safeDrawingPadding: 상태 표시줄이나 화면 모서리에 내용이 가리지 않게 여백을 둔다.
         Box(Modifier.fillMaxSize().background(c.ground).safeDrawingPadding()) {
             Column(Modifier.fillMaxSize()) {
@@ -112,7 +113,7 @@ fun ChargisRoot(controller: TripController) {
             }
             // 개발용 빌드에서만 오른쪽 위에 시연 도구를 띄운다(build.gradle.kts의 DEV_OVERLAY).
             if (BuildConfig.DEV_OVERLAY) {
-                DevOverlay(state.dev, controller, Modifier.align(Alignment.TopEnd).padding(top = 64.dp, end = 32.dp))
+                DevOverlay(state.dev, state.uxLimits, controller, Modifier.align(Alignment.TopEnd).padding(top = 64.dp, end = 32.dp))
             }
         }
     }
@@ -159,7 +160,7 @@ private fun VoicePermission(enabled: Boolean, controller: TripController) {
 
 /** 데모 전용 개발자 오버레이(배속·일시정지·점프). 기본은 접힌 꼬리표 하나. 릴리스 빌드에선 없다. */
 @Composable
-private fun DevOverlay(dev: DevState, controller: TripController, modifier: Modifier = Modifier) {
+private fun DevOverlay(dev: DevState, ux: com.chargis.app.port.UxLimits, controller: TripController, modifier: Modifier = Modifier) {
     val c = Ticket.colors
     // 펼침/접힘 상태. rememberSaveable이라 화면을 돌려도 유지된다.
     var open by rememberSaveable { mutableStateOf(false) }
@@ -181,6 +182,8 @@ private fun DevOverlay(dev: DevState, controller: TripController, modifier: Modi
             Text(stringResource(R.string.dev_toggle), style = MaterialTheme.typography.labelMedium, color = c.inkMuted)
         }
         if (open) {
+            // 지금 걸린 주행 중 화면 제한(CarUxRestrictions + ActiveRestrictions). 시연 때 제한이 반영되는지 보여 준다.
+            Text(stringResource(R.string.dev_ux, ux.summary()), style = MaterialTheme.typography.labelMedium, color = c.inkMuted, modifier = Modifier.padding(horizontal = 14.dp))
             // 시간 배속: 1배, 5배, 20배, 60배
             Row(Modifier.padding(horizontal = 6.dp)) {
                 listOf(1, 5, 20, 60).forEach { m ->

@@ -60,8 +60,45 @@ interface CarSignalsPort {
     val parked: StateFlow<Boolean?>
     /** 충전 스위치(충전 중)가 켜졌으면 true */
     val chargeSwitchOn: StateFlow<Boolean?>
-    /** 주행 중 화면 제한(CarUxRestrictions의 Distraction Optimization 필요)이면 true */
-    val uxRestricted: StateFlow<Boolean>
+    /** 주행 중 화면 제한(CarUxRestrictions + ActiveRestrictions)을 기능별로 옮긴 값 */
+    val uxLimits: StateFlow<UxLimits>
+}
+
+/**
+ * 주행 중 화면 제한을 기능별로 옮긴 값. android.car에 기대지 않아 테스트에서도 쓸 수 있다.
+ * 값은 CarUxRestrictions의 isRequiresDistractionOptimization()과 getActiveRestrictions() 비트마스크에서 온다.
+ * UX_RESTRICTIONS_FULLY_RESTRICTED는 모든 비트가 켜진 값이라 아래 항목이 모두 켜진다.
+ */
+data class UxLimits(
+    /** Distraction Optimization 필요(차가 움직임). 정차 화면(발권·상세·스크롤)을 가린다. */
+    val restricted: Boolean = false,
+    /** NO_KEYBOARD: 글자 입력 금지. 배터리 직접 입력은 정차 화면에만 있어 [restricted]와 함께 가려진다. */
+    val noKeyboard: Boolean = false,
+    /** NO_SETUP: 설정 금지. 설정 화면은 정차 화면에만 있어 함께 가려진다. */
+    val noSetup: Boolean = false,
+    /** NO_FILTERING: 목록 거르기 금지. "휴게소·쉼터만" 필터는 설정 화면에만 있어 함께 가려진다. */
+    val noFiltering: Boolean = false,
+    /** NO_VOICE_TRANSCRIPTION: 받아쓴 말 표시 금지. 앱은 인식한 말을 화면에 쓰지 않는다(자막은 앱이 읽어 주는 안내다). */
+    val noVoiceTranscription: Boolean = false,
+    /** LIMIT_STRING_LENGTH일 때 화면 글자 한 줄의 상한(getMaxRestrictedStringLength). 없으면 null */
+    val maxStringLength: Int? = null,
+    /** LIMIT_CONTENT일 때 한 화면 항목 수 상한(getMaxCumulativeContentItems). 없으면 null */
+    val maxContentItems: Int? = null,
+    /** 원래 비트마스크. 기록과 개발용 화면에만 쓴다. */
+    val activeBits: Int = 0
+) {
+    /** 항목 수 상한이 주행 카드의 최대 항목 수보다 작으면 보조 줄(종류·우회, 이유 도장, 전비 메모 등)을 뺀다. */
+    val trimSecondary: Boolean get() = maxContentItems != null && maxContentItems < DRIVE_CARD_MAX_ITEMS
+
+    /** 기록·개발 화면용 한 줄. 예) "do=true bits=0x1ff str=120 items=21" */
+    fun summary(): String =
+        "do=$restricted bits=0x${Integer.toHexString(activeBits)} str=${maxStringLength ?: "-"} items=${maxContentItems ?: "-"}"
+
+    companion object {
+        val NONE = UxLimits()
+        /** 추천 카드 한 장에 들어가는 항목 수의 최대치(거리·이름·보조 줄·도장 2·숫자 칸 6·경고 2·버튼 2 등) */
+        const val DRIVE_CARD_MAX_ITEMS = 16
+    }
 }
 
 /** 순정 내비의 경로 예측(requestTrip). 현재 위치에서 충전소까지의 실제 도로 거리·시간·도착 배터리. */

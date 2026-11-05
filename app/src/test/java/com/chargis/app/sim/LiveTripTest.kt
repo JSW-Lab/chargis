@@ -40,7 +40,7 @@ class LiveTripTest {
         override val socPercent = MutableStateFlow<Int?>(soc)
         override val parked = MutableStateFlow<Boolean?>(false)
         override val chargeSwitchOn = MutableStateFlow<Boolean?>(false)
-        override val uxRestricted = MutableStateFlow(false)
+        override val uxLimits = MutableStateFlow(com.chargis.app.port.UxLimits.NONE)
     }
 
     // 실제 시간 [ms]만큼 흐르게 한다: 시뮬레이터 시계(실제 주행은 1배속)와 내비 값을 받는 작업을 함께 돌린다.
