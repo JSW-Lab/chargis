@@ -54,6 +54,18 @@ interface VoicePhrases {
     fun checkSoc(): String
     /** 실제 주행을 발권하려는데 순정 내비에 목적지가 없을 때. */
     fun liveNoDestination(): String
+    /** 충전을 시작하며 차량 충전 한도를 [limit]%로 넣었을 때(A). */
+    fun carLimitSet(limit: Int): String
+    /** 목표에 닿아 Chargis가 차량 충전을 껐을 때(A). */
+    fun carChargeStopped(): String
+    /** 차량 충전 한도나 충전 끄기를 차가 받지 않았을 때(A). */
+    fun carControlFailed(): String
+    /** 경유지를 넣었는데 순정 내비가 스스로 넣은 충전 경유지가 경로에 남아 있을 때(B). 그곳은 들르지 않아도 된다고 알린다. */
+    fun waypointWithNaviStop(naviName: String, name: String): String
+    /** Chargis 충전소로 가는 중에 순정 내비가 다른 충전소를 경로에 넣었을 때(B). */
+    fun naviStopSkip(naviName: String): String
+    /** 실제 주행: 순정 내비가 고른 충전소보다 Chargis 추천이 [fasterMin]분 빨리 도착할 때(C). */
+    fun naviCompare(naviName: String, name: String, fasterMin: Int): String
 }
 
 /** strings.xml에서 문구를 꺼내 숫자·이름을 끼워 넣는 실제 구현체. */
@@ -94,6 +106,12 @@ class AndroidVoicePhrases(private val context: Context) : VoicePhrases {
     override fun preconditionManual() = s(R.string.tts_precondition_manual)
     override fun checkSoc() = s(R.string.tts_check_soc)
     override fun liveNoDestination() = s(R.string.tts_live_no_destination)
+    override fun carLimitSet(limit: Int) = s(R.string.tts_car_limit_set, limit)
+    override fun carChargeStopped() = s(R.string.tts_car_charge_stopped)
+    override fun carControlFailed() = s(R.string.tts_car_control_failed)
+    override fun waypointWithNaviStop(naviName: String, name: String) = s(R.string.tts_waypoint_with_navi_stop, naviName, name)
+    override fun naviStopSkip(naviName: String) = s(R.string.tts_navi_stop_skip, naviName)
+    override fun naviCompare(naviName: String, name: String, fasterMin: Int) = s(R.string.tts_navi_compare, naviName, name, fasterMin)
 
     // strings.xml의 문구 [id]에 [args]를 차례로 끼워 넣는다. 예) "%1$s를 추천합니다" → "B 휴게소를 추천합니다"
     private fun s(id: Int, vararg args: Any) = context.getString(id, *args)

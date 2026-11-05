@@ -1,9 +1,12 @@
 package com.chargis.app.ui
 
 import com.chargis.app.domain.engine.AnnouncementGate
+import com.chargis.app.domain.engine.ChargeLimit
 import com.chargis.app.domain.engine.ChargeMath
 import com.chargis.app.domain.engine.RecommendationEngine
+import com.chargis.app.domain.model.ChargerRule
 import com.chargis.app.domain.model.ChargingStation
+import com.chargis.app.domain.model.StationKind
 import com.chargis.app.domain.model.Priority
 import com.chargis.app.domain.model.RecommendContext
 import com.chargis.app.domain.model.Recommendation
@@ -22,7 +25,9 @@ import com.chargis.app.domain.session.TripStateMachine
 import com.chargis.app.data.publicapi.RouteProjector
 import com.chargis.app.domain.model.GeoPoint
 import com.chargis.app.port.CarSignalsPort
+import com.chargis.app.port.ChargeControlPort
 import com.chargis.app.port.LiveRoutePort
+import com.chargis.app.port.NaviChargingStop
 import com.chargis.app.port.NaviDestination
 import com.chargis.app.port.ChargerDataPort
 import com.chargis.app.port.NaviPort
@@ -89,7 +94,9 @@ class TripController(
     private val car: CarSignalsPort? = null,                   // 실제 차량 신호(하이브리드 데모, B5·B6). 없으면 데모 값만
     private val liveRoute: LiveRoutePort? = null,              // 순정 내비 목적지·위치(실제 주행). 없으면 데모 시나리오만
     private val liveStations: List<ChargingStation> = emptyList(),  // 실제 주행에서 공공데이터가 없을 때 경로 근처에서 고를 번들 충전소
-    private val now: () -> LocalTime = { LocalTime.now() }     // 실제 주행 발권 시각(테스트에서 바꿔 끼운다)
+    private val now: () -> LocalTime = { LocalTime.now() },    // 실제 주행 발권 시각(테스트에서 바꿔 끼운다)
+    private val chargeControl: ChargeControlPort? = null,       // 차량 충전 한도·충전 끄기(A). 없거나 쓸 수 없으면 안내만
+    private val naviStop: StateFlow<NaviChargingStop?>? = null  // 순정 내비가 경로에 넣은 충전 경유지(C). 실제 주행에서만 비교한다
 ) {
     private var config = baseConfig
     private var engine = RecommendationEngine(config)
@@ -142,6 +149,8 @@ class TripController(
             }
             // 실제 차량 신호에 반응한다(하이브리드 데모).
             car?.let { watchCar(it) }
+            // 순정 내비가 경로에 스스로 넣은 충전소를 지켜본다(B). 재탐색 뒤에야 알려 주므로 수락 뒤에도 본다.
+            naviStop?.let { flow -> launch { flow.collect(::onNaviStop) } }
             // 순정 내비에 목적지가 있으면 발권 화면 맨 위에 실제 주행 표를 보여 준다.
             liveRoute?.let { route -> launch { offerLiveTicket(route) } }
             // 저장 요청을 하나씩 순서대로 기기에 쓴다.
@@ -206,13 +215,22 @@ class TripController(
                     navi.requestReRoute()
                     // 1순위 대신 대안을 골랐다면 1순위는 거절한 것으로 친다.
                     if (rec.station.id != current.primary.station.id) gate.markDeclined(current.primary.station.id)
+                    // 혼잡 비교에서 붐비는 곳 대신 대안을 골랐으면 영수증 비교에 센다(D).
+                    if (current.congested && rec.station.id != current.primary.station.id) m.congestionAvoided++
                     gate.markAnnounced(rec.station.id)
                     m.accepted = rec
                     m.preconditionAdvised = false
                     m.offer = null
+                    m.naviCompare = null
                     transition(TripEvent.Accepted)
+                    val naviOwn = navi.lastNaviOwnStop
+                    m.naviStopNoted = naviOwn
                     announcer.announce(
-                        if (navi.lastAddSkippedNavi) phrases.waypointNoNaviDestination(rec.station.name) else phrases.waypointAdded(rec.station.name)
+                        when {
+                            navi.lastAddSkippedNavi -> phrases.waypointNoNaviDestination(rec.station.name)
+                            naviOwn != null -> phrases.waypointWithNaviStop(naviOwn, rec.station.name)
+                            else -> phrases.waypointAdded(rec.station.name)
+                        }
                     )
                 }
                 .onFailure { e ->
@@ -285,6 +303,7 @@ class TripController(
         val current = m.offer ?: return
         gate.markDeclined(current.primary.station.id)
         m.offer = null
+        m.naviCompare = null
         transition(TripEvent.Declined)
     }
 
@@ -306,6 +325,7 @@ class TripController(
         // 충전 시작 감지 SDK가 없으므로 버튼으로 시작한다(§8.1). 데모에선 충전기가 제한 시각에 스스로 끊는다.
         demo.startCharging(rec.targetSocPercent, rec.timeLimitMin)
         transition(TripEvent.ChargingStarted)
+        applyCarLimit(rec.targetSocPercent, announce = true)
         // 시간 제한이 있으면 "이 충전기는 N분 제한입니다" 안내
         val started = session.start(now, soc)
         scope.launch {
@@ -323,6 +343,7 @@ class TripController(
         recordCharge()
         transition(TripEvent.ChargingFinished)
         demo.stopCharging()
+        stopCarCharging(reachedTarget = false)
     }
 
     /**
@@ -343,6 +364,7 @@ class TripController(
                 m.accepted = rec.copy(targetSocPercent = next)
                 demo.setChargeTarget(next)
                 scope.launch { announcer.announce(phrases.targetChanged(next)) }
+                applyCarLimit(next, announce = false)
             }
             else -> return
         }
@@ -379,7 +401,54 @@ class TripController(
         m.stopResult = null
         m.endedByLimit = false
         m.preconditionAdvised = false
+        restoreCarLimit()
         if (charged) scope.launch { announcer.announce(phrases.resume()) }
+    }
+
+    // ---- 차량 충전 제어(A) ----
+    // Chargis가 목표에서 직접 충전을 끄고, 차량 충전 한도는 끄지 못했을 때를 위한 안전장치로 목표 + 여유로 넣는다(ChargeLimit).
+
+    private fun canControlCharging() = chargeControl?.canControl == true
+
+    /** 목표 [target]%에 맞춰 차량 충전 한도를 넣는다. 실패하면 이번 여행에서 한 번만 알린다. */
+    private fun applyCarLimit(target: Double, announce: Boolean) {
+        val control = chargeControl ?: return
+        if (!control.canControl) return
+        val wanted = ChargeLimit.forTarget(target)
+        scope.launch {
+            control.setChargeLimit(wanted)
+                .onSuccess { set ->
+                    m.carLimit = set
+                    publish()
+                    if (announce) announcer.announce(phrases.carLimitSet(set))
+                }
+                .onFailure { warnCarControl() }
+        }
+    }
+
+    /** 충전이 끝났으니 차량 충전을 끈다. [reachedTarget]이면 목표에서 멈췄다고 알린다. */
+    private fun stopCarCharging(reachedTarget: Boolean) {
+        val control = chargeControl ?: return
+        if (!control.canControl) return
+        scope.launch {
+            control.stopCharging()
+                .onSuccess { if (reachedTarget) announcer.announce(phrases.carChargeStopped()) }
+                .onFailure { warnCarControl() }
+        }
+    }
+
+    /** 충전소를 떠날 때 차량 충전 한도를 되돌린다(원래 값을 읽을 수 없어 [ChargeLimit.RESTORE]). */
+    private fun restoreCarLimit() {
+        val control = chargeControl ?: return
+        if (m.carLimit == null || !control.canControl) return
+        m.carLimit = null
+        scope.launch { control.setChargeLimit(ChargeLimit.RESTORE) }
+    }
+
+    private suspend fun warnCarControl() {
+        if (m.carLimitWarned) return
+        m.carLimitWarned = true
+        announcer.announce(phrases.carControlFailed())
     }
 
     /**
@@ -453,6 +522,13 @@ class TripController(
             lastAcceptError is WaypointsFullException -> AcceptOutcome.WAYPOINTS_FULL
             else -> AcceptOutcome.FAILED
         }
+    }
+
+    /** Gleo AI의 "다른 데로 해 줘"(E): 화면의 [다음 충전소]와 같다. */
+    fun declineForAssistant(): DeclineOutcome {
+        if (m.phase != TripPhase.AwaitingDecision || m.offer == null) return DeclineOutcome.NOTHING_TO_DECLINE
+        decline()
+        return DeclineOutcome.DECLINED
     }
 
     /** 마이크 권한을 새로 받았을 때처럼, 음성 명령 듣기를 다시 시작한다(F5). */
@@ -577,6 +653,7 @@ class TripController(
                     is RecommendationResult.NoSafeStop -> 1
                     RecommendationResult.NotNeeded -> 0
                 }
+                m.habitBase = habitBaseFor(result, route, vehicleState)
                 transition(TripEvent.PlanEvaluated)
                 announcer.announce(phrases.tripSummary(stops))
             }
@@ -632,6 +709,8 @@ class TripController(
                         recordCharge()
                         transition(TripEvent.ChargingFinished)
                         if (demoCharging()) demo.stopCharging()
+                        // 목표에 닿거나 제한으로 끝났으면 Chargis가 차량 충전을 끈다(차량 한도는 목표보다 높게 넣어 두었다).
+                        stopCarCharging(reachedTarget = snap.reached)
                     }
                     due.forEach { speakAlert(it) }
                 }
@@ -703,6 +782,7 @@ class TripController(
     /** 추천을 운전자에게 알린다. 붐비면 대안과 비교하는 문구로, 아니면 일반 추천 문구로 말한다. */
     private suspend fun announce(result: RecommendationResult.Recommended) {
         m.offer = result
+        m.naviCompare = m.lastRoute?.let { r -> m.lastVehicle?.let { v -> naviCompareFor(result.primary, r, v) } }
         gate.markAnnounced(result.primary.station.id)
         transition(TripEvent.RecommendationAnnounced)
         val p = result.primary
@@ -713,6 +793,10 @@ class TripController(
         } else {
             announcer.announce(phrases.recommend(p.station.distanceAlongRouteKm, p.station.name, p.targetSocPercent))
             announceOffRoute(p.station)
+            // 실제 주행: 순정 내비가 고른 곳보다 빨리 도착하면 한 문장 덧붙인다(같거나 느리면 말하지 않고 카드에만 적는다).
+            val nc = m.naviCompare
+            val gain = nc?.chargisFasterMin
+            if (nc != null && !nc.same && gain != null && gain >= 1) announcer.announce(phrases.naviCompare(nc.naviName, p.station.name, gain))
             val next = p.nextStop
             when {
                 next != null -> announcer.announce(phrases.planTwoStops(next.station.name, next.targetSocPercent))
@@ -726,6 +810,62 @@ class TripController(
         if (station.detourKm > config.offRouteKm) {
             announcer.announce(phrases.offRoute(station.name, (2 * station.detourKm).roundToInt()))
         }
+    }
+
+    /**
+     * C: 실제 주행에서 순정 내비가 경로에 넣은 충전소와 Chargis 추천을 비교한다.
+     * 내비는 위치·출력·대수·도착 에너지만 주고 목표 %·충전 시간은 주지 않으므로, 그 충전소를 Chargis 엔진에 한 곳만 넣어
+     * 같은 셈(대기를 모르면 같은 가정값)으로 목적지 도착 시각을 계산한다.
+     */
+    private fun naviCompareFor(primary: Recommendation, route: RouteState, v: VehicleState): NaviCompare? {
+        if (!demo.scenario.live) return null
+        val ns = naviStop?.value ?: return null
+        val profile = demo.scenario.profile
+        val arrivalSoc = ns.arrivalKwh?.let { it / profile.batteryKwh * 100.0 }
+        val same = sameStation(ns.name, primary.station.name) ||
+            kotlin.math.abs(ns.distanceKm - primary.station.distanceAlongRouteKm) < SAME_STOP_KM
+        val naviStation = ChargingStation(
+            id = NAVI_STOP_ID, name = ns.name, location = route.current,
+            kind = if ("휴게소" in ns.name) StationKind.HIGHWAY_REST_STOP else StationKind.OTHER,
+            distanceAlongRouteKm = ns.distanceKm, detourKm = 0.0, maxKw = ns.maxKw,
+            totalChargers = ns.chargers.coerceAtLeast(1), availableChargers = null, expectedWaitMin = null,
+            rule = ChargerRule(timeLimitMin = null, amountLimitKrw = null, timeLimitKnown = false)
+        )
+        val naviRec = (engine.recommend(route, v, listOf(naviStation), profile, contextFor(demo.state.value.simTimeSec, route, v))
+            as? RecommendationResult.Recommended)?.primary
+        return NaviCompare(
+            naviName = ns.name, naviKm = ns.distanceKm, naviArrivalSoc = arrivalSoc, naviMaxKw = ns.maxKw, naviChargers = ns.chargers,
+            same = same,
+            chargisFasterMin = if (same) 0 else naviRec?.let { (it.etaMinutes - primary.etaMinutes).roundToInt() },
+            naviTarget = naviRec?.targetSocPercent, naviChargeMinutes = naviRec?.chargeMinutes,
+            naviReachable = same || naviRec != null
+        )
+    }
+
+    // 이름의 띄어쓰기와 "전기차충전소" 꼬리를 떼고 비교한다.
+    private fun sameStation(a: String, b: String): Boolean {
+        fun norm(x: String) = x.replace(" ", "").replace("전기차충전소", "").replace("충전소", "")
+        return norm(a).isNotEmpty() && norm(a) == norm(b)
+    }
+
+    /** D: 출발 때 같은 조건으로 일반 방식과 Chargis 계획을 계산해 둔다. 실제 주행·충전 불필요면 비교하지 않는다. */
+    private fun habitBaseFor(result: RecommendationResult, route: RouteState, v: VehicleState): HabitBase? {
+        if (demo.scenario.live || result !is RecommendationResult.Recommended) return null
+        val best = (listOf(result.primary) + result.alternatives).minBy { it.costMinutes }
+        val habit = engine.habitPlan(route, v, m.stations, demo.scenario.profile, contextFor(demo.state.value.simTimeSec, route, v)) ?: return null
+        return HabitBase(habit, best.etaMinutes, if (best.nextStop != null) 2 else 1)
+    }
+
+    /**
+     * B: 순정 내비가 스스로 넣은 충전소는 공개 API로 뺄 수 없다(에뮬레이터 실측). Chargis 충전소로 가는 중에 내비가 다른 충전소를
+     * 경로에 넣어 두면 그곳은 들르지 않아도 된다고 한 번만 알린다.
+     */
+    private fun onNaviStop(ns: NaviChargingStop?) {
+        val acc = m.accepted ?: return
+        if (ns == null || m.phase != TripPhase.NavigatingToCharger || navi.lastAddSkippedNavi) return
+        if (sameStation(ns.name, acc.station.name) || m.naviStopNoted == ns.name) return
+        m.naviStopNoted = ns.name
+        scope.launch { announcer.announce(phrases.naviStopSkip(ns.name)) }
     }
 
     /** 안내 후 결정 대기 중: 거리 표시를 갱신하고, 충전소를 지나쳤으면 거절로 처리한다. */
@@ -858,6 +998,7 @@ class TripController(
     private fun resetTrip() {
         liveJob?.cancel()
         liveJob = null
+        restoreCarLimit()
         m.reset()
         m.lastRoute = null
         readout.reset()
@@ -946,6 +1087,8 @@ class TripController(
         const val EVAL_EVERY_KM = 0.5    // 추천을 새로 계산하는 주행 간격
         const val EVAL_EVERY_SEC = 30.0  // 추천을 새로 계산하는 시간 간격(가상 시각, 실시간 대기 반영용)
         const val HABIT_TARGET = 80.0    // F4 비교: 습관처럼 채우는 %
+        const val NAVI_STOP_ID = "navi-stop"   // C: 순정 내비 충전소를 엔진에 넣을 때의 id
+        const val SAME_STOP_KM = 1.0           // C: 경로상 거리가 이만큼 안이면 같은 충전소로 본다
         const val LIVE_ID = "LIVE"             // 실제 주행 표의 시나리오 id
         const val LIVE_SYNC_MS = 3_000L        // 실제 주행: 순정 내비 값을 받는 간격
         const val LIVE_OFFER_MS = 10_000L      // 발권 화면: 내비 목적지를 다시 확인하는 간격

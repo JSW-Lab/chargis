@@ -42,6 +42,32 @@
         },
         "component": "service"
       }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "EXPLAIN_RECOMMENDATION",
+        "description": "Explains why Chargis recommended the current EV charging stop and its target battery level, for questions like 'why there?' or 'why that percentage?'. Includes how it compares with the next option and with the car navigation's charging stop.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "component": "service"
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "DECLINE_STOP",
+        "description": "Skips the charging stop that Chargis just recommended so it suggests the next one, for requests like 'somewhere else' or 'not that one'.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "component": "service"
+      }
     }
   ]
 }

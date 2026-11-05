@@ -12,6 +12,7 @@ import com.chargis.app.data.fake.FakeTts
 import com.chargis.app.data.fake.FakeVehicle
 import com.chargis.app.domain.model.RecommendationConfig
 import com.chargis.app.port.CarSignalsPort
+import com.chargis.app.port.ChargeControlPort
 import com.chargis.app.port.ChargerDataPort
 import com.chargis.app.data.sdk.HybridNavi
 import com.chargis.app.data.sdk.PleosCarSignals
@@ -71,11 +72,16 @@ class AppContainer(context: Context) {
     // 하이브리드 데모: 경로·시계·충전 진행은 시뮬레이터가 맡고, Pleos 차량에서는 실제 신호를 함께 쓴다.
     // - 차량 신호(배터리 %, 기어, 충전 스위치, 주행 중 화면 제한): Pleos가 아니면 아무 값도 오지 않는다.
     // - 순정 내비: 수락한 충전소를 실제 경유지로도 넣고, 충전소까지의 도로 거리를 묻는다. 연결하지 못하면 데모만으로 계속한다.
-    val car: CarSignalsPort = PleosCarSignals(app, sdkScope).also { it.start() }
+    private val pleosCar = PleosCarSignals(app, sdkScope).also { it.start() }
+    val car: CarSignalsPort = pleosCar
+    // 차량 충전 제어(충전 한도·충전 끄기). 자동차용 안드로이드가 아니면 Vehicle SDK가 없어 available이 false다.
+    val chargeControl: ChargeControlPort = pleosCar
     private val pleosNavi = PleosNavi(app).also { n ->
         if (app.packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)) sdkScope.launch { n.connect() }
     }
     val navi: NaviPort = HybridNavi(FakeNavi(simulator), pleosNavi)
+    // 순정 내비가 경로에 넣은 충전 경유지(C). 실제 주행 비교에 쓴다.
+    val naviChargingStop = pleosNavi.chargingStop
     // 실제 주행: 순정 내비에 설정한 목적지로 여행을 시작한다. Pleos 차량(Automotive)에서만 쓴다.
     val liveRoute: LiveRoutePort? = pleosNavi.takeIf { app.packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE) }
     val vehicle: VehiclePort = FakeVehicle(simulator)

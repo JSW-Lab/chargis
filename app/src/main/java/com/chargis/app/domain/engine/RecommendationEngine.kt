@@ -102,6 +102,66 @@ class RecommendationEngine(private val config: RecommendationConfig = Recommenda
         )
     }
 
+    /**
+     * 영수증 비교(D)의 "일반적인 방식": 배터리가 [triggerSoc]% 아래로 떨어진 뒤 처음 만나는 휴게소·쉼터(경로에서 벗어나지 않는 곳)에 들러
+     * [habitTarget]%까지 채운다. 다음 휴게소·쉼터까지 못 가면 그 전에 들른다. 혼잡과 시간 제한은 따지지 않는다(제한에 걸리면 거기서 끊긴 만큼만 채운다).
+     * 걸리는 시간은 [recommend]의 계획과 같은 셈(주행, 도착 시각의 대기, 충전 곡선, 들르는 시간)으로 낸다.
+     * 이 방식으로는 목적지까지 못 가면 null.
+     */
+    fun habitPlan(
+        route: RouteState,
+        vehicle: VehicleState,
+        stations: List<ChargingStation>,
+        profile: VehicleProfile,
+        context: RecommendContext = RecommendContext(),
+        habitTarget: Double = HABIT_TARGET,
+        triggerSoc: Double = HABIT_TRIGGER
+    ): HabitPlan? {
+        val p = profile.withConsumptionFactor(context.consumptionFactor)
+        val trip = Trip(route, vehicle.socPercent, p, context, speedKmh(route))
+        val end = route.remainingDistanceKm
+        val rest = stations.filter {
+            it.kind.isRoadside && it.detourKm <= config.offRouteKm && it.distanceAlongRouteKm > 0 &&
+                it.distanceAlongRouteKm < end && it.totalChargers > 0 && profile.canUse(it)
+        }.sortedBy { it.distanceAlongRouteKm }
+        var soc = vehicle.socPercent
+        var pos = 0.0
+        var minutes = 0.0
+        var stops = 0
+        var cuts = 0
+        fun socAt(km: Double) = soc - (km - pos) * ChargeMath.socPerKm(p) - elevation(trip, pos, km)
+        repeat(MAX_HABIT_STOPS + 1) {
+            // 목적지까지 (안전 마진을 얹어) 갈 수 있으면 끝
+            if (need(trip, end - pos, pos, end, config.destinationSocPercent) <= soc) {
+                return HabitPlan(minutes + driveMinutes(end - pos, trip), stops, cuts)
+            }
+            val ahead = rest.filter { it.distanceAlongRouteKm > pos }
+            val pick = ahead.withIndex().firstOrNull { (i, st) ->
+                val arr = socAt(st.distanceAlongRouteKm)
+                val nextArr = ahead.getOrNull(i + 1)?.let { socAt(it.distanceAlongRouteKm) }
+                arr <= triggerSoc || nextArr == null || nextArr < config.minArrivalSocPercent
+            }?.value ?: return null
+            val arrival = socAt(pick.distanceAlongRouteKm)
+            if (arrival < config.minArrivalSocPercent) return null
+            minutes += driveMinutes(pick.distanceAlongRouteKm - pos, trip)
+            minutes += waitAt(pick, minutes, trip).assumed + stopMinutes(pick)
+            val target = max(habitTarget, arrival)
+            val tempAt = trip.context.batteryTempC?.let { BatteryThermal.tempAfter(it, minutes, BatteryThermal.Mode.DRIVING) }
+            val pc = p.withChargePowerFactor(BatteryThermal.chargePowerFactor(tempAt))
+            var chargeMin = ChargeMath.chargeMinutes(arrival, target, pick.maxKw, pc, config)
+            val limit = pick.rule.timeLimitMin
+            soc = if (limit != null && chargeMin > limit) {
+                cuts++
+                chargeMin = limit.toDouble()
+                ChargeMath.socAfterMinutes(arrival, limit.toDouble(), pick.maxKw, pc, config)
+            } else target
+            minutes += chargeMin
+            pos = pick.distanceAlongRouteKm
+            stops++
+        }
+        return null
+    }
+
     // 계산에 공통으로 쓰는 이번 추천의 조건 묶음
     private class Trip(
         val route: RouteState,
@@ -385,5 +445,11 @@ class RecommendationEngine(private val config: RecommendationConfig = Recommenda
         const val MIN_SPEED_KMH = 30.0   // 내비 평균 속도가 튀어도 이 범위로 묶는다
         const val MAX_SPEED_KMH = 140.0
         const val STEP_EPS = 1e-6
+        const val HABIT_TARGET = 80.0    // 일반 방식: 이만큼 채운다
+        const val HABIT_TRIGGER = 30.0   // 일반 방식: 배터리가 이 아래로 떨어지면 첫 휴게소에 들른다
+        const val MAX_HABIT_STOPS = 6
     }
 }
+
+/** 일반 방식(D)으로 갔을 때: 목적지까지 걸리는 분, 들른 횟수, 시간 제한에 끊긴 충전 수 */
+data class HabitPlan(val etaMinutes: Double, val stops: Int, val limitCuts: Int)

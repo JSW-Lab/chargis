@@ -6,6 +6,7 @@ import ai.pleos.playground.navi.constants.NaviErrorCode
 import ai.pleos.playground.navi.constants.WaypointIndex
 import ai.pleos.playground.navi.data.CurrentLocationInfo
 import ai.pleos.playground.navi.data.DestinationInfo
+import ai.pleos.playground.navi.data.DrivingInfo
 import ai.pleos.playground.navi.data.RequestWaypointInfo
 import ai.pleos.playground.navi.data.TripInfo
 import ai.pleos.playground.navi.data.TripRequest
@@ -16,6 +17,7 @@ import com.chargis.app.domain.model.ChargingStation
 import com.chargis.app.domain.model.GeoPoint
 import com.chargis.app.domain.model.RouteState
 import com.chargis.app.port.LiveRoutePort
+import com.chargis.app.port.NaviChargingStop
 import com.chargis.app.port.NaviDestination
 import com.chargis.app.port.NaviPort
 import com.chargis.app.port.TripEstimate
@@ -23,6 +25,9 @@ import com.chargis.app.port.TripEstimator
 import com.chargis.app.port.WaypointsFullException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -47,8 +52,21 @@ class PleosNavi(context: Context) : TripEstimator, LiveRoutePort {
     @Volatile private var location: CompletableDeferred<CurrentLocationInfo>? = null
     @Volatile private var destination: CompletableDeferred<DestinationInfo?>? = null
 
+    private val _chargingStop = MutableStateFlow<NaviChargingStop?>(null)
+    /** 순정 내비가 경로에 스스로 넣은 충전 경유지(B·C). 없으면 null */
+    val chargingStop: StateFlow<NaviChargingStop?> = _chargingStop.asStateFlow()
+
+    /** 바로 전 [addWaypoint] 때 경로에 있던 순정 내비 자체 충전 경유지 이름(Chargis 충전소와 다를 때만). 없으면 null */
+    @Volatile var lastNaviOwnStop: String? = null
+        private set
+
     private val listener = object : NaviHelperEventListener {
         override fun onTripInfo(tripInfo: TripInfo) { trip?.complete(tripInfo) }
+        override fun onDrivingInfo(drivingInfo: DrivingInfo) {
+            val stop = chargingStopOf(drivingInfo)
+            if (stop != _chargingStop.value) Log.i(TAG, "navi charging stop: $stop")
+            _chargingStop.value = stop
+        }
         override fun onDestinationInfo(destinationInfo: DestinationInfo) { destination?.complete(destinationInfo) }
         override fun onWayPointInfo(waypointInfoList: List<WaypointInfo>) { waypoints?.complete(waypointInfoList) }
         override fun onCurrentLocationInfo(currentLocationInfo: CurrentLocationInfo) { location?.complete(currentLocationInfo) }
@@ -95,8 +113,11 @@ class PleosNavi(context: Context) : TripEstimator, LiveRoutePort {
     /** 경유지 추가. 이미 우리가 넣은 곳이면 그대로 성공, 두 자리가 다른 곳으로 차 있으면 [WaypointsFullException]. */
     suspend fun addWaypoint(station: ChargingStation): Result<Unit> {
         if (!ready) return Result.failure(IllegalStateException("navi not connected"))
+        lastNaviOwnStop = null
         val current = ask<List<WaypointInfo>>({ waypoints = it }) { helper.getWaypointInfo() } ?: emptyList()
         if (current.any { it.matches(station) }) return Result.success(Unit)
+        // 순정 내비가 스스로 넣은 충전 경유지는 getWaypointInfo에 나오지 않고 뺄 수도 없다(에뮬레이터 실측). 이름만 기억해 안내에 쓴다.
+        lastNaviOwnStop = _chargingStop.value?.name?.takeIf { it != station.name }
         if (current.size >= MAX_WAYPOINTS) return Result.failure(WaypointsFullException())
         val slot = if (current.isEmpty()) WaypointIndex.FIRST else WaypointIndex.SECOND
         return runCatching {
@@ -149,9 +170,23 @@ class PleosNavi(context: Context) : TripEstimator, LiveRoutePort {
         private const val CONNECT_TIMEOUT_MS = 3_000L
         private const val ANSWER_TIMEOUT_MS = 3_000L
         const val MAX_WAYPOINTS = 2
+        private const val POI_PREFIX = "chargis-"
+
+        /** onDrivingInfo에서 순정 내비가 넣은 충전 경유지를 꺼낸다. 경로가 없으면(거리 0) null. */
+        fun chargingStopOf(info: DrivingInfo): NaviChargingStop? = info.waypoints
+            .firstOrNull { it.isChargingStation && it.distance > 0 }
+            ?.let { w ->
+                NaviChargingStop(
+                    name = w.name,
+                    distanceKm = w.distance / 1000.0,
+                    arrivalKwh = w.remainDestinationChargingValue.takeIf { it > 0 }?.let { it / 1000.0 },
+                    maxKw = w.maxChargingPower.toDouble(),
+                    chargers = w.chargerCount
+                )
+            }
 
         /** 내비에 넣는 POI id. 우리가 넣은 경유지를 다시 찾을 때 쓴다. */
-        fun poiId(station: ChargingStation) = "chargis-${station.id}"
+        fun poiId(station: ChargingStation) = "$POI_PREFIX${station.id}"
 
         /** TripInfo 값(거리 m, 도착 시간 초, 도착 배터리 %)을 앱 단위로. 배터리를 모르면(음수) null. */
         fun toEstimate(distanceM: Int, etaSec: Int, socAtDest: Int): TripEstimate =
@@ -169,9 +204,12 @@ class HybridNavi(private val demo: NaviPort, private val pleos: PleosNavi) : Nav
 
     @Volatile override var lastAddSkippedNavi: Boolean = false
         private set
+    @Volatile override var lastNaviOwnStop: String? = null
+        private set
 
     override suspend fun addWaypoint(station: ChargingStation): Result<Unit> {
         lastAddSkippedNavi = false
+        lastNaviOwnStop = null
         demo.addWaypoint(station).onFailure { return Result.failure(it) }
         if (!pleos.isReady) return Result.success(Unit)
         // 순정 내비에 목적지가 없으면 경유지를 넣지 않는다. 넣으면 내비가 그 충전소를 목적지처럼 안내하려고 앞으로 나와
@@ -182,6 +220,7 @@ class HybridNavi(private val demo: NaviPort, private val pleos: PleosNavi) : Nav
             return Result.success(Unit)
         }
         val real = pleos.addWaypoint(station)
+        lastNaviOwnStop = pleos.lastNaviOwnStop
         val full = real.exceptionOrNull() as? WaypointsFullException
         if (full != null) {
             demo.removeWaypoint(station)

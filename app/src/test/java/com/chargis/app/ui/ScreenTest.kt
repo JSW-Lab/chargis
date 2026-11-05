@@ -255,6 +255,45 @@ class ScreenTest {
         compose.onNodeWithText("설정").assertIsDisplayed()
     }
 
+    /** C: 실제 주행 추천 카드에 순정 내비 충전소와의 비교 한 줄이 붙는다. */
+    @Test
+    fun recommendCard_showsNaviCompareLine() {
+        val navi = NaviCompare("가평휴게소 E-pit", 65.0, 13.6, 260.0, 6, same = false, chargisFasterMin = 7, naviTarget = 55.0, naviChargeMinutes = 20)
+        compose.setContent {
+            ChargisTheme(night = true) {
+                DriveCardScreen(
+                    card = DriveCard.Recommend(rec, navi = navi),
+                    eta = "11:20", remainingKm = 160.0, meta = TicketMeta("LIVE-1430", "14:30"),
+                    routeMarks = emptyList(), progress = 0.2f, onAccept = {}, onDecline = {}
+                )
+            }
+        }
+        compose.onNodeWithText("순정 내비: 가평휴게소 E-pit · 이곳이 7분 빨리 도착").assertIsDisplayed()
+    }
+
+    /** D: 영수증 요약에 일반 방식과의 비교가 한 줄로, 영수증에는 충전 횟수·제한·계산 기준이 찍힌다. */
+    @Test
+    fun receipt_showsTripCompare() {
+        val receipt = TripReceipt(
+            departAt = "09:00", startSoc = 60.0, arriveAt = "11:23", endSoc = 18.0, distanceKm = 210.0,
+            charges = listOf(ChargeRecord("B 휴게소", 36.0, 50.0, 9, baselineMinutes = 30)),
+            declinedNames = emptyList(),
+            compare = TripCompare(fasterMin = 34, habitStops = 1, chargisStops = 1, habitLimitCuts = 1, chargisLimitCuts = 0, congestionAvoided = 0)
+        )
+        compose.setContent {
+            ChargisTheme(night = true) {
+                com.chargis.app.ui.parked.ReceiptScreen(
+                    TripUiState(phase = com.chargis.app.domain.session.TripPhase.Finished, receipt = receipt, scenarioTitle = "S1"),
+                    onRestart = {}, modifier = androidx.compose.ui.Modifier
+                )
+            }
+        }
+        compose.onNodeWithText("일반 방식보다 목적지에 34분 빨리 도착(같은 조건 계산)").assertIsDisplayed()
+        compose.onNodeWithText("목적지 34분 빨리").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("시간 제한에 끊긴 충전 0번(일반 1번)").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("출발 때 같은 조건으로 계산. 일반 방식: 배터리 30% 아래에서 첫 휴게소·쉼터에 들러 80%까지").performScrollTo().assertIsDisplayed()
+    }
+
     // 글자 일부("왕복")가 들어간 노드가 하나라도 있는지
     private fun androidx.compose.ui.test.junit4.ComposeContentTestRule.onAllNodesWithTextExists(part: String) =
         onAllNodes(androidx.compose.ui.test.hasText(part, substring = true)).fetchSemanticsNodes().isNotEmpty()

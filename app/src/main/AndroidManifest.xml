@@ -8,6 +8,8 @@
     <!-- Pleos Vehicle SDK: 배터리 %·충전 스위치(CAR_ENERGY), 기어(CAR_DRIVE) -->
     <uses-permission android:name="pleos.car.permission.CAR_ENERGY" />
     <uses-permission android:name="pleos.car.permission.CAR_DRIVE" />
+    <!-- 충전 한도 설정과 충전 스위치 끄기(Vehicle SDK EvBattery). 개발 단계는 선언만으로 쓰고, M마켓 배포 때 승인 범위를 맞춘다 -->
+    <uses-permission android:name="pleos.car.permission.CONTROL_CAR_ENERGY" />
     <!-- Pleos NaviHelper SDK: 위치·경유지 조회와 경로 예측(NAVI_ROUTE), 경유지 추가·삭제·재탐색(NAVI_ROUTE_SEARCH) -->
     <uses-permission android:name="pleos.car.permission.NAVI_ROUTE" />
     <uses-permission android:name="pleos.car.permission.NAVI_ROUTE_SEARCH" />
@@ -54,6 +56,8 @@
                 <action android:name="com.chargis.app.GET_CHARGING_PLAN" />
                 <action android:name="com.chargis.app.GET_CHARGING_STATUS" />
                 <action android:name="com.chargis.app.ACCEPT_CHARGING_STOP" />
+                <action android:name="com.chargis.app.EXPLAIN_RECOMMENDATION" />
+                <action android:name="com.chargis.app.DECLINE_STOP" />
             </intent-filter>
         </receiver>
     </application>

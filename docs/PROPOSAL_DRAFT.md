@@ -64,12 +64,13 @@
 | SDK | 쓰는 API | 핵심 기능과의 연결 |
 |---|---|---|
 | **Vehicle 2.3.2** | EV 배터리 SoC 알림, 기어, 충전 스위치 | 출발 배터리(F1·F2), P/D에 따른 주행·정차 전환, 충전 스위치로 충전 시작·종료(F3) |
-| **NaviHelper 3.0.5** | `addWaypoint`·`removeWaypoint`·`requestReRoute`, `requestTrip`, `getCurrentLocationInfo` | 수락한 충전소를 순정 내비 경유지로 추가(F4), 가까운 충전소 3곳의 실제 도로 거리·도착 시간으로 순위 보정(F1) |
+| **Vehicle 2.3.2 (충전 제어)** | 충전 한도 설정, 충전 스위치 끄기 | 목표에 닿으면 **차량 충전을 Chargis가 직접 끈다**. 차량 한도는 목표 + 10%로 넣어 앱이 끄지 못할 때의 안전장치로 둔다 |
+| **NaviHelper 3.0.5** | `addWaypoint`·`removeWaypoint`·`requestReRoute`, `requestTrip`, `getCurrentLocationInfo`, `onDrivingInfo` | 수락한 충전소를 순정 내비 경유지로 추가(F4), 가까운 충전소 3곳의 실제 도로 거리·도착 시간으로 순위 보정(F1), 순정 내비가 고른 충전소와 비교·"지나가도 됨" 안내 |
 | **TextToSpeech 3.3.1** | On-device `speak`·`stop`, 이벤트 리스너 | 추천·경유지·시간 제한 경고 등 모든 안내를 차량 오디오로(주행 중 화면 대신 음성) |
 | **SpeechToText 3.3.1** | On-device `request`·`stop`, 결과 리스너 | "수락", "다음", "충전 시작", "출발" 음성 명령 |
 | AAOS CarUxRestrictions | 주행 중 화면 제한, ActiveRestrictions | 주행 중 정차 화면 가림, 글자 수·항목 수 상한에 맞춰 주행 카드·자막 줄임 |
 
-- 퍼미션: `CAR_ENERGY`, `CAR_DRIVE`, `NAVI_ROUTE`, `NAVI_ROUTE_SEARCH`, `TTS_SERVICE`, `STT_SERVICE`. 개발 단계에서는 선언만으로 쓰고, M마켓 배포 때 승인 범위를 맞춥니다.
+- 퍼미션: `CAR_ENERGY`, `CAR_DRIVE`, `CONTROL_CAR_ENERGY`, `NAVI_ROUTE`, `NAVI_ROUTE_SEARCH`, `TTS_SERVICE`, `STT_SERVICE`. 개발 단계에서는 선언만으로 쓰고, M마켓 배포 때 승인 범위를 맞춥니다.
 - 차량 제어 SDK가 공개되면 **배터리 예열**(겨울철 충전 시간 단축)을 앱에서 켤 수 있게 합니다. 지금은 예열 효과를 계산해 "차량 화면에서 켜면 약 N분 빨라집니다"라고 안내합니다.
 
 ### 5-2. 구현 방법

@@ -72,6 +72,16 @@ internal fun ReceiptScreen(state: TripUiState, onRestart: () -> Unit, modifier: 
                     Text(stringResource(R.string.finished_saved_none), style = MaterialTheme.typography.titleMedium, color = c.inkMuted)
                 }
             }
+            // D: 여행 전체를 일반 방식과 비교한 한 줄(출발 때 같은 조건 계산). Chargis가 불리하면 그대로 적는다.
+            receipt.compare?.let { cmp ->
+                Spacer(Modifier.height(16.dp))
+                val line = when {
+                    cmp.fasterMin >= 1 -> stringResource(R.string.finished_compare_faster, cmp.fasterMin)
+                    cmp.fasterMin <= -1 -> stringResource(R.string.finished_compare_slower, -cmp.fasterMin)
+                    else -> stringResource(R.string.finished_compare_even)
+                }
+                Text(line, style = MaterialTheme.typography.titleLarge, color = if (cmp.fasterMin >= 1) c.stamp else c.ink)
+            }
             Spacer(Modifier.height(36.dp))
             TicketButton(stringResource(R.string.receipt_again), onRestart, Modifier.width(320.dp), minHeight = 96.dp)
     }
@@ -133,7 +143,31 @@ private fun ReceiptBody(receipt: TripReceipt, title: String) {
         if (receipt.savedMinutes > 0) {
             ReceiptLine(stringResource(R.string.receipt_saved), stringResource(R.string.receipt_saved_value, receipt.savedMinutes), strong = true)
         }
+        receipt.compare?.let { CompareLines(it) }
     }
+}
+
+/**
+ * D: "이번 여행에서 Chargis가 바꾼 것". 출발 때 같은 조건으로 계산한 일반 방식과 비교한다.
+ * Chargis가 불리하거나 같아도 그대로 적는다(아낀 돈은 적지 않는다).
+ */
+@Composable
+private fun CompareLines(cmp: com.chargis.app.ui.TripCompare) {
+    val c = Ticket.colors
+    Spacer(Modifier.height(12.dp))
+    HairlineH()
+    val eta = when {
+        cmp.fasterMin >= 1 -> stringResource(R.string.receipt_compare_faster, cmp.fasterMin)
+        cmp.fasterMin <= -1 -> stringResource(R.string.receipt_compare_slower, -cmp.fasterMin)
+        else -> stringResource(R.string.receipt_compare_even)
+    }
+    ReceiptLine(stringResource(R.string.receipt_compare), eta, strong = true)
+    ReceiptLine("", stringResource(R.string.receipt_compare_stops, cmp.chargisStops, cmp.habitStops), muted = true)
+    if (cmp.habitLimitCuts > 0 || cmp.chargisLimitCuts > 0) {
+        ReceiptLine("", stringResource(R.string.receipt_compare_limit, cmp.chargisLimitCuts, cmp.habitLimitCuts), muted = true)
+    }
+    if (cmp.congestionAvoided > 0) ReceiptLine("", stringResource(R.string.receipt_compare_congestion, cmp.congestionAvoided), muted = true)
+    Text(stringResource(R.string.receipt_compare_note), style = MaterialTheme.typography.bodyMedium, color = c.inkMuted)
 }
 
 /** 영수증 한 줄: 왼쪽 항목, 점선 리더, 오른쪽 값. */

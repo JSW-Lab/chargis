@@ -316,6 +316,8 @@ private fun ColumnScope.RecommendStub(card: DriveCard.Recommend, onAccept: (Stri
                 next != null -> InfoLine(uxText(stringResource(R.string.drive_two_stop, next.station.name, next.targetSocPercent.roundToInt())), Modifier.padding(top = 10.dp), singleLine = true)
                 rec.needsAnotherStop -> WarnLine(uxText(stringResource(R.string.drive_need_another)), Modifier.padding(top = 10.dp), singleLine = true)
             }
+            // C: 실제 주행에서 순정 내비가 고른 충전소와의 비교 한 줄. 보조 줄이라 항목 수 상한이 작으면 뺀다.
+            card.navi?.takeIf { uxShowSecondary() }?.let { n -> InfoLine(uxText(naviLine(n)), Modifier.padding(top = 10.dp), singleLine = true) }
         }
     }
     TearLine(Modifier.padding(vertical = 8.dp))
@@ -323,6 +325,19 @@ private fun ColumnScope.RecommendStub(card: DriveCard.Recommend, onAccept: (Stri
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         TicketButton(stringResource(R.string.drive_accept), { onAccept(rec.station.id) }, Modifier.weight(if (compact) 1.5f else 2f), stampInk = true)
         TicketButton(stringResource(R.string.drive_next), onDecline, Modifier.weight(1f), primary = false)
+    }
+}
+
+/** C: 순정 내비 비교 한 줄. 같은 곳 / 이곳이 N분 빨리 / 내비 쪽이 N분 빨리 / 비슷 */
+@Composable
+private fun naviLine(n: com.chargis.app.ui.NaviCompare): String {
+    val gain = n.chargisFasterMin
+    return when {
+        n.same -> stringResource(R.string.drive_navi_same)
+        !n.naviReachable -> stringResource(R.string.drive_navi_unreachable, n.naviName)
+        gain == null || gain == 0 -> stringResource(R.string.drive_navi_even, n.naviName)
+        gain > 0 -> stringResource(R.string.drive_navi_chargis_faster, n.naviName, gain)
+        else -> stringResource(R.string.drive_navi_navi_faster, n.naviName, -gain)
     }
 }
 

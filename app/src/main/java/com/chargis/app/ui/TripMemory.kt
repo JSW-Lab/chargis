@@ -43,6 +43,12 @@ class TripMemory {
     var elevationSoc = 0.0                                    // 여행 시작 후 오르내림으로 쓴(+)/되찾은(−) 배터리 %(전비 실측에서 뺀다)
     var lastElevationM: Double? = null                        // 바로 전 틱의 해발 고도
     var pendingManualSample: Pair<Double, Double>? = null     // 운전자가 고친 배터리 값(km, %). 다시 움직일 때 전비 실측에 넣는다
+    var carLimit: Int? = null                                 // 지금 차량에 넣어 둔 충전 한도(%). 넣지 않았으면 null(A, 차량 충전 제어)
+    var carLimitWarned = false                                // 차량 충전 제어 실패를 이번 여행에서 이미 알렸는지
+    var naviCompare: NaviCompare? = null                      // 지금 안내 중인 추천과 순정 내비 충전소의 비교(C, 실제 주행)
+    var habitBase: HabitBase? = null                          // 출발 때 계산한 일반 방식과 Chargis 계획(D, 영수증 비교)
+    var congestionAvoided = 0                                 // 혼잡 비교에서 붐비는 곳 대신 대안을 고른 횟수(D)
+    var naviStopNoted: String? = null                         // 이번 경유지 안내에서 "순정 내비 충전소는 지나가도 됨"을 말한 충전소(B)
 
     /** 새 여행을 위해 모두 처음으로 돌린다. */
     fun reset() {
@@ -62,6 +68,12 @@ class TripMemory {
         elevationSoc = 0.0
         lastElevationM = null
         pendingManualSample = null
+        carLimit = null
+        carLimitWarned = false
+        naviCompare = null
+        habitBase = null
+        congestionAvoided = 0
+        naviStopNoted = null
     }
 }
 
@@ -264,3 +276,6 @@ data class SavedChargeSession(
     val fromSoc: Double,
     val fired: List<com.chargis.app.domain.session.AlertType> = emptyList()
 )
+
+/** 영수증 비교(D)의 출발 때 계산: 일반 방식과, 같은 조건의 Chargis 계획(목적지까지 걸리는 분)과 충전 횟수 */
+data class HabitBase(val habit: com.chargis.app.domain.engine.HabitPlan, val chargisEtaMinutes: Double, val chargisStops: Int)

@@ -33,7 +33,9 @@ class TripViewModel(container: AppContainer) : ViewModel() {
         stt = container.stt,
         car = container.car,
         liveRoute = container.liveRoute,
-        liveStations = container.catalog.allStations
+        liveStations = container.catalog.allStations,
+        chargeControl = container.chargeControl,
+        naviStop = container.naviChargingStop
     )
 
     val state = controller.state
@@ -44,6 +46,7 @@ class TripViewModel(container: AppContainer) : ViewModel() {
             state.map(GleoReplies::snapshot).distinctUntilChanged().collect { GleoBridge.save(container.app, it) }
         }
         viewModelScope.launch { GleoBridge.acceptRequests.collect { it.complete(controller.acceptForAssistant()) } }
+        viewModelScope.launch { GleoBridge.declineRequests.collect { it.complete(controller.declineForAssistant()) } }
     }
 
     companion object {

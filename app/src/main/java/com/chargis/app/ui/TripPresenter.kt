@@ -53,7 +53,7 @@ class TripPresenter(
             progress = (sim.traveledKm / scenario.totalDistanceKm).toFloat().coerceIn(0f, 1f),
             receipt = buildReceipt(m, scenario, declinedIds, clock),
             card = buildCard(m, sim, clock),
-            stop = buildStop(m, sim, scenario.profile, config, clock)?.copy(manualSoc = manualSoc),
+            stop = buildStop(m, sim, scenario.profile, config, clock)?.copy(manualSoc = manualSoc, carLimitPercent = m.carLimit),
             candidates = candidatesOf(m),
             energy = energy,
             profileName = scenario.profile.displayName,
@@ -94,7 +94,7 @@ class TripPresenter(
                     val faster = o.alternatives.minOfOrNull { it.etaMinutes }
                         ?.let { (it - o.primary.etaMinutes).roundToInt() }
                         ?.takeIf { it >= 1 }
-                    DriveCard.Recommend(o.primary, etaOf(o.primary), faster)
+                    DriveCard.Recommend(o.primary, etaOf(o.primary), faster, m.naviCompare)
                 }
             }
             m.phase == TripPhase.NavigatingToCharger && acc != null ->
@@ -175,7 +175,18 @@ class TripPresenter(
             endSoc = if (m.phase == TripPhase.Finished) m.lastVehicle?.socPercent else null,
             distanceKm = sc.totalDistanceKm,
             charges = m.charges.map { it.second },
-            declinedNames = declinedIds.mapNotNull { names[it] }
+            declinedNames = declinedIds.mapNotNull { names[it] },
+            // Chargis 안내대로 한 번도 충전하지 않았으면 Chargis 계획과의 비교가 실제 여행과 맞지 않아 적지 않는다.
+            compare = m.habitBase?.takeIf { m.charges.isNotEmpty() }?.let { b ->
+                TripCompare(
+                    fasterMin = (b.habit.etaMinutes - b.chargisEtaMinutes).roundToInt(),
+                    habitStops = b.habit.stops,
+                    chargisStops = if (m.phase == TripPhase.Finished) m.charges.size else b.chargisStops,
+                    habitLimitCuts = b.habit.limitCuts,
+                    chargisLimitCuts = m.charges.count { it.second.endedByLimit },
+                    congestionAvoided = m.congestionAvoided
+                )
+            }
         )
     }
 

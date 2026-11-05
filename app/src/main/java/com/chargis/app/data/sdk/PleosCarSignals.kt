@@ -10,7 +10,9 @@ import ai.pleos.playground.vehicle.Vehicle
 import ai.pleos.playground.vehicle.constant.control.VehicleGear
 import ai.pleos.playground.vehicle.listener.EvBatteryStateOfChargeListener
 import ai.pleos.playground.vehicle.listener.GearSelectionListener
+import com.chargis.app.domain.engine.ChargeLimit
 import com.chargis.app.port.CarSignalsPort
+import com.chargis.app.port.ChargeControlPort
 import com.chargis.app.port.UxLimits
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -19,6 +21,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.resume
 
 /**
  * B5·B6: Pleos 차량 신호.
@@ -27,9 +32,11 @@ import kotlinx.coroutines.launch
  *   [uxLimits]로 옮긴다. 화면은 그 값으로 기능별 제한을 적용한다(DO를 선언한 앱도 직접 적용해야 한다).
  *
  * 자동차용 안드로이드(FEATURE_AUTOMOTIVE)가 아니면 아무것도 연결하지 않는다(일반 기기·테스트에서는 android.car 클래스가 없다).
- * 퍼미션: CAR_ENERGY(배터리·충전), CAR_DRIVE(기어).
+ * - Vehicle SDK 충전 제어([ChargeControlPort]): 충전 한도(setEvChargePercentLimit), 충전 스위치 끄기(setEvChargeSwitch(false)).
+ *   2026-11-06 Pleos 에뮬레이터: 한도는 50~100%·5% 단위만 받고(READ_WRITE), 충전 스위치 끄기는 Virtual Console에 바로 보인다.
+ * 퍼미션: CAR_ENERGY(배터리·충전), CAR_DRIVE(기어), CONTROL_CAR_ENERGY(충전 한도·스위치).
  */
-class PleosCarSignals(context: Context, private val scope: CoroutineScope) : CarSignalsPort {
+class PleosCarSignals(context: Context, private val scope: CoroutineScope) : CarSignalsPort, ChargeControlPort {
     private val app = context.applicationContext
     private val _available = MutableStateFlow(false)
     private val _soc = MutableStateFlow<Int?>(null)
@@ -43,6 +50,7 @@ class PleosCarSignals(context: Context, private val scope: CoroutineScope) : Car
     override val uxLimits: StateFlow<UxLimits> = _ux.asStateFlow()
 
     private var vehicle: Vehicle? = null
+    @Volatile private var limitValues: List<Int>? = null   // 차가 받는 충전 한도 값. 확인 전이거나 쓸 수 없으면 null
     private var car: Car? = null
 
     private val socListener = object : EvBatteryStateOfChargeListener {
@@ -65,6 +73,12 @@ class PleosCarSignals(context: Context, private val scope: CoroutineScope) : Car
             v.getEvBattery().registerEvBatteryStateOfCharge(socListener)
             v.getGear().getCurrentGearSelectionState({ g -> gearListener.onSelected(g) }, { Log.w(TAG, "gear read failed", it) })
             v.getGear().registerGearSelection(gearListener)
+            // 충전 한도를 쓸 수 있는지와 받는 값을 확인해 둔다(쓰기 권한이 없으면 충전 제어를 하지 않는다).
+            v.getEvBattery().checkEvChargePercentLimitCapabilities({ cfg, values ->
+                val writable = cfg.accessType.name.contains("WRITE")
+                limitValues = if (writable) values.mapNotNull { it?.toInt() }.sorted() else null
+                Log.i(TAG, "charge limit: access=${cfg.accessType} values=$values")
+            }, { Log.w(TAG, "charge limit capability failed", it) })
             scope.launch {
                 while (isActive) {
                     v.getEvBattery().getEvChargeSwitchState({ _charge.value = it }, { })
@@ -92,6 +106,33 @@ class PleosCarSignals(context: Context, private val scope: CoroutineScope) : Car
         _ux.value = limits
     }
 
+    override val canControl: Boolean get() = vehicle != null && limitValues != null
+
+    override suspend fun setChargeLimit(percent: Int): Result<Int> {
+        val v = vehicle ?: return Result.failure(IllegalStateException("vehicle sdk unavailable"))
+        val value = ChargeLimit.pick(percent, limitValues)
+        return call { ok, fail -> v.getEvBattery().setEvChargePercentLimit(value.toFloat(), { ok(it?.toInt() ?: value) }, fail) }
+            .onSuccess { Log.i(TAG, "charge limit set $it% (asked $percent%)") }
+            .onFailure { Log.w(TAG, "charge limit set failed", it) }
+    }
+
+    override suspend fun stopCharging(): Result<Unit> {
+        val v = vehicle ?: return Result.failure(IllegalStateException("vehicle sdk unavailable"))
+        return call<Unit> { ok, fail -> v.getEvBattery().setEvChargeSwitch(false, { ok(Unit) }, fail) }
+            .onSuccess { Log.i(TAG, "charge switch off") }
+            .onFailure { Log.w(TAG, "charge switch off failed", it) }
+    }
+
+    // 콜백 하나를 기다린다. [CALL_TIMEOUT_MS] 안에 답이 없으면 실패.
+    private suspend fun <T> call(request: ((T) -> Unit, (Exception) -> Unit) -> Unit): Result<T> =
+        withTimeoutOrNull(CALL_TIMEOUT_MS) {
+            suspendCancellableCoroutine<Result<T>> { cont ->
+                runCatching {
+                    request({ if (cont.isActive) cont.resume(Result.success(it)) }, { if (cont.isActive) cont.resume(Result.failure(it)) })
+                }.onFailure { if (cont.isActive) cont.resume(Result.failure(it)) }
+            }
+        } ?: Result.failure(IllegalStateException("vehicle sdk timeout"))
+
     fun release() {
         vehicle?.let { v ->
             runCatching {
@@ -108,6 +149,7 @@ class PleosCarSignals(context: Context, private val scope: CoroutineScope) : Car
     companion object {
         private const val TAG = "ChargisCar"
         private const val POLL_MS = 2_000L
+        private const val CALL_TIMEOUT_MS = 3_000L
 
         /**
          * CarUxRestrictions 값을 기능별 [UxLimits]로 옮긴다. 상한값은 해당 비트가 켜졌을 때만 쓴다.
@@ -134,6 +176,13 @@ class PleosCarSignals(context: Context, private val scope: CoroutineScope) : Car
             else -> false
         }
     }
+}
+
+/** Pleos가 아닌 기기·테스트용: 충전을 제어할 수 없다. */
+object NoChargeControl : ChargeControlPort {
+    override val canControl = false
+    override suspend fun setChargeLimit(percent: Int): Result<Int> = Result.failure(UnsupportedOperationException("no charge control"))
+    override suspend fun stopCharging(): Result<Unit> = Result.failure(UnsupportedOperationException("no charge control"))
 }
 
 /** Pleos가 아닌 기기·테스트용: 아무 신호도 없다. */

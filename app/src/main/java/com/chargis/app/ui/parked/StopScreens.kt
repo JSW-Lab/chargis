@@ -277,6 +277,11 @@ internal fun ColumnScope.ChargingBody(stop: StopInfo, onStop: () -> Unit, onAdju
         stop.coldBattery -> stringResource(R.string.cold_note)
         else -> null
     }
+    // A: Chargis가 차량 충전을 제어하는 중이면 차량 한도(안전장치)를 한 줄로 알린다. 운전자가 볼 숫자는 목표 하나다.
+    stop.carLimitPercent?.let {
+        Spacer(Modifier.height(12.dp))
+        InfoLine(stringResource(R.string.stop_car_limit, it), singleLine = true)
+    }
     Spacer(Modifier.height(16.dp))
     PowerCurve(stop, warning, Modifier.weight(1f).fillMaxWidth())
     TearLine(Modifier.padding(vertical = 8.dp))

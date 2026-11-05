@@ -1,5 +1,7 @@
 package com.chargis.app.ui
 
+import com.chargis.app.domain.model.ReasonCode
+import com.chargis.app.domain.model.WaitSource
 import com.chargis.app.domain.session.TripPhase
 import kotlin.math.roundToInt
 
@@ -19,13 +21,86 @@ enum class AcceptOutcome { ADDED, APP_ONLY, WAYPOINTS_FULL, NOTHING_TO_ACCEPT, F
 data class GleoSnapshot(
     val plan: GleoReply,
     val status: GleoReply,
-    /** 수락을 기다리는 추천이 있으면 그 충전소 이름. 없으면 null */
-    val acceptable: String?
+    /** 수락을 기다리는 추천이 있으면 그 충전소 이름. 없으면 null. 거절(DECLINE_STOP)도 이 추천을 거절한다 */
+    val acceptable: String?,
+    /** EXPLAIN_RECOMMENDATION: 왜 그 충전소·그 목표 %인지(E) */
+    val explain: GleoReply = GleoReplies.notRunning()
 )
+
+/** 운전자 대신 거절을 요청했을 때의 결과(E) */
+enum class DeclineOutcome { DECLINED, NOTHING_TO_DECLINE }
 
 object GleoReplies {
 
-    fun snapshot(s: TripUiState) = GleoSnapshot(plan(s), status(s), acceptableName(s))
+    fun snapshot(s: TripUiState) = GleoSnapshot(plan(s), status(s), acceptableName(s), explain(s))
+
+    /**
+     * EXPLAIN_RECOMMENDATION(E): "왜 거기야?". 엔진이 붙인 이유(가장 빨리 도착, 대기, 시간 제한, 우회)와 다음 후보와의 도착 시각 차이,
+     * 실제 주행이면 순정 내비 충전소와의 비교로 답한다. 정차 중이면 목표 %의 이유를 답한다.
+     */
+    fun explain(s: TripUiState): GleoReply {
+        noTrip(s)?.let { return it }
+        s.stop?.takeIf { s.phase in TripPresenter.STOP_PHASES }?.let { st ->
+            val next = st.nextStopName?.let { " It also gets you to the next stop, $it, with a safe margin." }
+                ?: " That covers the rest of the trip to the destination plus a safety margin."
+            val limit = if (st.willHitLimit && st.predictedSocAtLimit != null)
+                " The charger time limit will stop it at about ${pct(st.predictedSocAtLimit)}, so Chargis will plan the next stop from there." else ""
+            val car = st.carLimitPercent?.let { " The car's charge limit is set to $it% as a backup; Chargis stops charging at the target." }.orEmpty()
+            return GleoReply(
+                true,
+                "The target is ${pct(st.targetSoc)} because charging beyond what you need only adds time.$next$limit$car",
+                mapOf("station" to st.stationName, "targetSoc" to st.targetSoc.roundToInt())
+            )
+        }
+        return when (val c = s.card) {
+            is DriveCard.Recommend -> {
+                val r = c.rec
+                val reasons = buildList {
+                    if (c.fasterThanNextMin != null) add("it gets you to the destination about ${c.fasterThanNextMin} minutes earlier than the next option")
+                    else if (ReasonCode.FASTEST_ARRIVAL in r.reasonCodes) add("it gets you to the destination earliest")
+                    if (r.waitSource != WaitSource.UNKNOWN && ReasonCode.LOW_WAIT in r.reasonCodes) add(if (r.waitMinutes == 0) "no wait is expected" else "the expected wait is short (about ${r.waitMinutes} minutes)")
+                    if (ReasonCode.MAX_POWER in r.reasonCodes) add("its chargers are the fastest nearby (${r.station.maxKw.roundToInt()} kW)")
+                    if (ReasonCode.LATEST_SAFE_STOP in r.reasonCodes) add("it is the last stop you can reach safely")
+                    if (ReasonCode.NO_DETOUR in r.reasonCodes) add("there is no detour")
+                }.ifEmpty { listOf("it is the best balance of driving, waiting and charging time") }
+                val risk = if (ReasonCode.TIME_LIMIT_RISK in r.reasonCodes) " Note: its time limit may stop charging before the target." else ""
+                val navi = c.navi?.let { n ->
+                    val g = n.chargisFasterMin
+                    when {
+                        n.same -> " The car navigation picked the same stop."
+                        !n.naviReachable -> " The car navigation picked ${n.naviName}, but you would arrive there below Chargis's 10% safety reserve."
+                        g != null && g >= 1 -> " The car navigation picked ${n.naviName}; ${r.station.name} arrives about $g minutes earlier by Chargis's estimate."
+                        g != null && g <= -1 -> " The car navigation picked ${n.naviName}, which may arrive about ${-g} minutes earlier."
+                        else -> " The car navigation picked ${n.naviName}; the arrival time is about the same."
+                    }
+                }.orEmpty()
+                GleoReply(
+                    true,
+                    "Chargis recommends ${r.station.name} because ${reasons.joinToString(", ")}. Charge up to ${pct(r.targetSocPercent)}: " +
+                        "that is what the rest of the trip needs plus a safety margin.$risk$navi",
+                    mapOf("station" to r.station.name, "targetSoc" to r.targetSocPercent.roundToInt(), "fasterThanNextMin" to c.fasterThanNextMin)
+                )
+            }
+            is DriveCard.Congested -> GleoReply(
+                true,
+                "${c.primary.station.name} would normally be best, but about ${c.primary.waitMinutes} minutes of waiting is expected. " +
+                    "With ${c.alternative.station.name} you reach the destination at ${c.alternativeEta} instead of ${c.primaryEta}.",
+                mapOf("crowded" to c.primary.station.name, "alternative" to c.alternative.station.name)
+            )
+            is DriveCard.Navigating -> GleoReply(
+                true,
+                "You chose ${c.stationName}. Charging to ${pct(c.targetSoc)} covers the rest of the trip plus a safety margin; it takes about ${c.chargeMinutes} minutes.",
+                stationData(c.stationName, c.distanceKm, c.targetSoc, c.chargeMinutes)
+            )
+            is DriveCard.Status, is DriveCard.NoSafeStop -> plan(s)
+        }
+    }
+
+    /** DECLINE_STOP(E)의 실제 결과에 맞춘 답. */
+    fun declineReply(name: String, outcome: DeclineOutcome) = when (outcome) {
+        DeclineOutcome.DECLINED -> GleoReply(true, "Skipped $name. Chargis will suggest the next charging stop and will not mention $name again.", mapOf("station" to name))
+        DeclineOutcome.NOTHING_TO_DECLINE -> GleoReply(false, "There is no charging stop to skip right now.")
+    }
 
     /** GET_CHARGING_PLAN: 다음 충전을 어디서, 몇 %까지, 얼마나 하는지. */
     fun plan(s: TripUiState): GleoReply {

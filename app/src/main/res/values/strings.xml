@@ -19,6 +19,12 @@
     <string name="tts_limit_shortfall">충전 제한 시간이 끝나 %1$d퍼센트에서 충전이 종료되었습니다. 목표 %2$d퍼센트에 못 미쳐 다음 충전소에서 한 번 더 충전이 필요합니다.</string>
     <string name="tts_target_reached">목표 충전량에 도달했습니다. 출발할 수 있습니다.</string>
     <string name="tts_resume">충전을 마쳤습니다. 길 안내를 이어 갑니다.</string>
+    <string name="tts_car_limit_set">차량 충전 한도를 %1$d퍼센트로 맞췄습니다. 목표에 닿으면 Chargis가 충전을 멈춥니다.</string>
+    <string name="tts_car_charge_stopped">차량 충전을 멈췄습니다.</string>
+    <string name="tts_car_control_failed">차량 충전 설정을 바꾸지 못했습니다. 목표에 닿으면 직접 충전을 멈춰 주세요.</string>
+    <string name="tts_navi_stop_skip">순정 내비가 따로 넣은 충전소 %1$s, 들르지 않고 지나가도 됩니다.</string>
+    <string name="tts_waypoint_with_navi_stop">%2$s, 경유지로 추가했습니다. 순정 내비가 따로 넣은 충전소 %1$s, 들르지 않고 지나가도 됩니다.</string>
+    <string name="tts_navi_compare">순정 내비 추천은 %1$s. %2$s 쪽이 목적지에 약 %3$d분 빨리 도착합니다.</string>
     <string name="tts_no_safe_stop">배터리가 부족합니다. 가장 가까운 충전소에서 충전하세요.</string>
     <string name="tts_plan_two_stops">이어서 %1$s에서 %2$d퍼센트까지 한 번 더 충전하면 가장 빨리 도착합니다.</string>
     <string name="tts_target_changed">목표를 %1$d퍼센트로 바꿨습니다.</string>
@@ -187,6 +193,23 @@
     <string name="finished_saved_none">필요한 만큼만 충전했습니다</string>
     <string name="receipt_saved">아낀 시간</string>
     <string name="receipt_saved_value">%1$d분</string>
+    <string name="stop_car_limit">차량 충전 한도 %1$d%% · 목표에서 Chargis가 충전을 멈춥니다</string>
+    <string name="drive_navi_same">순정 내비와 같은 충전소입니다</string>
+    <string name="drive_navi_chargis_faster">순정 내비: %1$s · 이곳이 %2$d분 빨리 도착</string>
+    <string name="drive_navi_navi_faster">순정 내비: %1$s · 그쪽이 %2$d분 빨리 도착할 수 있음</string>
+    <string name="drive_navi_unreachable">순정 내비: %1$s · 도착 배터리가 안전 기준 10%%보다 낮음</string>
+    <string name="drive_navi_even">순정 내비: %1$s · 도착 시각 비슷</string>
+    <string name="finished_compare_faster">일반 방식보다 목적지에 %1$d분 빨리 도착(같은 조건 계산)</string>
+    <string name="finished_compare_slower">일반 방식보다 목적지에 %1$d분 늦게 도착(같은 조건 계산)</string>
+    <string name="finished_compare_even">일반 방식과 도착 시각 차이 없음(같은 조건 계산)</string>
+    <string name="receipt_compare">일반 방식과 비교</string>
+    <string name="receipt_compare_faster">목적지 %1$d분 빨리</string>
+    <string name="receipt_compare_slower">목적지 %1$d분 늦게</string>
+    <string name="receipt_compare_even">도착 시각 차이 없음</string>
+    <string name="receipt_compare_stops">충전 %1$d번(일반 %2$d번)</string>
+    <string name="receipt_compare_limit">시간 제한에 끊긴 충전 %1$d번(일반 %2$d번)</string>
+    <string name="receipt_compare_congestion">혼잡 회피 %1$d번</string>
+    <string name="receipt_compare_note" formatted="false">출발 때 같은 조건으로 계산. 일반 방식: 배터리 30% 아래에서 첫 휴게소·쉼터에 들러 80%까지</string>
     <string name="receipt_cost_total">충전 요금</string>
     <string name="receipt_cost_partial">%1$s · 일부 정보 없음</string>
     <string name="receipt_charge_cost">요금</string>

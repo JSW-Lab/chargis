@@ -69,6 +69,12 @@ internal object KeyPhrases : VoicePhrases {
     override fun preconditionManual() = "precondition_manual"
     override fun checkSoc() = "check_soc"
     override fun liveNoDestination() = "live_no_destination"
+    override fun carLimitSet(limit: Int) = "car_limit:$limit"
+    override fun carChargeStopped() = "car_stopped"
+    override fun carControlFailed() = "car_control_failed"
+    override fun waypointWithNaviStop(naviName: String, name: String) = "with_navi_stop:$naviName:$name"
+    override fun naviStopSkip(naviName: String) = "navi_stop_skip:$naviName"
+    override fun naviCompare(naviName: String, name: String, fasterMin: Int) = "navi_compare:$naviName:$name:$fasterMin"
 }
 
 // 테스트 한 번에 필요한 부품 묶음(시뮬레이터, 컨트롤러, 가짜 스피커)
@@ -81,7 +87,9 @@ internal fun TestScope.harness(
     settings: UserSettings? = null,
     vehicle: (ScenarioSimulator) -> com.chargis.app.port.VehiclePort = ::FakeVehicle,
     car: com.chargis.app.port.CarSignalsPort? = null,
-    liveRoute: com.chargis.app.port.LiveRoutePort? = null
+    liveRoute: com.chargis.app.port.LiveRoutePort? = null,
+    chargeControl: com.chargis.app.port.ChargeControlPort? = null,
+    naviStop: kotlinx.coroutines.flow.StateFlow<com.chargis.app.port.NaviChargingStop?>? = null
 ): Harness {
     val sim = ScenarioSimulator(catalog.scenarios.first())
     val tts = Recorder()
@@ -101,7 +109,9 @@ internal fun TestScope.harness(
         car = car,
         liveRoute = liveRoute,
         liveStations = catalog.allStations,
-        now = { java.time.LocalTime.of(14, 30) }
+        now = { java.time.LocalTime.of(14, 30) },
+        chargeControl = chargeControl,
+        naviStop = naviStop
     )
     runCurrent()
     return Harness(sim, controller, tts)

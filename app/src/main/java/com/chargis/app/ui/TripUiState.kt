@@ -23,7 +23,9 @@ sealed interface DriveCard {
     data class Recommend(
         val rec: Recommendation,
         val etaClock: String = "",
-        val fasterThanNextMin: Int? = null
+        val fasterThanNextMin: Int? = null,
+        /** 실제 주행에서 순정 내비가 고른 충전소와의 비교(C). 없으면 null */
+        val navi: NaviCompare? = null
     ) : DriveCard
     /**
      * 붐비지 않았다면 골랐을 곳이 붐빌 때 대안과 나란히 비교하는 카드 (10-congested.png)
@@ -105,7 +107,42 @@ data class StopInfo(
     /** 배터리 %를 운전자가 직접 넣는 중인지. true면 값을 고치는 버튼을 보여 준다 */
     val manualSoc: Boolean = false,
     /** 배터리가 차가워 충전이 늦어지는 중인지(예상 출력 곡선이 평소보다 낮다) */
-    val coldBattery: Boolean = false
+    val coldBattery: Boolean = false,
+    /** Chargis가 차량에 넣어 둔 충전 한도(%). 목표에서는 Chargis가 직접 끄고, 이 값은 안전장치다(A). 넣지 않았으면 null */
+    val carLimitPercent: Int? = null
+)
+
+/**
+ * 실제 주행에서 순정 내비가 경로에 넣은 충전소와 Chargis 추천의 비교(C).
+ * [naviArrivalSoc]은 내비가 준 도착 에너지를 배터리 용량으로 나눈 값. [naviTarget]·[naviChargeMinutes]는 내비가 주지 않아
+ * Chargis 엔진으로 계산한 값이다. [chargisFasterMin]: 양수면 Chargis 추천이 목적지에 그만큼 빨리, 음수면 내비 쪽이 빨리 도착.
+ */
+data class NaviCompare(
+    val naviName: String,
+    val naviKm: Double,
+    val naviArrivalSoc: Double?,
+    val naviMaxKw: Double,
+    val naviChargers: Int,
+    val same: Boolean,
+    val chargisFasterMin: Int?,
+    val naviTarget: Double? = null,
+    val naviChargeMinutes: Int? = null,
+    /** Chargis 기준(도착 잔량 10% 이상)으로 그 충전소에 안전하게 닿을 수 있는지. false면 시각 비교 대신 그 사실을 적는다 */
+    val naviReachable: Boolean = true
+)
+
+/**
+ * 영수증의 "이번 여행에서 Chargis가 바꾼 것"(D). 출발 때 같은 조건으로 "배터리 30% 아래에서 첫 휴게소·쉼터에 들러 80%까지"
+ * 방식을 계산해 Chargis 계획과 비교한다. [fasterMin]이 양수면 Chargis가 그만큼 빨리 도착.
+ * 시간 제한·혼잡은 실제 여행 기록([chargisLimitCuts], [congestionAvoided])과 일반 방식 계산([habitLimitCuts])을 함께 적는다.
+ */
+data class TripCompare(
+    val fasterMin: Int,
+    val habitStops: Int,
+    val chargisStops: Int,
+    val habitLimitCuts: Int,
+    val chargisLimitCuts: Int,
+    val congestionAvoided: Int
 )
 
 /** 출력 곡선 그래프의 한 점 */
@@ -141,7 +178,9 @@ data class TripReceipt(
     val endSoc: Double?,
     val distanceKm: Double,
     val charges: List<ChargeRecord>,
-    val declinedNames: List<String>
+    val declinedNames: List<String>,
+    /** 일반적인 충전 방식과의 비교(D). 데모 시나리오에서 충전이 필요했을 때만 있다 */
+    val compare: TripCompare? = null
 ) {
     /** 이번 여행에서 충전에 쓴 분 */
     val chargeMinutesTotal: Int get() = charges.sumOf { it.minutes }

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.chargis.app.ui.AcceptOutcome
+import com.chargis.app.ui.DeclineOutcome
 import com.chargis.app.ui.GleoReplies
 import com.chargis.app.ui.GleoReply
 import com.chargis.app.ui.GleoSnapshot
@@ -21,7 +22,8 @@ import org.json.JSONObject
 /**
  * Gleo AI 연동(Gleo Interface). Gleo가 assets/schema.json의 함수를 부르면 [GleoActionReceiver]가 받아 답한다.
  *
- * - 함수: GET_CHARGING_PLAN(다음 충전 계획), GET_CHARGING_STATUS(충전·주행 상태), ACCEPT_CHARGING_STOP(안내한 추천 수락)
+ * - 함수: GET_CHARGING_PLAN(다음 충전 계획), GET_CHARGING_STATUS(충전·주행 상태), ACCEPT_CHARGING_STOP(안내한 추천 수락),
+ *   EXPLAIN_RECOMMENDATION(왜 그 충전소인지), DECLINE_STOP(안내한 추천 거절)
  * - Gleo는 "패키지명.함수명"을 Intent action으로, 파라미터를 "ACTION_PARAM" JSON으로 보낸다(에뮬레이터 v2.1.0 실측. 문서 예시와 다르다).
  * - 7초 안에 APP_ACTION_RESPONSE 브로드캐스트로 답해야 한다. 앱이 꺼져 있다가 불려도 늦지 않게, 컨트롤러가 미리 만들어 둔 답([GleoSnapshot])을
  *   기기에 저장해 두고 여기서는 읽기만 한다.
@@ -34,6 +36,26 @@ class GleoActionReceiver : BroadcastReceiver() {
         when (function) {
             FN_PLAN -> respond(context, function, snap?.plan ?: GleoReplies.notRunning())
             FN_STATUS -> respond(context, function, snap?.status ?: GleoReplies.notRunning())
+            FN_EXPLAIN -> respond(context, function, snap?.explain ?: GleoReplies.notRunning())
+            FN_DECLINE -> {
+                val name = snap?.acceptable
+                // 거절도 화면의 [다음 충전소]와 같은 일이라 앱이 실행 중이어야 한다.
+                if (name == null || !GleoBridge.isLive) {
+                    respond(context, function, if (GleoBridge.isLive) GleoReplies.declineReply("", DeclineOutcome.NOTHING_TO_DECLINE) else GleoReplies.cannotAccept(false))
+                    return
+                }
+                val pending = goAsync()
+                val request = CompletableDeferred<DeclineOutcome>()
+                GleoBridge.sendDecline(request)
+                CoroutineScope(Dispatchers.Default).launch {
+                    try {
+                        val outcome = withTimeoutOrNull(ACCEPT_WAIT_MS) { request.await() } ?: DeclineOutcome.NOTHING_TO_DECLINE
+                        respond(context, function, GleoReplies.declineReply(name, outcome))
+                    } finally {
+                        pending.finish()
+                    }
+                }
+            }
             FN_ACCEPT -> {
                 val name = snap?.acceptable
                 // 수락은 화면의 [경유지로 수락]과 같은 일이라 앱이 실행 중이어야 한다.
@@ -79,6 +101,8 @@ class GleoActionReceiver : BroadcastReceiver() {
         const val FN_PLAN = "GET_CHARGING_PLAN"
         const val FN_STATUS = "GET_CHARGING_STATUS"
         const val FN_ACCEPT = "ACCEPT_CHARGING_STOP"
+        const val FN_EXPLAIN = "EXPLAIN_RECOMMENDATION"
+        const val FN_DECLINE = "DECLINE_STOP"
         private const val ACCEPT_WAIT_MS = 5_000L
     }
 }
@@ -100,6 +124,11 @@ object GleoBridge {
 
     fun send(request: CompletableDeferred<AcceptOutcome>): Boolean = _acceptRequests.tryEmit(request)
 
+    private val _declineRequests = MutableSharedFlow<CompletableDeferred<DeclineOutcome>>(extraBufferCapacity = 1)
+    val declineRequests = _declineRequests.asSharedFlow()
+
+    fun sendDecline(request: CompletableDeferred<DeclineOutcome>): Boolean = _declineRequests.tryEmit(request)
+
     fun save(context: Context, snap: GleoSnapshot) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, encode(snap).toString()).apply()
     }
@@ -112,13 +141,16 @@ object GleoBridge {
         .put("plan", encode(s.plan))
         .put("status", encode(s.status))
         .put("acceptable", s.acceptable ?: JSONObject.NULL)
+        .put("explain", encode(s.explain))
 
     private fun encode(r: GleoReply) = JSONObject().put("success", r.success).put("message", r.message).put("data", JSONObject(r.data))
 
     private fun decode(o: JSONObject) = GleoSnapshot(
         plan = decodeReply(o.getJSONObject("plan")),
         status = decodeReply(o.getJSONObject("status")),
-        acceptable = o.optString("acceptable").takeIf { !o.isNull("acceptable") && it.isNotEmpty() }
+        acceptable = o.optString("acceptable").takeIf { !o.isNull("acceptable") && it.isNotEmpty() },
+        // 예전 형식(설명 없음)으로 저장된 답도 읽는다.
+        explain = o.optJSONObject("explain")?.let(::decodeReply) ?: GleoReplies.notRunning()
     )
 
     private fun decodeReply(o: JSONObject): GleoReply {

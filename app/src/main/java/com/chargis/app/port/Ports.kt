@@ -32,7 +32,27 @@ interface NaviPort {
 
     /** 바로 전 [addWaypoint]가 순정 내비에 목적지가 없어 내비 경유지를 넣지 않고 앱 안에서만 성공했는지. */
     val lastAddSkippedNavi: Boolean get() = false
+
+    /**
+     * 바로 전 [addWaypoint] 때 순정 내비가 스스로 넣은 충전 경유지가 경로에 있었으면 그 충전소 이름(B). 아니면 null.
+     * 2026-11-06 Pleos 에뮬레이터: 이 경유지는 getWaypointInfo에 나오지 않고, removeWaypoint·재탐색 뒤에도 내비가 다시 넣어
+     * 공개 API로는 뺄 수 없다. 그래서 Chargis 충전소를 넣고 운전자에게 내비 충전소는 들르지 않아도 된다고 알린다.
+     */
+    val lastNaviOwnStop: String? get() = null
 }
+
+/**
+ * 순정 내비가 경로에 스스로 넣은 충전 경유지(NaviHelper onDrivingInfo의 isChargingStation 경유지).
+ * 2026-11-06 Pleos 에뮬레이터: 남은 에너지(EV_BATTERY_LEVEL)가 모자라면 내비가 충전소를 경유지로 넣는다. 목표 %·충전 시간(chargingPlan)은 주지 않는다.
+ * [arrivalKwh]: 그 충전소에 도착할 때 남는 에너지(kWh, 내비 값 Wh ÷ 1000). 모르면 null.
+ */
+data class NaviChargingStop(
+    val name: String,
+    val distanceKm: Double,
+    val arrivalKwh: Double?,
+    val maxKw: Double,
+    val chargers: Int
+)
 
 /** 차량 연결. 배터리 %와 주행/정차 상태를 읽는다. */
 interface VehiclePort {
@@ -62,6 +82,19 @@ interface CarSignalsPort {
     val chargeSwitchOn: StateFlow<Boolean?>
     /** 주행 중 화면 제한(CarUxRestrictions + ActiveRestrictions)을 기능별로 옮긴 값 */
     val uxLimits: StateFlow<UxLimits>
+}
+
+/**
+ * 차량 충전 제어(Pleos Vehicle SDK EvBattery, 퍼미션 CONTROL_CAR_ENERGY).
+ * 충전 한도는 안전장치로 넣고([com.chargis.app.domain.engine.ChargeLimit]), 목표에 닿으면 [stopCharging]으로 직접 끈다.
+ */
+interface ChargeControlPort {
+    /** 차량에서 충전 한도와 충전 스위치를 바꿀 수 있는지. false면 Chargis는 지금처럼 안내만 한다. */
+    val canControl: Boolean
+    /** 차량 충전 한도를 넣는다. 차가 받는 값 중 [percent] 이상에서 가장 가까운 값을 넣고, 실제로 넣은 값을 돌려준다. */
+    suspend fun setChargeLimit(percent: Int): Result<Int>
+    /** 차량 충전을 멈춘다(충전 스위치 끄기). */
+    suspend fun stopCharging(): Result<Unit>
 }
 
 /**
