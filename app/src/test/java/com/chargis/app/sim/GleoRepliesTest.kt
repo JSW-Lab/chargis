@@ -19,6 +19,19 @@ import org.junit.Test
 class GleoRepliesTest {
 
     @Test
+    fun staleSnapshot_notUsedWhenAppIsClosed() {
+        val now = 1_000_000_000L
+        // 앱이 실행 중이면 저장 시각과 상관없이 쓴다.
+        assertTrue(com.chargis.app.data.sdk.GleoBridge.isUsable(null, live = true, nowMs = now))
+        // 꺼져 있으면 10분 안에 저장한 답만 쓴다.
+        assertTrue(com.chargis.app.data.sdk.GleoBridge.isUsable(now - 60_000, live = false, nowMs = now))
+        assertFalse(com.chargis.app.data.sdk.GleoBridge.isUsable(now - com.chargis.app.data.sdk.GleoBridge.STALE_MS - 1, live = false, nowMs = now))
+        // 저장 시각이 없는 예전 형식이나 시계가 거꾸로 간 경우도 쓰지 않는다.
+        assertFalse(com.chargis.app.data.sdk.GleoBridge.isUsable(null, live = false, nowMs = now))
+        assertFalse(com.chargis.app.data.sdk.GleoBridge.isUsable(now + 60_000, live = false, nowMs = now))
+    }
+
+    @Test
     fun idle_noTripFails() {
         val idle = TripUiState()
         assertFalse(GleoReplies.plan(idle).success)

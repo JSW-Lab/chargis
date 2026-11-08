@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.core.content.edit
 import com.chargis.app.ui.AcceptOutcome
 import com.chargis.app.ui.DeclineOutcome
 import com.chargis.app.ui.GleoReplies
@@ -32,6 +33,7 @@ class GleoActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val function = intent.action?.removePrefix("${context.packageName}.") ?: return
         Log.i(TAG, "received $function param=${intent.getStringExtra(EXTRA_PARAM)}")
+        // 앱이 꺼져 있으면 저장한 지 오래된 답은 쓰지 않는다(지난 여행 정보를 지금 일처럼 말하지 않게).
         val snap = GleoBridge.load(context)
         when (function) {
             FN_PLAN -> respond(context, function, snap?.plan ?: GleoReplies.notRunning())
@@ -86,16 +88,22 @@ class GleoActionReceiver : BroadcastReceiver() {
             .put("message", reply.message)
             .put("mode", "voice")
         if (reply.data.isNotEmpty()) response.put("data", JSONArray().put(JSONObject(reply.data)).toString())
-        context.sendBroadcast(
-            Intent(ACTION_RESPONSE)
-                .putExtra("packageName", context.packageName)
-                .putExtra("response", response.toString())
-        )
+        val intent = Intent(ACTION_RESPONSE)
+            .putExtra("packageName", context.packageName)
+            .putExtra("response", response.toString())
+        // 답에는 여행 정보가 들어 있어, Gleo가 설치돼 있으면 Gleo에게만 보낸다. 없으면(문서와 다른 환경) 예전처럼 보낸다.
+        if (isInstalled(context, GLEO_PACKAGE)) intent.setPackage(GLEO_PACKAGE)
+        context.sendBroadcast(intent)
         Log.i(TAG, "sent $response")
     }
 
+    private fun isInstalled(context: Context, pkg: String): Boolean =
+        runCatching { context.packageManager.getPackageInfo(pkg, 0) }.isSuccess
+
     companion object {
         private const val TAG = "ChargisGleo"
+        /** Pleos Connect 에뮬레이터 v2.1.0의 Gleo AI 패키지(2026-11-03 실측) */
+        const val GLEO_PACKAGE = "ai.umos.ambientai"
         private const val ACTION_RESPONSE = "ai.pleos.playground.intent.action.APP_ACTION_RESPONSE"
         private const val EXTRA_PARAM = "ACTION_PARAM"
         const val FN_PLAN = "GET_CHARGING_PLAN"
@@ -115,6 +123,13 @@ class GleoActionReceiver : BroadcastReceiver() {
 object GleoBridge {
     private const val PREFS = "gleo"
     private const val KEY = "snapshot"
+    private const val KEY_SAVED_AT = "savedAt"
+    /** 앱이 꺼져 있을 때 저장해 둔 답을 믿는 시간. 이보다 오래되면 "여행 정보 없음"으로 답한다. */
+    const val STALE_MS = 10 * 60_000L
+
+    /** 저장해 둔 답을 쓸 수 있는지. 앱이 실행 중이면 늘 최신이고, 꺼져 있으면 [STALE_MS] 안에 저장한 것만 쓴다. */
+    fun isUsable(savedAtMs: Long?, live: Boolean, nowMs: Long): Boolean =
+        live || (savedAtMs != null && nowMs - savedAtMs in 0..STALE_MS)
 
     private val _acceptRequests = MutableSharedFlow<CompletableDeferred<AcceptOutcome>>(extraBufferCapacity = 1)
     val acceptRequests = _acceptRequests.asSharedFlow()
@@ -130,12 +145,19 @@ object GleoBridge {
     fun sendDecline(request: CompletableDeferred<DeclineOutcome>): Boolean = _declineRequests.tryEmit(request)
 
     fun save(context: Context, snap: GleoSnapshot) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, encode(snap).toString()).apply()
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit {
+            putString(KEY, encode(snap).toString())
+            putLong(KEY_SAVED_AT, System.currentTimeMillis())
+        }
     }
 
-    fun load(context: Context): GleoSnapshot? =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null)
-            ?.let { runCatching { decode(JSONObject(it)) }.getOrNull() }
+    fun load(context: Context, nowMs: Long = System.currentTimeMillis()): GleoSnapshot? {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        // 저장 시각이 없는 예전 형식은 오래된 답으로 본다.
+        val savedAt = if (prefs.contains(KEY_SAVED_AT)) prefs.getLong(KEY_SAVED_AT, 0L) else null
+        if (!isUsable(savedAt, isLive, nowMs)) return null
+        return prefs.getString(KEY, null)?.let { runCatching { decode(JSONObject(it)) }.getOrNull() }
+    }
 
     private fun encode(s: GleoSnapshot) = JSONObject()
         .put("plan", encode(s.plan))
