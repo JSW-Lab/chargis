@@ -381,7 +381,10 @@ class TripController(
             AlertType.RULE_NOTICE -> rec?.timeLimitMin?.let(phrases::ruleNotice)
             AlertType.LIMIT_T10 -> s?.let { phrases.limitWarn(10, it.currentSoc, it.predictedSocAtLimit ?: it.currentSoc) }
             AlertType.LIMIT_T5 -> s?.let { phrases.limitWarn(5, it.currentSoc, it.predictedSocAtLimit ?: it.currentSoc) }
-            AlertType.TARGET_T5 -> phrases.targetSoon()
+            // 동승자도 듣는 안내라 출발 예정 시각을 함께 말한다(정차 화면의 "출발 예정"과 같은 값).
+            AlertType.TARGET_T5 -> phrases.targetSoon(
+                s?.let { TripPresenter.Clock(demo.scenario.startHour, demo.scenario.startMinute).text(it.departAtSec) }
+            )
             AlertType.TARGET_REACHED -> phrases.targetReached()
             AlertType.LIMIT_SHORTFALL -> s?.let { phrases.limitShortfall(it.currentSoc, it.targetSoc) }
         } ?: return

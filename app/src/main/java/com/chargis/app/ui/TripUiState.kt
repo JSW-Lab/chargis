@@ -110,7 +110,11 @@ data class StopInfo(
     val coldBattery: Boolean = false,
     /** Chargis가 차량에 넣어 둔 충전 한도(%). 목표에서는 Chargis가 직접 끄고, 이 값은 안전장치다(A). 넣지 않았으면 null */
     val carLimitPercent: Int? = null
-)
+) {
+    /** 출발까지 남은 분(동승자 쉬는 시간). 제한 전에 목표에 못 닿으면 제한 종료가, 아니면 목표 도달이 출발 시점이다. */
+    val minutesUntilDepart: Int
+        get() = if (willHitLimit && minutesToLimit != null) minOf(minutesToTarget, minutesToLimit) else minutesToTarget
+}
 
 /**
  * 실제 주행에서 순정 내비가 경로에 넣은 충전소와 Chargis 추천의 비교(C).

@@ -27,7 +27,8 @@ interface VoicePhrases {
     fun waypointsFull(): String
     fun ruleNotice(limitMin: Int): String
     fun limitWarn(minutesLeft: Int, nowSoc: Double, endSoc: Double): String
-    fun targetSoon(): String
+    /** 목표 5분 전. [departAt]("14:20")을 알면 동승자에게 차로 돌아오라고 함께 말한다. */
+    fun targetSoon(departAt: String? = null): String
     fun limitShortfall(endSoc: Double, targetSoc: Double): String
     fun targetReached(): String
     fun resume(): String
@@ -85,7 +86,8 @@ class AndroidVoicePhrases(private val context: Context) : VoicePhrases {
     override fun ruleNotice(limitMin: Int) = s(R.string.tts_rule_notice, limitMin)
     override fun limitWarn(minutesLeft: Int, nowSoc: Double, endSoc: Double) =
         s(R.string.tts_limit_warn, minutesLeft, nowSoc.roundToInt(), endSoc.roundToInt())
-    override fun targetSoon() = s(R.string.tts_target_soon)
+    override fun targetSoon(departAt: String?) =
+        if (departAt != null) s(R.string.tts_target_soon_depart, departAt) else s(R.string.tts_target_soon)
     override fun limitShortfall(endSoc: Double, targetSoc: Double) =
         s(R.string.tts_limit_shortfall, endSoc.roundToInt(), targetSoc.roundToInt())
     override fun targetReached() = s(R.string.tts_target_reached)

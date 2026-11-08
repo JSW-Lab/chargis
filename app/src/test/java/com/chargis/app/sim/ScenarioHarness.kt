@@ -52,7 +52,7 @@ internal object KeyPhrases : VoicePhrases {
     override fun waypointsFull() = "waypoints_full"
     override fun ruleNotice(limitMin: Int) = "rule:$limitMin"
     override fun limitWarn(minutesLeft: Int, nowSoc: Double, endSoc: Double) = "limit_warn:$minutesLeft:${endSoc.toInt()}"
-    override fun targetSoon() = "target_soon"
+    override fun targetSoon(departAt: String?) = if (departAt != null) "target_soon" else "target_soon_no_time"
     override fun limitShortfall(endSoc: Double, targetSoc: Double) = "limit_shortfall:${endSoc.toInt()}:${targetSoc.toInt()}"
     override fun targetReached() = "target_reached"
     override fun resume() = "resume"

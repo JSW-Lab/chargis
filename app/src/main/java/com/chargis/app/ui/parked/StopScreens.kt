@@ -232,7 +232,13 @@ private fun LimitField(limit: Int?, known: Boolean, modifier: Modifier) {
  * F2: 목표 옆 [−5%][+5%]로 목표를 바꾸고, 아래에 이 충전기·차종의 출력 곡선과 지금 들어오는 kW를 보여 준다.
  */
 @Composable
-internal fun ColumnScope.ChargingBody(stop: StopInfo, onStop: () -> Unit, onAdjust: (Int) -> Unit, onCorrect: (Int) -> Unit) {
+internal fun ColumnScope.ChargingBody(
+    stop: StopInfo,
+    onStop: () -> Unit,
+    onAdjust: (Int) -> Unit,
+    onCorrect: (Int) -> Unit,
+    onPassenger: () -> Unit = {}
+) {
     val c = Ticket.colors
     Text(stringResource(R.string.charging_title, stop.stationName), style = MaterialTheme.typography.headlineMedium, color = c.ink)
     Spacer(Modifier.height(4.dp))
@@ -285,7 +291,47 @@ internal fun ColumnScope.ChargingBody(stop: StopInfo, onStop: () -> Unit, onAdju
     Spacer(Modifier.height(16.dp))
     PowerCurve(stop, warning, Modifier.weight(1f).fillMaxWidth())
     TearLine(Modifier.padding(vertical = 8.dp))
-    TicketButton(stringResource(R.string.parked_stop_charging), onStop, Modifier.fillMaxWidth(), primary = false, minHeight = 88.dp)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        // 동승자 화면: 차가 서 있는 충전 중에만 열 수 있다(센터 화면 하나를 함께 본다).
+        TicketButton(stringResource(R.string.passenger_open), onPassenger, Modifier.weight(1f), primary = false, minHeight = 88.dp)
+        TicketButton(stringResource(R.string.parked_stop_charging), onStop, Modifier.weight(1f), primary = false, minHeight = 88.dp)
+    }
+}
+
+/**
+ * 충전 중 동승자 화면(C1). 휴게소에서 쉬는 동승자가 멀리서도 읽도록 출발 예정 시각 하나를 가장 크게,
+ * 출발까지 남은 분과 배터리 진행만 함께 둔다. 출력 곡선·목표 조정 같은 운전자용 정보는 뺀다.
+ * 동승석 디스플레이가 아니라 센터 화면을 바꿔 보여 주는 것이다(동승석 화면은 차량마다 다르고 에뮬레이터 미지원).
+ */
+@Composable
+internal fun PassengerChargingScreen(stop: StopInfo, onBack: () -> Unit, modifier: Modifier = Modifier) {
+    val c = Ticket.colors
+    TicketStock(modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().padding(start = 40.dp, end = 40.dp, top = 32.dp, bottom = 20.dp)) {
+            Text(stringResource(R.string.passenger_title, stop.stationName), style = MaterialTheme.typography.headlineMedium, color = c.ink)
+            Spacer(Modifier.height(16.dp))
+            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(48.dp)) {
+                MeasureField(stringResource(R.string.label_depart_at), stop.departAt, null, FigureStyle.Monumental)
+                MeasureField(
+                    stringResource(R.string.label_until_depart), "${stop.minutesUntilDepart}", stringResource(R.string.unit_min),
+                    FigureStyle.Large, color = if (stop.willHitLimit) c.warn else c.ink
+                )
+            }
+            Spacer(Modifier.height(20.dp))
+            if (stop.willHitLimit) WarnLine(stringResource(R.string.passenger_limit), glyphSize = 26.dp)
+            else InfoLine(stringResource(R.string.passenger_break))
+            Spacer(Modifier.height(24.dp))
+            Text(
+                stringResource(R.string.passenger_battery, stop.currentSoc.roundToInt(), stop.targetSoc.roundToInt()),
+                style = MaterialTheme.typography.titleLarge, color = c.inkMuted
+            )
+            Spacer(Modifier.height(8.dp))
+            CellGauge(stop.currentSoc, stop.targetSoc)
+            Spacer(Modifier.weight(1f))
+            TearLine(Modifier.padding(vertical = 8.dp))
+            TicketButton(stringResource(R.string.passenger_back), onBack, Modifier.fillMaxWidth(), primary = false, minHeight = 88.dp)
+        }
+    }
 }
 
 /** F2 목표 조정: [−5%] [+5%]. 지금 %보다 낮게, 100%보다 높게는 못 바꾼다. */

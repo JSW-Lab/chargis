@@ -21,7 +21,7 @@
       "type": "function",
       "function": {
         "name": "GET_CHARGING_STATUS",
-        "description": "Tells the current EV battery level and, while charging, the time left to the target, the charger time limit, and the departure time.",
+        "description": "Tells the current EV battery level and, while stopped or charging, the time left to the target, the charger time limit, the departure time, and how many minutes passengers have for a break. Use it for driver or passenger questions like 'when do we leave?', 'how long until we go?' or 'how much time do I have for the restroom?'.",
         "parameters": {
           "type": "object",
           "properties": {},

@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -48,7 +52,12 @@ fun ParkedScreen(
         state.phase == TripPhase.Idle -> IssueScreen(state, onStartScenario, onSettings, modifier)
         state.phase == TripPhase.Finished && state.receipt != null -> ReceiptScreen(state, onRestart, modifier)
         stop != null && state.phase == TripPhase.Arrived -> StopScreen(state, stop, modifier) { ArrivedBody(stop, onStartCharging, onDepart, onAdjustTarget, onCorrectSoc) }
-        stop != null && state.phase == TripPhase.Charging -> StopScreen(state, stop, modifier) { ChargingBody(stop, onStopCharging, onAdjustTarget, onCorrectSoc) }
+        stop != null && state.phase == TripPhase.Charging -> {
+            // 동승자 화면은 이 충전 동안만 켜 둔다. 충전이 끝나 단계가 바뀌면 이 분기를 떠나 운전자 화면으로 돌아온다.
+            var passenger by rememberSaveable { mutableStateOf(false) }
+            if (passenger) PassengerChargingScreen(stop, onBack = { passenger = false }, modifier = modifier)
+            else StopScreen(state, stop, modifier) { ChargingBody(stop, onStopCharging, onAdjustTarget, onCorrectSoc, onPassenger = { passenger = true }) }
+        }
         stop != null && state.phase == TripPhase.Done -> StopScreen(state, stop, modifier) {
             DoneBody(stop, state.socPercent, state.receipt?.charges?.lastOrNull(), onDepart, onCorrectSoc)
         }

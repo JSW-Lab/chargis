@@ -162,12 +162,24 @@ object GleoReplies {
             val limit = st.minutesToLimit?.let { m ->
                 if (st.willHitLimit) " The charger stops in $m minutes, at about ${pct(st.predictedSocAtLimit)}." else " Time limit: $m minutes left."
             }.orEmpty()
+            // 동승자 질문("언제 출발해?", "얼마나 쉬어도 돼?")에도 답하도록 출발까지 남은 분을 따로 준다.
+            val untilDepart = st.minutesUntilDepart
             return GleoReply(
                 true,
                 "Charging at ${st.stationName}: ${pct(st.currentSoc)} now, target ${pct(st.targetSoc)}, about ${st.minutesToTarget} minutes left. " +
-                    "You can leave around ${st.departAt}.$limit",
+                    "You can leave around ${st.departAt}, so passengers have about $untilDepart minutes for a break.$limit",
                 mapOf("soc" to st.currentSoc.roundToInt(), "targetSoc" to st.targetSoc.roundToInt(), "minutesToTarget" to st.minutesToTarget,
-                    "minutesToLimit" to st.minutesToLimit, "departAt" to st.departAt)
+                    "minutesToLimit" to st.minutesToLimit, "departAt" to st.departAt, "minutesUntilDepart" to untilDepart)
+            )
+        }
+        // 충전소에 도착했지만 아직 충전 전: 지금 시작하면 언제 떠나는지 알려 준다.
+        if (s.phase == TripPhase.Arrived && st != null) {
+            val untilDepart = st.minutesUntilDepart
+            return GleoReply(
+                true,
+                "Arrived at ${st.stationName}. Charging to ${pct(st.targetSoc)} takes about $untilDepart minutes once it starts, " +
+                    "so you can leave around ${st.departAt}.",
+                mapOf("station" to st.stationName, "targetSoc" to st.targetSoc.roundToInt(), "minutesUntilDepart" to untilDepart, "departAt" to st.departAt)
             )
         }
         if (s.phase == TripPhase.Done && st != null) return GleoReply(
@@ -213,6 +225,6 @@ object GleoReplies {
     private fun stationData(name: String, km: Double, target: Double, minutes: Int) =
         mapOf("station" to name, "distanceKm" to km.roundToInt(), "targetSoc" to target.roundToInt(), "chargeMinutes" to minutes)
 
-    private fun pct(v: Double?) = "${(v ?: 0.0).roundToInt()}%"
+    private fun pct(v: Double?) ="${(v ?: 0.0).roundToInt()}%"
     private fun km(v: Double) = "${v.roundToInt()} km"
 }

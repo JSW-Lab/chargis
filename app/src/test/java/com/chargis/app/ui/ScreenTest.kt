@@ -203,6 +203,37 @@ class ScreenTest {
         compose.onNodeWithText("75").assertIsDisplayed()
     }
 
+    /** 충전 중 [동승자 화면]: 출발 예정 시각과 남은 분만 크게 보여 주고, [운전자 화면]으로 돌아간다(C1). */
+    @Test
+    fun charging_passengerScreenShowsDepartureAndReturns() {
+        fun stop(willHitLimit: Boolean) = StopInfo(
+            stationName = "B 휴게소", currentSoc = 40.0, targetSoc = 60.0, minutesToTarget = 18, timeLimitMin = 40,
+            minutesToLimit = if (willHitLimit) 12 else 30, departAt = "10:32", willHitLimit = willHitLimit,
+            powerCurve = (0..100 step 10).map { CurveSample(it.toFloat(), 100f) }
+        )
+        var current by mutableStateOf(stop(false))
+        compose.setContent {
+            ChargisTheme(night = true) {
+                ParkedScreen(
+                    state = TripUiState(phase = com.chargis.app.domain.session.TripPhase.Charging, stop = current),
+                    onStartScenario = {}, onStartCharging = {}, onStopCharging = {}, onDepart = {}, onRestart = {}
+                )
+            }
+        }
+        compose.onNodeWithText("동승자 화면").performClick()
+        compose.onNodeWithText("B 휴게소에서 충전하고 있습니다").assertIsDisplayed()
+        compose.onNodeWithText("10:32").assertIsDisplayed()
+        compose.onNodeWithText("18").assertIsDisplayed()
+        compose.onNodeWithText("쉬었다 오셔도 됩니다. 출발 5분 전에 차에서 알려 드립니다.").assertIsDisplayed()
+        compose.onNodeWithText("충전 중단").assertDoesNotExist()
+        // 제한 전에 목표에 못 닿으면 출발은 제한 종료 시점: 남은 분은 제한까지(12분)이고 이유를 알린다.
+        current = stop(true)
+        compose.onNodeWithText("12").assertIsDisplayed()
+        compose.onNodeWithText("충전기 시간 제한이 있어 이 시각에 충전이 끝나고 출발합니다.").assertIsDisplayed()
+        compose.onNodeWithText("운전자 화면").performClick()
+        compose.onNodeWithText("충전 중단").assertIsDisplayed()
+    }
+
     /** 휴게소 도착: 예상 요금을 100원 단위로 보여 주고, 배터리를 직접 넣는 중이면 고치는 버튼이 있다. */
     @Test
     fun arrived_showsCostAndManualCorrector() {

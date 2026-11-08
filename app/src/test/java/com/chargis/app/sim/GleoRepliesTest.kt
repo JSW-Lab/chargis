@@ -49,6 +49,11 @@ class GleoRepliesTest {
         assertEquals(AcceptOutcome.NOTHING_TO_ACCEPT, h.controller.acceptForAssistant())
 
         drive(h) { h.controller.state.value.phase == TripPhase.Arrived }
+        // 도착했지만 충전 전: 동승자가 "언제 출발해?"라고 물어도 충전소·출발 예정 시각을 답한다.
+        val arrived = h.controller.state.value
+        val arrivedStatus = GleoReplies.status(arrived)
+        assertTrue(arrivedStatus.message, arrivedStatus.message.startsWith("Arrived at B 휴게소"))
+        assertEquals(arrived.stop!!.departAt, arrivedStatus.data["departAt"])
         h.controller.startCharging()
         runCurrent()
         h.sim.advance(60.0)
@@ -62,5 +67,7 @@ class GleoRepliesTest {
         assertEquals(stop.minutesToTarget, status.data["minutesToTarget"])
         assertEquals(stop.departAt, status.data["departAt"])
         assertEquals(50, status.data["targetSoc"])
+        // S1은 시간 제한 안에 목표에 닿으므로 출발까지 남은 분 = 목표까지 남은 분(동승자 쉬는 시간)
+        assertEquals(stop.minutesToTarget, status.data["minutesUntilDepart"])
     }
 }
