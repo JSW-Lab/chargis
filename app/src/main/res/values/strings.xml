@@ -22,6 +22,29 @@
     <string name="tts_resume">충전을 마쳤습니다. 길 안내를 이어 갑니다.</string>
     <string name="tts_car_limit_set">차량 충전 한도를 %1$d퍼센트로 맞췄습니다. 목표에 닿으면 Chargis가 충전을 멈춥니다.</string>
     <string name="tts_car_charge_stopped">차량 충전을 멈췄습니다.</string>
+    <string name="tts_map_unavailable">순정 내비 지도를 열 수 없습니다. 내비게이션에서 직접 확인해 주세요.</string>
+    <string name="turn_service_area">%1$s 진입</string>
+    <string name="turn_exit">%1$s 쪽으로 나가기</string>
+    <string name="turn_right_to">%1$s 쪽으로 우회전</string>
+    <string name="turn_keep_to">%1$s 쪽 오른쪽 차선</string>
+    <string name="turn_source_navi">다음 갈림길: 순정 내비</string>
+    <string name="turn_source_sim">다음 갈림길: 시뮬레이션</string>
+    <string name="turn_map">지도에서 보기</string>
+    <string name="turn_desc">%1$s, %2$s</string>
+    <string name="maneuver_straight">직진</string>
+    <string name="maneuver_keep_right">오른쪽 차선 유지</string>
+    <string name="maneuver_keep_left">왼쪽 차선 유지</string>
+    <string name="maneuver_exit_right">오른쪽으로 나가기</string>
+    <string name="maneuver_exit_left">왼쪽으로 나가기</string>
+    <string name="maneuver_right">우회전</string>
+    <string name="maneuver_left">좌회전</string>
+    <string name="maneuver_sharp_right">급우회전</string>
+    <string name="maneuver_sharp_left">급좌회전</string>
+    <string name="maneuver_u_turn">유턴</string>
+    <string name="maneuver_roundabout">회전교차로</string>
+    <string name="maneuver_service_area">휴게소 진입</string>
+    <string name="maneuver_waypoint">경유지</string>
+    <string name="maneuver_arrive">도착</string>
     <string name="tts_car_control_failed">차량 충전 설정을 바꾸지 못했습니다. 목표에 닿으면 직접 충전을 멈춰 주세요.</string>
     <string name="tts_navi_stop_skip">순정 내비가 따로 넣은 충전소 %1$s, 들르지 않고 지나가도 됩니다.</string>
     <string name="tts_waypoint_with_navi_stop">%2$s, 경유지로 추가했습니다. 순정 내비가 따로 넣은 충전소 %1$s, 들르지 않고 지나가도 됩니다.</string>
@@ -68,6 +91,7 @@
 
     <!-- 단위 -->
     <string name="unit_km">km</string>
+    <string name="unit_m">m</string>
     <string name="unit_km_ahead">km 앞</string>
     <string name="unit_km_left">km 남음</string>
     <string name="unit_percent">%</string>

@@ -255,6 +255,9 @@ The ticket stock is square-cornered. Its edges are shaped by perforations: a das
 
 ## Components
 
+### Turn Band (turn-by-turn strip)
+On the navigating card only: a cobalt (stamp ink) strip above the body with one drawn arrow (96dp, 64dp in narrow windows), the distance to the next maneuver as a Figure (number in Mono, unit in Sans), and one line of text. Arrows are drawn in Compose, not icons: a stem that bends by the maneuver's representative angle (keep 35°, exit 60°, turn 90°, sharp 135°, roundabout by clock position). The source (순정 내비 / 시뮬레이션) sits below in Label style and is dropped under content limits. No band when the maneuver is unknown. [지도에서 보기] opens the stock navi route overview; Chargis never draws its own map.
+
 ### Buttons (TicketButton)
 Tactile, printed blocks on the tear strip.
 - **Shape:** gently squared (6dp radius), minimum height 104dp, 24dp horizontal padding, Label Large text centred.

@@ -7,21 +7,27 @@ import ai.pleos.playground.navi.constants.WaypointIndex
 import ai.pleos.playground.navi.data.CurrentLocationInfo
 import ai.pleos.playground.navi.data.DestinationInfo
 import ai.pleos.playground.navi.data.DrivingInfo
+import ai.pleos.playground.navi.data.NavigationScreenRequest
+import ai.pleos.playground.navi.data.RouteOverviewShowInfo
+import ai.pleos.playground.navi.data.TBTInfo
 import ai.pleos.playground.navi.data.RequestWaypointInfo
 import ai.pleos.playground.navi.data.TripInfo
 import ai.pleos.playground.navi.data.TripRequest
 import ai.pleos.playground.navi.data.WaypointInfo
 import ai.pleos.playground.navi.helper.NaviHelper
 import ai.pleos.playground.navi.helper.listener.NaviHelperEventListener
+import com.chargis.app.domain.engine.TurnAngles
 import com.chargis.app.domain.model.ChargingStation
 import com.chargis.app.domain.model.GeoPoint
 import com.chargis.app.domain.model.RouteState
+import com.chargis.app.domain.model.TurnHint
 import com.chargis.app.port.LiveRoutePort
 import com.chargis.app.port.NaviChargingStop
 import com.chargis.app.port.NaviDestination
 import com.chargis.app.port.NaviPort
 import com.chargis.app.port.TripEstimate
 import com.chargis.app.port.TripEstimator
+import com.chargis.app.port.TurnGuidePort
 import com.chargis.app.port.WaypointsFullException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
@@ -43,7 +49,7 @@ import kotlin.math.roundToInt
  * NaviHelper는 요청 함수를 부르면 결과가 리스너로 따로 온다. 요청마다 짝을 맞출 번호가 없어 [mutex]로 한 번에 하나씩만 묻는다.
  * 퍼미션: NAVI_ROUTE(get*Info·requestTrip), NAVI_ROUTE_SEARCH(경유지 추가·삭제·재탐색).
  */
-class PleosNavi(context: Context) : TripEstimator, LiveRoutePort {
+class PleosNavi(context: Context) : TripEstimator, LiveRoutePort, TurnGuidePort {
     private val helper = NaviHelper(context.applicationContext)
     private val mutex = Mutex()
     @Volatile private var ready = false
@@ -60,8 +66,19 @@ class PleosNavi(context: Context) : TripEstimator, LiveRoutePort {
     @Volatile var lastNaviOwnStop: String? = null
         private set
 
+    private val _turn = MutableStateFlow<TurnHint?>(null)
+    /** 순정 내비가 안내 중인 다음 갈림길(TBT). 길 안내 중이 아니거나 모르는 종류면 null */
+    override val turn: StateFlow<TurnHint?> = _turn.asStateFlow()
+
     private val listener = object : NaviHelperEventListener {
         override fun onTripInfo(tripInfo: TripInfo) { trip?.complete(tripInfo) }
+        // 다음 갈림길 목록. 첫 항목이 가장 가까운 갈림길이다. distance는 미터로 온다.
+        override fun onTBTInfo(tbtInfoList: List<TBTInfo>) {
+            val first = tbtInfoList.firstOrNull()
+            val hint = first?.let { TurnAngles.fromNavi(it.type.name, it.distance / 1000.0, it.description) }
+            if (hint?.maneuver != _turn.value?.maneuver) Log.i(TAG, "tbt ${first?.type} ${first?.distance}m '${first?.description}' -> $hint")
+            _turn.value = hint
+        }
         override fun onDrivingInfo(drivingInfo: DrivingInfo) {
             val stop = chargingStopOf(drivingInfo)
             if (stop != _chargingStop.value) Log.i(TAG, "navi charging stop: $stop")
@@ -92,6 +109,17 @@ class PleosNavi(context: Context) : TripEstimator, LiveRoutePort {
     }
 
     val isReady: Boolean get() = ready
+
+    override fun requestTurn() {
+        if (!ready) return
+        runCatching { helper.getTBTInfo() }.onFailure { Log.w(TAG, "getTBTInfo failed", it) }
+    }
+
+    override suspend fun showRouteOverview(): Result<Unit> {
+        if (!ready) return Result.failure(IllegalStateException("navi not connected"))
+        return runCatching { helper.requestNavigationScreen(NavigationScreenRequest.OverviewRoute(RouteOverviewShowInfo())) }
+            .onFailure { Log.w(TAG, "route overview failed", it) }
+    }
 
     override suspend fun currentLocation(): GeoPoint? = ask<CurrentLocationInfo>({ location = it }) { helper.getCurrentLocationInfo() }
         ?.let { GeoPoint(it.latitude, it.longitude) }

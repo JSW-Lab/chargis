@@ -5,6 +5,7 @@ import com.chargis.app.domain.model.ConnectorType
 import com.chargis.app.domain.model.GeoPoint
 import com.chargis.app.domain.model.Priority
 import com.chargis.app.domain.model.RouteState
+import com.chargis.app.domain.model.TurnHint
 import com.chargis.app.domain.model.UserSettings
 import com.chargis.app.domain.model.VehicleState
 import com.chargis.app.domain.model.VoiceCommand
@@ -53,6 +54,18 @@ data class NaviChargingStop(
     val maxKw: Double,
     val chargers: Int
 )
+
+/**
+ * 순정 내비의 턴 안내(NaviHelper TBT)와 지도 화면 열기. Pleos 차량에서만 있다.
+ * [turn]: 순정 내비가 안내 중인 다음 갈림길. 길 안내 중이 아니거나 모르면 null.
+ */
+interface TurnGuidePort {
+    val turn: StateFlow<TurnHint?>
+    /** 다음 갈림길을 다시 묻는다. 답은 [turn]으로 온다. */
+    fun requestTurn()
+    /** 순정 내비의 경로 전체 화면을 연다(지도는 순정 내비가 그린다). */
+    suspend fun showRouteOverview(): Result<Unit>
+}
 
 /** 차량 연결. 배터리 %와 주행/정차 상태를 읽는다. */
 interface VehiclePort {

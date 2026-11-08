@@ -72,6 +72,7 @@ internal object KeyPhrases : VoicePhrases {
     override fun carLimitSet(limit: Int) = "car_limit:$limit"
     override fun carChargeStopped() = "car_stopped"
     override fun carControlFailed() = "car_control_failed"
+    override fun mapUnavailable() = "map_unavailable"
     override fun waypointWithNaviStop(naviName: String, name: String) = "with_navi_stop:$naviName:$name"
     override fun naviStopSkip(naviName: String) = "navi_stop_skip:$naviName"
     override fun naviCompare(naviName: String, name: String, fasterMin: Int) = "navi_compare:$naviName:$name:$fasterMin"
@@ -89,7 +90,8 @@ internal fun TestScope.harness(
     car: com.chargis.app.port.CarSignalsPort? = null,
     liveRoute: com.chargis.app.port.LiveRoutePort? = null,
     chargeControl: com.chargis.app.port.ChargeControlPort? = null,
-    naviStop: kotlinx.coroutines.flow.StateFlow<com.chargis.app.port.NaviChargingStop?>? = null
+    naviStop: kotlinx.coroutines.flow.StateFlow<com.chargis.app.port.NaviChargingStop?>? = null,
+    turnGuide: com.chargis.app.port.TurnGuidePort? = null
 ): Harness {
     val sim = ScenarioSimulator(catalog.scenarios.first())
     val tts = Recorder()
@@ -111,7 +113,8 @@ internal fun TestScope.harness(
         liveStations = catalog.allStations,
         now = { java.time.LocalTime.of(14, 30) },
         chargeControl = chargeControl,
-        naviStop = naviStop
+        naviStop = naviStop,
+        turnGuide = turnGuide
     )
     runCurrent()
     return Harness(sim, controller, tts)

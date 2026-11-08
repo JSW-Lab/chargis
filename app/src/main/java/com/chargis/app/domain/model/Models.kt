@@ -82,6 +82,23 @@ data class CurvePoint(val socPercent: Double, val kw: Double)
  */
 enum class DataSource { SDK, MANUAL, SIMULATED }
 
+/** 다음 갈림길의 움직임 종류(순정 내비 TurnType을 앱 안의 말로 줄인 것). 화살표 모양과 안내 문구를 고르는 데 쓴다. */
+enum class Maneuver { STRAIGHT, KEEP_RIGHT, KEEP_LEFT, EXIT_RIGHT, EXIT_LEFT, RIGHT, LEFT, SHARP_RIGHT, SHARP_LEFT, U_TURN, ROUNDABOUT, SERVICE_AREA, WAYPOINT, ARRIVE }
+
+/**
+ * 경유지(수락한 충전소)로 가는 길의 다음 갈림길 안내.
+ * [angleDeg]: 화살표 각도. 0 = 직진, 시계 방향이 +(오른쪽). 실제 도로 각도가 아니라 움직임 종류별 대표 각도다.
+ * [distanceKm]: 그 갈림길까지 남은 거리. [text]: 설명("B 휴게소 진입" 또는 내비 설명). 모르면 null.
+ * [source]: SDK = 순정 내비(NaviHelper TBT), SIMULATED = 데모 경로에서 앱이 만든 값.
+ */
+data class TurnHint(
+    val maneuver: Maneuver,
+    val angleDeg: Int,
+    val distanceKm: Double,
+    val text: String?,
+    val source: DataSource
+)
+
 /** 지금 이 순간의 차 상태. 주행하면서 계속 바뀐다. */
 data class VehicleState(
     val socPercent: Double,          // 0..100

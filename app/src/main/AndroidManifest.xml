@@ -13,6 +13,8 @@
     <!-- Pleos NaviHelper SDK: 위치·경유지 조회와 경로 예측(NAVI_ROUTE), 경유지 추가·삭제·재탐색(NAVI_ROUTE_SEARCH) -->
     <uses-permission android:name="pleos.car.permission.NAVI_ROUTE" />
     <uses-permission android:name="pleos.car.permission.NAVI_ROUTE_SEARCH" />
+    <!-- [지도에서 보기]: 순정 내비 경로 전체 화면 열기(NaviHelper requestNavigationScreen). 2026-11-08 에뮬레이터에서 이 권한이 필요함을 확인 -->
+    <uses-permission android:name="pleos.car.permission.NAVI_CUSTOM_MAP" />
     <!-- Pleos TextToSpeech·SpeechToText SDK: 안내 음성과 음성 명령 -->
     <uses-permission android:name="pleos.car.permission.TTS_SERVICE" />
     <uses-permission android:name="pleos.car.permission.STT_SERVICE" />

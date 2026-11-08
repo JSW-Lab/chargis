@@ -6,7 +6,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Box
@@ -31,7 +34,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chargis.app.R
+import com.chargis.app.domain.model.DataSource
+import com.chargis.app.domain.model.Maneuver
 import com.chargis.app.domain.model.ReasonCode
+import com.chargis.app.domain.model.TurnHint
+import com.chargis.app.ui.ticket.TurnArrow
 import com.chargis.app.domain.model.Recommendation
 import com.chargis.app.domain.model.WaitSource
 import com.chargis.app.ui.DriveCard
@@ -88,7 +95,8 @@ fun DriveCardScreen(
     onDecline: () -> Unit,
     modifier: Modifier = Modifier,
     energy: EnergyInfo? = null,
-    onPrecondition: () -> Unit = {}
+    onPrecondition: () -> Unit = {},
+    onShowMap: () -> Unit = {}
 ) {
     val reduce = rememberReduceMotion()
     TicketStock(modifier.fillMaxSize(), perforationX = StubWidth) {
@@ -114,7 +122,7 @@ fun DriveCardScreen(
                     when (target) {
                         is DriveCard.Recommend -> RecommendStub(target, onAccept, onDecline)
                         is DriveCard.Congested -> CongestedStub(target, onAccept)
-                        is DriveCard.Navigating -> NavigatingStub(target, routeMarks, progress, onPrecondition)
+                        is DriveCard.Navigating -> NavigatingStub(target, routeMarks, progress, onPrecondition, onShowMap)
                         is DriveCard.Status -> StatusStub(target, eta, remainingKm, routeMarks, progress, energy)
                         is DriveCard.NoSafeStop -> NoSafeStub(target, routeMarks, progress)
                     }
@@ -452,10 +460,15 @@ private fun ChoiceColumn(rec: Recommendation, eta: String, emphasize: Boolean, o
  * 배터리가 차가워 충전이 늦어질 때는 도착 30분 전부터 예열을 권하고, 앱에서 켤 수 있는 차량이면 [배터리 예열 켜기] 버튼 하나를 띄운다.
  */
 @Composable
-private fun ColumnScope.NavigatingStub(card: DriveCard.Navigating, marks: List<RouteMark>, progress: Float, onPrecondition: () -> Unit) {
+private fun ColumnScope.NavigatingStub(card: DriveCard.Navigating, marks: List<RouteMark>, progress: Float, onPrecondition: () -> Unit, onShowMap: () -> Unit) {
     val c = Ticket.colors
     val min = stringResource(R.string.unit_min)
     val compact = LocalCompact.current
+    // 턴 안내 띠: 다음 갈림길의 화살표·거리·설명. 모르면 그리지 않는다.
+    card.turn?.let { t ->
+        TurnBand(t, card.stationName)
+        Spacer(Modifier.height(if (compact) 8.dp else 14.dp))
+    }
     SplitBody(lead = { m ->
         Row(m, verticalAlignment = Alignment.Bottom) {
             LeadColumn(card.distanceKm.roundToInt(), stringResource(R.string.unit_km_left), stringResource(R.string.drive_navigating, card.stationName), null, Modifier.weight(1f))
@@ -492,11 +505,92 @@ private fun ColumnScope.NavigatingStub(card: DriveCard.Navigating, marks: List<R
                     TicketButton(stringResource(R.string.drive_precondition_button), onPrecondition, Modifier.fillMaxWidth(), primary = false, minHeight = 96.dp)
                 }
             }
+            // [지도에서 보기]: 지도는 순정 내비가 그린다(경로 전체 화면). 예열 버튼이 있으면 그 아래에 둔다.
+            if (card.canShowMap) {
+                val preconditionButton = card.suggestPreconditioning && card.canStartPreconditioning && card.preconditioning != true
+                if (preconditionButton) Spacer(Modifier.height(12.dp)) else Spacer(Modifier.weight(1f))
+                TicketButton(stringResource(R.string.turn_map), onShowMap, Modifier.fillMaxWidth(), primary = false, minHeight = 72.dp)
+            }
         }
     }
     Spacer(Modifier.height(20.dp))
     RouteStrip(marks, progress)
 }
+
+/**
+ * 턴 안내 띠(제안 A). 도장 잉크 면에 화살표 하나, 거리 하나, 설명 한 줄. 주행 중 한눈에 읽도록 이 셋만 둔다.
+ * 거리: 10km 이상은 정수 km, 1km 이상은 "1.2 km", 미만은 50m 단위 "450 m".
+ * 출처(순정 내비 / 시뮬레이션)는 띠 아래 작은 줄. 항목 수 제한이 걸리면 뺀다.
+ */
+@Composable
+private fun TurnBand(t: TurnHint, stationName: String) {
+    val c = Ticket.colors
+    val compact = LocalCompact.current
+    val (value, unit) = turnDistance(t.distanceKm)
+    val text = turnText(t, stationName)
+    val desc = stringResource(R.string.turn_desc, maneuverLabel(t.maneuver), "$value $unit")
+    Row(
+        Modifier.fillMaxWidth().background(c.stamp, RoundedCornerShape(6.dp))
+            .padding(horizontal = 18.dp, vertical = if (compact) 8.dp else 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(18.dp)
+    ) {
+        TurnArrow(t.maneuver, t.angleDeg, c.onStamp, desc, Modifier.size(if (compact) 64.dp else 96.dp))
+        Column(Modifier.weight(1f)) {
+            // 숫자는 Geist Mono, 단위는 한글 글꼴(Mono-for-Measures 규칙). 고정폭 공백이 벌어지지 않게 둘을 따로 그린다.
+            Figure(value, unit, if (compact) FigureStyle.Medium else FigureStyle.Large, color = c.onStamp)
+            Text(uxText(text), style = MaterialTheme.typography.titleLarge, color = c.onStamp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+    if (uxShowSecondary()) {
+        Text(
+            stringResource(if (t.source == DataSource.SDK) R.string.turn_source_navi else R.string.turn_source_sim),
+            style = MaterialTheme.typography.labelMedium, color = c.inkMuted, modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}
+
+/** 턴 안내 거리를 (숫자, 단위)로: 10km 이상은 정수 km, 1km 이상은 소수 한 자리 km, 미만은 50m 단위 m. */
+@Composable
+private fun turnDistance(km: Double): Pair<String, String> = when {
+    km >= 10.0 -> "${km.roundToInt()}" to stringResource(R.string.unit_km)
+    km >= 1.0 -> "%.1f".format(km) to stringResource(R.string.unit_km)
+    else -> "${((km * 1000 / 50).roundToInt() * 50).coerceAtLeast(50)}" to stringResource(R.string.unit_m)
+}
+
+/** 띠의 설명 한 줄. 순정 내비는 내비 설명을 쓰고, 없으면 움직임 이름. 데모는 충전소 이름으로 만든다. */
+@Composable
+private fun turnText(t: TurnHint, stationName: String): String {
+    if (t.source == DataSource.SDK) return t.text ?: maneuverLabel(t.maneuver)
+    val name = t.text ?: stationName
+    return when (t.maneuver) {
+        Maneuver.SERVICE_AREA -> stringResource(R.string.turn_service_area, name)
+        Maneuver.EXIT_RIGHT, Maneuver.EXIT_LEFT -> stringResource(R.string.turn_exit, name)
+        Maneuver.RIGHT -> stringResource(R.string.turn_right_to, name)
+        Maneuver.KEEP_RIGHT -> stringResource(R.string.turn_keep_to, name)
+        else -> maneuverLabel(t.maneuver)
+    }
+}
+
+@Composable
+private fun maneuverLabel(m: Maneuver): String = stringResource(
+    when (m) {
+        Maneuver.STRAIGHT -> R.string.maneuver_straight
+        Maneuver.KEEP_RIGHT -> R.string.maneuver_keep_right
+        Maneuver.KEEP_LEFT -> R.string.maneuver_keep_left
+        Maneuver.EXIT_RIGHT -> R.string.maneuver_exit_right
+        Maneuver.EXIT_LEFT -> R.string.maneuver_exit_left
+        Maneuver.RIGHT -> R.string.maneuver_right
+        Maneuver.LEFT -> R.string.maneuver_left
+        Maneuver.SHARP_RIGHT -> R.string.maneuver_sharp_right
+        Maneuver.SHARP_LEFT -> R.string.maneuver_sharp_left
+        Maneuver.U_TURN -> R.string.maneuver_u_turn
+        Maneuver.ROUNDABOUT -> R.string.maneuver_roundabout
+        Maneuver.SERVICE_AREA -> R.string.maneuver_service_area
+        Maneuver.WAYPOINT -> R.string.maneuver_waypoint
+        Maneuver.ARRIVE -> R.string.maneuver_arrive
+    }
+)
 
 /**
  * 평소 주행 카드 (02-drive-status.png). 목적지까지 남은 거리와 충전 계획을 보여 준다.

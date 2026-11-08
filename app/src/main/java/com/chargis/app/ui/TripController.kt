@@ -32,6 +32,7 @@ import com.chargis.app.port.NaviChargingStop
 import com.chargis.app.port.NaviDestination
 import com.chargis.app.port.ChargerDataPort
 import com.chargis.app.port.NaviPort
+import com.chargis.app.port.TurnGuidePort
 import com.chargis.app.port.SettingsStore
 import com.chargis.app.port.SttPort
 import com.chargis.app.port.TripStore
@@ -97,12 +98,13 @@ class TripController(
     private val liveStations: List<ChargingStation> = emptyList(),  // 실제 주행에서 공공데이터가 없을 때 경로 근처에서 고를 번들 충전소
     private val now: () -> LocalTime = { LocalTime.now() },    // 실제 주행 발권 시각(테스트에서 바꿔 끼운다)
     private val chargeControl: ChargeControlPort? = null,       // 차량 충전 한도·충전 끄기(A). 없거나 쓸 수 없으면 안내만
-    private val naviStop: StateFlow<NaviChargingStop?>? = null  // 순정 내비가 경로에 넣은 충전 경유지(C). 실제 주행에서만 비교한다
+    private val naviStop: StateFlow<NaviChargingStop?>? = null,  // 순정 내비가 경로에 넣은 충전 경유지(C). 실제 주행에서만 비교한다
+    private val turnGuide: TurnGuidePort? = null                 // 순정 내비의 턴 안내(TBT)와 경로 화면. Pleos 차량에서만 있다
 ) {
     private var config = baseConfig
     private var engine = RecommendationEngine(config)
     private val gate = AnnouncementGate(config.announceWithinKm, config.switchMinutesGap)
-    private val presenter = TripPresenter(vehicle.canControlPreconditioning)
+    private val presenter = TripPresenter(vehicle.canControlPreconditioning, canShowMap = turnGuide != null)
     private val m = TripMemory()
     private val readout = VehicleReadout(m) { demo.scenario.profile }   // 거리·고도·전비 보정·배터리 직접 입력
     private val persistence = TripPersistence(m, gate)                 // 여행 저장·복원(B5)
@@ -154,6 +156,8 @@ class TripController(
             naviStop?.let { flow -> launch { flow.collect(::onNaviStop) } }
             // 순정 내비에 목적지가 있으면 발권 화면 맨 위에 실제 주행 표를 보여 준다.
             liveRoute?.let { route -> launch { offerLiveTicket(route) } }
+            // 실제 주행에서 경유지로 가는 동안 순정 내비의 다음 갈림길(TBT)을 받아 턴 안내 띠에 쓴다.
+            turnGuide?.let { g -> watchTurns(g) }
             // 저장 요청을 하나씩 순서대로 기기에 쓴다.
             tripStore?.let { store -> launch { for (json in saves) store.save(json) } }
         }
@@ -453,6 +457,30 @@ class TripController(
         if (m.carLimitWarned) return
         m.carLimitWarned = true
         announcer.announce(phrases.carControlFailed())
+    }
+
+    private fun CoroutineScope.watchTurns(g: TurnGuidePort) {
+        launch {
+            g.turn.collect { t ->
+                m.liveTurn = t
+                if (m.phase == TripPhase.NavigatingToCharger) publish()
+            }
+        }
+        // 답이 요청할 때만 오는 경우를 위해, 실제 주행으로 경유지에 가는 동안 3초마다 다시 묻는다.
+        launch {
+            while (true) {
+                if (demo.scenario.live && m.phase == TripPhase.NavigatingToCharger) g.requestTurn()
+                delay(LIVE_SYNC_MS)
+            }
+        }
+    }
+
+    /** [지도에서 보기]: 순정 내비의 경로 전체 화면을 연다. 열 수 없으면 음성·자막으로 알린다. */
+    fun showRouteOverview() {
+        scope.launch {
+            val r = turnGuide?.showRouteOverview() ?: Result.failure(IllegalStateException("no navi"))
+            r.onFailure { announcer.announce(phrases.mapUnavailable()) }
+        }
     }
 
     /**

@@ -35,7 +35,8 @@ class TripViewModel(container: AppContainer) : ViewModel() {
         liveRoute = container.liveRoute,
         liveStations = container.catalog.allStations,
         chargeControl = container.chargeControl,
-        naviStop = container.naviChargingStop
+        naviStop = container.naviChargingStop,
+        turnGuide = container.turnGuide
     )
 
     val state = controller.state

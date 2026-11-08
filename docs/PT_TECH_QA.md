@@ -45,7 +45,7 @@ TripController                상태머신 + 화면 상태 조립. 0.5km 또는 
 | Vehicle 2.3.2 | `data/sdk/PleosCarSignals.kt` | `EvBattery` SoC 알림, 기어(`registerGearSelection`), 충전 스위치 | `CAR_ENERGY`, `CAR_DRIVE` | 발권할 때 출발 배터리, P면 가상 주행 정지, 충전 스위치 = 충전 시작·종료, 충전을 마친 뒤 D = 출발 |
 | Vehicle 2.3.2 (충전 제어) | 같은 파일(`ChargeControlPort`), `domain/engine/ChargeLimit.kt` | `checkEvChargePercentLimitCapabilities`, `setEvChargePercentLimit`, `setEvChargeSwitch(false)` | `CONTROL_CAR_ENERGY` | 충전을 시작하면 차량 충전 한도를 목표 + 10%(5% 단위, 50~100%)로 넣고, 목표에 닿으면 Chargis가 차량 충전을 직접 끈다. 떠날 때 한도를 100%로 되돌린다 |
 | (AAOS) CarUxRestrictions | 같은 파일, `port/Ports.kt`(UxLimits), `ui/UxText.kt` | `CarUxRestrictionsManager.registerListener`, `isRequiresDistractionOptimization`, `getActiveRestrictions`, `getMaxRestrictedStringLength`, `getMaxCumulativeContentItems` | - | 기능별 적용: DO 필요면 정차 화면(발권·상세·입력·설정·필터)을 가림, 글자 수 상한이면 주행 카드·자막 글자를 자름, 항목 수 상한이 작으면 보조 줄을 뺌 |
-| NaviHelper 3.0.5 | `data/sdk/PleosNavi.kt`, `RoadDistanceRefiner.kt` | `addWaypoint`·`removeWaypoint`·`requestReRoute`, `requestTrip`, `getCurrentLocationInfo`, `onDrivingInfo` | `NAVI_ROUTE`, `NAVI_ROUTE_SEARCH` | 수락한 충전소를 순정 내비 경유지로 추가, 가까운 충전소 3곳의 실제 도로 거리, 순정 내비가 스스로 넣은 충전소를 읽어 "들르지 않아도 됨" 안내와 실제 주행 비교 |
+| NaviHelper 3.0.5 | `data/sdk/PleosNavi.kt`, `RoadDistanceRefiner.kt` | `addWaypoint`·`removeWaypoint`·`requestReRoute`, `requestTrip`, `getCurrentLocationInfo`, `onDrivingInfo`, `onTBTInfo`·`getTBTInfo`, `requestNavigationScreen` | `NAVI_ROUTE`, `NAVI_CUSTOM_MAP`, `NAVI_ROUTE_SEARCH` | 수락한 충전소를 순정 내비 경유지로 추가, 가까운 충전소 3곳의 실제 도로 거리, 순정 내비가 스스로 넣은 충전소를 읽어 "들르지 않아도 됨" 안내와 실제 주행 비교 |
 | TextToSpeech 3.3.1 | `data/sdk/PleosSpeech.kt`(PleosTts) | `speak`·`stop`, EventListener | `TTS_SERVICE` | 모든 안내를 차량 오디오로 말함(On-device, 앱 등록 불필요) |
 | SpeechToText 3.3.1 | `data/sdk/PleosSpeech.kt`(PleosStt) | `request`·`stop`, ResultListener | `STT_SERVICE` | "수락", "다음", "충전 시작", "출발", "예열" 음성 명령 |
 
@@ -97,6 +97,8 @@ Idle → TripPlanned → Driving ⇄ AwaitingDecision → NavigatingToCharger �
 
 | 질문 | 답(근거) |
 |---|---|
+| 왜 지도를 직접 그리지 않았나? | 길 안내와 지도는 순정 내비가 가장 잘합니다. NaviHelper는 경로 좌표를 주지 않아 경로 선을 그릴 수도 없습니다. 그래서 순정 내비의 다음 갈림길(`onTBTInfo`)만 띠로 보여 주고, 지도는 [지도에서 보기]로 순정 내비 화면(`requestNavigationScreen(OverviewRoute)`)을 엽니다(`data/sdk/PleosNavi.kt`). |
+| 화살표 각도는 어떻게 정했나? | 실제 도로 각도가 아니라 순정 내비 `TurnType`별 대표 각도입니다. 살짝 오른쪽·휴게소 진입 35°, IC 진출 60°, 우회전 90°, 급우회전 135°, 회전교차로는 내비가 주는 시계 방향(2시 = 60°)을 그대로 씁니다. 모르는 종류는 띠를 숨깁니다(`domain/engine/TurnAngles.kt`). |
 | 순정 내비도 충전소를 추천하는데 무엇이 다른가? | 순정 내비는 "어디서"를 정합니다. Chargis는 그 경로 위에서 **얼마나·얼마 동안**과 **충전기 시간 제한**을 다룹니다. 제한 경고와 미달 시 재추천, 대기 대 도착 배터리 비교, 동승자용 출발 예정 시각이 차별점입니다. |
 | 실제 차에서도 되는가? | 차량 신호와 내비 경유지는 실제 SDK로 Pleos 에뮬레이터에서 확인했습니다. 경로와 시계는 아직 데모 시뮬레이터입니다. 순정 내비 목적지로 시작하는 실제 주행 모드는 다음 단계입니다(TripController가 시뮬레이터 시계에 묶여 있어 "여행 진행원" 인터페이스로 떼어 내야 함). |
 | 충전소 데이터는 어디서 오나? | 데모는 가상 샘플입니다. 환경부 공공데이터 어댑터와 키를 숨기는 중계 서버(`server/`)를 만들고 테스트했지만, 실제 키로는 아직 확인하지 못했습니다. |

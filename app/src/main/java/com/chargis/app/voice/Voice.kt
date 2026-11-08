@@ -61,6 +61,8 @@ interface VoicePhrases {
     fun carChargeStopped(): String
     /** 차량 충전 한도나 충전 끄기를 차가 받지 않았을 때(A). */
     fun carControlFailed(): String
+    /** [지도에서 보기]를 눌렀지만 순정 내비 화면을 열 수 없을 때 */
+    fun mapUnavailable(): String
     /** 경유지를 넣었는데 순정 내비가 스스로 넣은 충전 경유지가 경로에 남아 있을 때(B). 그곳은 들르지 않아도 된다고 알린다. */
     fun waypointWithNaviStop(naviName: String, name: String): String
     /** Chargis 충전소로 가는 중에 순정 내비가 다른 충전소를 경로에 넣었을 때(B). */
@@ -111,6 +113,7 @@ class AndroidVoicePhrases(private val context: Context) : VoicePhrases {
     override fun carLimitSet(limit: Int) = s(R.string.tts_car_limit_set, limit)
     override fun carChargeStopped() = s(R.string.tts_car_charge_stopped)
     override fun carControlFailed() = s(R.string.tts_car_control_failed)
+    override fun mapUnavailable() = s(R.string.tts_map_unavailable)
     override fun waypointWithNaviStop(naviName: String, name: String) = s(R.string.tts_waypoint_with_navi_stop, naviName, name)
     override fun naviStopSkip(naviName: String) = s(R.string.tts_navi_stop_skip, naviName)
     override fun naviCompare(naviName: String, name: String, fasterMin: Int) = s(R.string.tts_navi_compare, naviName, name, fasterMin)

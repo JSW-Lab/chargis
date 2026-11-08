@@ -83,6 +83,30 @@ class ScreenTest {
         compose.onNodeWithText("경유지로 수락").assertIsDisplayed()
     }
 
+    /** 경유지 안내 카드의 턴 안내 띠(제안 A): 거리·설명·출처, [지도에서 보기] 누름. 1km 미만은 50m 단위. */
+    @Test
+    fun navigatingCard_showsTurnBandAndMapButton() {
+        var mapPressed = false
+        fun card(km: Double) = DriveCard.Navigating(
+            stationName = "B 휴게소", distanceKm = 3.4, targetSoc = 50.0, arrivalSoc = 37.0, chargeMinutes = 9, timeLimitMin = 40,
+            turn = com.chargis.app.domain.engine.TurnAngles.forStation(station("B", km).copy(name = "B 휴게소"), km, 0.5),
+            canShowMap = true
+        )
+        var current by mutableStateOf(card(1.24))
+        compose.setContent {
+            ChargisTheme(night = true) {
+                DriveCardScreen(current, "11:20", 160.0, TicketMeta("S1-0900", "09:00"), emptyList(), 0.2f, {}, {}, onShowMap = { mapPressed = true })
+            }
+        }
+        compose.onNodeWithText("1.2").assertIsDisplayed()
+        compose.onNodeWithText("B 휴게소 진입").assertIsDisplayed()
+        compose.onNodeWithText("다음 갈림길: 시뮬레이션").assertIsDisplayed()
+        compose.onNodeWithText("지도에서 보기").performClick()
+        assertEquals(true, mapPressed)
+        current = card(0.47)
+        compose.onNodeWithText("450").assertIsDisplayed()
+    }
+
     /** 혼잡 비교(U5): 결론("C 휴게소 쪽이 21분 빨리 도착")을 맨 위에 둔다. 주행 중 화면 제한이 걸리면 글자를 자르고 보조 줄(배터리 차이)을 뺀다. */
     @Test
     fun congestedCard_leadsWithVerdictAndFollowsUxLimits() {

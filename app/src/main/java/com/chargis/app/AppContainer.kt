@@ -82,6 +82,8 @@ class AppContainer(context: Context) {
     val navi: NaviPort = HybridNavi(FakeNavi(simulator), pleosNavi)
     // 순정 내비가 경로에 넣은 충전 경유지(C). 실제 주행 비교에 쓴다.
     val naviChargingStop = pleosNavi.chargingStop
+    // 순정 내비의 턴 안내(TBT)와 경로 화면 열기. Pleos 차량(Automotive)에서만 쓴다.
+    val turnGuide: com.chargis.app.port.TurnGuidePort? = pleosNavi.takeIf { app.packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE) }
     // 실제 주행: 순정 내비에 설정한 목적지로 여행을 시작한다. Pleos 차량(Automotive)에서만 쓴다.
     val liveRoute: LiveRoutePort? = pleosNavi.takeIf { app.packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE) }
     val vehicle: VehiclePort = FakeVehicle(simulator)

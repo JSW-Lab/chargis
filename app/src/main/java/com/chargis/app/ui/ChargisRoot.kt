@@ -86,7 +86,8 @@ fun ChargisRoot(controller: TripController) {
                             onAccept = controller::accept,
                             onDecline = controller::decline,
                             energy = state.energy,
-                            onPrecondition = controller::startPreconditioning
+                            onPrecondition = controller::startPreconditioning,
+                            onShowMap = controller::showRouteOverview
                         )
                     } else if (state.uxRestricted) {
                         // 차가 움직이는데 정차 화면(상세·스크롤)이 떠야 할 때: 주행 중 화면 제한(CarUxRestrictions)을 지켜 가린다.

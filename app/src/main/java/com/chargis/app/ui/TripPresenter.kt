@@ -1,5 +1,6 @@
 package com.chargis.app.ui
 
+import com.chargis.app.domain.engine.TurnAngles
 import com.chargis.app.domain.engine.BatteryThermal
 import com.chargis.app.domain.engine.ChargeMath
 import com.chargis.app.domain.model.ChargingStation
@@ -21,7 +22,8 @@ import kotlin.math.roundToInt
  * 계산(추천, 충전 추적)과 그리기 준비를 나눠 두면, 화면에 무엇을 보여 줄지 바꿀 때 이 파일만 고치면 된다.
  */
 class TripPresenter(
-    private val canControlPreconditioning: Boolean = true   // 앱에서 예열을 켤 수 있는 차량인지(VehiclePort)
+    private val canControlPreconditioning: Boolean = true,  // 앱에서 예열을 켤 수 있는 차량인지(VehiclePort)
+    private val canShowMap: Boolean = false                  // 순정 내비 경로 화면을 열 수 있는지(TurnGuidePort)
 ) {
 
     /** 지금 상황을 화면 상태 하나로 묶는다. [prev]에서 자막·설정처럼 다른 곳이 채우는 값은 그대로 이어받는다. */
@@ -52,7 +54,7 @@ class TripPresenter(
             routeMarks = buildMarks(m, scenario, sim.traveledKm, declinedIds),
             progress = (sim.traveledKm / scenario.totalDistanceKm).toFloat().coerceIn(0f, 1f),
             receipt = buildReceipt(m, scenario, declinedIds, clock),
-            card = buildCard(m, sim, clock),
+            card = buildCard(m, sim, clock, scenario, config),
             stop = buildStop(m, sim, scenario.profile, config, clock)?.copy(manualSoc = manualSoc, carLimitPercent = m.carLimit),
             candidates = candidatesOf(m),
             energy = energy,
@@ -79,7 +81,7 @@ class TripPresenter(
     }
 
     /** 주행 화면 아래쪽에 띄울 카드를 고른다: 추천 / 혼잡 비교 / 충전소로 이동 중 / 경고 / 평소 상태 */
-    private fun buildCard(m: TripMemory, sim: SimState, clock: Clock): DriveCard {
+    private fun buildCard(m: TripMemory, sim: SimState, clock: Clock, scenario: Scenario, config: RecommendationConfig): DriveCard {
         val o = m.offer
         val acc = m.accepted
         // 계획대로 가면 목적지에 도착하는 시각
@@ -110,7 +112,13 @@ class TripPresenter(
                     preconditioning = m.lastVehicle?.preconditioning,
                     // 컨트롤러가 예열을 권한 뒤(도착 30분 이내)부터, 아직 꺼져 있으면 버튼을 띄운다.
                     suggestPreconditioning = m.preconditionAdvised && m.lastVehicle?.preconditioning != true,
-                    canStartPreconditioning = canControlPreconditioning
+                    canStartPreconditioning = canControlPreconditioning,
+                    // 실제 주행은 순정 내비의 다음 갈림길(TBT), 데모는 수락한 충전소로 만든 안내를 쓴다.
+                    // 데모는 진입 3km 안에서만 띠를 띄운다. 더 멀면 띠의 거리가 아래 "N km 남음"과 같은 값이라 겹치기만 한다.
+                    turn = if (scenario.live) m.liveTurn
+                        else TurnAngles.forStation(acc.station, acc.station.distanceAlongRouteKm, config.offRouteKm)
+                            .takeIf { it.distanceKm <= DEMO_TURN_SHOW_KM },
+                    canShowMap = canShowMap
                 )
             else -> when (val r = m.lastResult) {
                 is RecommendationResult.NoSafeStop ->
@@ -291,6 +299,7 @@ class TripPresenter(
         const val MAX_TARGET = 100.0
         const val MIN_GAP = 1.0       // 목표는 지금 %보다 이만큼은 높아야 한다
         private const val CURVE_STEP = 2
+        const val DEMO_TURN_SHOW_KM = 3.0  // 데모 턴 안내 띠를 띄우는 거리(진입까지)
         private const val COLD_NOTE_FACTOR = 0.9   // 충전 수용이 평소의 90% 아래면 "배터리가 차가워 느림"을 알린다
     }
 }

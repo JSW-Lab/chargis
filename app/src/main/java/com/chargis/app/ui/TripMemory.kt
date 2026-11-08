@@ -46,6 +46,7 @@ class TripMemory {
     var carLimit: Int? = null                                 // 지금 차량에 넣어 둔 충전 한도(%). 넣지 않았으면 null(A, 차량 충전 제어)
     var carLimitWarned = false                                // 차량 충전 제어 실패를 이번 여행에서 이미 알렸는지
     var naviCompare: NaviCompare? = null                      // 지금 안내 중인 추천과 순정 내비 충전소의 비교(C, 실제 주행)
+    var liveTurn: com.chargis.app.domain.model.TurnHint? = null   // 실제 주행: 순정 내비가 알려 준 다음 갈림길(TBT)
     var habitBase: HabitBase? = null                          // 출발 때 계산한 일반 방식과 Chargis 계획(D, 영수증 비교)
     var congestionAvoided = 0                                 // 혼잡 비교에서 붐비는 곳 대신 대안을 고른 횟수(D)
     var naviStopNoted: String? = null                         // 이번 경유지 안내에서 "순정 내비 충전소는 지나가도 됨"을 말한 충전소(B)
