@@ -16,6 +16,7 @@ import com.chargis.app.domain.model.RouteState
 import com.chargis.app.domain.model.UserSettings
 import com.chargis.app.domain.model.VehicleProfile
 import com.chargis.app.domain.model.VehicleState
+import com.chargis.app.domain.model.DataSource
 import com.chargis.app.domain.model.VoiceCommand
 import com.chargis.app.domain.session.AlertType
 import com.chargis.app.domain.session.ChargeSession
@@ -1076,6 +1077,19 @@ class TripController(
         saved.manualSoc?.let { readout.restore(it, saved.sim.simTimeSec, saved.phase == TripPhase.Charging) }
         m.charge = saved.charge?.let { c ->
             rec?.let { newSession(it, c.targetSoc, c.startSec, c.fromSoc, c.fired.toSet()) }
+        }
+        // 첫 차량 값이 들어오기 전에 화면을 그리면 배터리가 0%로, 정차 화면이 "정차 중"으로만 보인다.
+        // 저장해 둔 시뮬레이터 배터리로 마지막 차량 값을 채워 두고, 다음 틱에서 실제 값으로 바꾼다.
+        if (m.lastVehicle == null) {
+            val sim = demo.state.value
+            m.lastVehicle = VehicleState(
+                socPercent = sim.soc,
+                rangeKm = null,
+                isDriving = false,
+                source = if (scenario.live) DataSource.SDK else DataSource.SIMULATED,
+                outsideTempC = scenario.outsideTempC,
+                batteryTempC = sim.batteryTempC
+            )
         }
         _state.update { it.copy(restored = true) }
         updateListening()

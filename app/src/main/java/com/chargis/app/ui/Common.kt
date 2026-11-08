@@ -246,7 +246,7 @@ fun CandidateTable(candidates: List<Recommendation>, modifier: Modifier = Modifi
             val s = r.station
             HairlineH()
             Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.Bottom) {
-                Column(Modifier.weight(1.5f)) {
+                Column(Modifier.weight(1.5f).padding(end = 8.dp)) {
                     Text(s.name, style = MaterialTheme.typography.bodyMedium, color = c.ink, maxLines = 1)
                     // 휴게소가 아니거나 경로를 벗어나는 곳이면 종류·우회를 작게 덧붙인다.
                     stationMeta(s)?.let { Text(it, style = MaterialTheme.typography.labelMedium, color = c.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis) }

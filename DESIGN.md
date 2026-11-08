@@ -223,6 +223,8 @@ Two paper-and-ink palettes with one reserved stamp ink and one warning ink; ever
 - **Label** (Sans 600, 22sp): printed field labels, route-strip stop names, source and battery labels. Raised from 16sp (2026-11-08) so drivers in their 50s and 60s can read a label at arm's length on the Pleos display (160dpi, 2560×1440).
 - **Plain words over jargon (2026-11-08):** field labels say what the number is for a non-expert: 도착 배터리 (not 도착 시), 이용 제한 (not 제한), 빈 충전기 (not 가용), 충전 속도 (not 출력), and "10% 적게 남음" (not %p). The charge-speed curve is collapsed behind [충전 속도 보기].
 - **Text size setting:** 보통 / 크게 (font scale ×1.15) in 내 차 설정.
+- **Window scale (2026-11-08):** layouts are designed for a 1280×800dp window. On larger, low-density car displays (Pleos: 160dpi, app window about 1700×1210dp) the whole app is scaled up by the smaller of width/1280 and height/800 (capped at 1.6×), so the layout fills the screen at the same proportions. Narrow windows (portrait, split) are not scaled.
+- **Touch targets:** setting choice cells are at least 64×88dp.
 
 ### Named Rules
 **The Mono-for-Measures Rule.** Any distance, percent, minute count, time, or kW value is set in Geist Mono; its unit is set in Wanted Sans beside it. Words never go in Mono.

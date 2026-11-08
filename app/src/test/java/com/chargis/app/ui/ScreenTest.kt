@@ -83,6 +83,29 @@ class ScreenTest {
         compose.onNodeWithText("경유지로 수락").assertIsDisplayed()
     }
 
+    /** 혼잡 비교(U5): 결론("C 휴게소 쪽이 21분 빨리 도착")을 맨 위에 둔다. 주행 중 화면 제한이 걸리면 글자를 자르고 보조 줄(배터리 차이)을 뺀다. */
+    @Test
+    fun congestedCard_leadsWithVerdictAndFollowsUxLimits() {
+        val b = rec.copy(station = station("B", 41.0).copy(name = "B 휴게소"), waitMinutes = 31, etaMinutes = 181.0, arrivalSocPercent = 37.0)
+        val c = rec.copy(station = station("C", 81.0).copy(name = "C 휴게소"), waitMinutes = 8, etaMinutes = 160.0, arrivalSocPercent = 26.0)
+        var limits by mutableStateOf(com.chargis.app.port.UxLimits.NONE)
+        compose.setContent {
+            ChargisTheme(night = true) {
+                androidx.compose.runtime.CompositionLocalProvider(LocalUxLimits provides limits) {
+                    DriveCardScreen(DriveCard.Congested(b, c, "13:01", "12:40"), "12:40", 160.0, TicketMeta("S2-1000", "10:00"), emptyList(), 0.2f, {}, {})
+                }
+            }
+        }
+        compose.onNodeWithText("C 휴게소 쪽이 21분 빨리 도착").assertIsDisplayed()
+        compose.onNodeWithText("· 대신 배터리가 11% 적게 남음").assertIsDisplayed()
+        compose.onNodeWithText("C 휴게소에서 충전").assertIsDisplayed()
+        // 글자 수 8자·항목 수 8개 제한: 결론은 잘리고 배터리 차이 줄은 빠지지만 두 버튼은 남는다.
+        limits = com.chargis.app.port.UxLimits(restricted = true, maxStringLength = 8, maxContentItems = 8, activeBits = 0x1ff)
+        compose.onNodeWithText("C 휴게소 쪽…").assertExists()
+        compose.onAllNodesWithText("· 대신 배터리가 11% 적게 남음").assertCountEquals(0)
+        compose.onNodeWithText("B 휴게소에서…").assertExists()
+    }
+
     /** 추천 카드: 휴게소가 아닌 곳은 종류·왕복 우회·운영 시간을 덧붙이고, 확인하지 못한 시간 제한은 "정보 없음", 버튼은 "다음 충전소". */
     @Test
     fun recommendCard_showsOffRouteMetaAndUnknownLimit() {

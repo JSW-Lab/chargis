@@ -74,6 +74,8 @@ class RestoreFlowTest {
         assertEquals(false, restored.loading)
         assertEquals("E 휴게소", restored.stop?.stationName)
         assertEquals(savedSoc, second.sim.state.value.soc, 0.5)
+        // 다시 켠 직후 화면의 배터리도 저장해 둔 값이다(0%로 보이지 않는다).
+        assertEquals(savedSoc, restored.socPercent, 0.5)
         drive(second) { second.controller.state.value.phase == TripPhase.Done }
         // 이미 낸 10분 전 경고는 다시 내지 않고, 5분 전 경고와 종료 안내만 이어서 낸다.
         val f3 = second.tts.spoken.filter { it.startsWith("limit") || it.startsWith("rule") }

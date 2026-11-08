@@ -252,11 +252,13 @@ private fun ChoiceCell(text: String, selected: Boolean, onClick: () -> Unit) {
     val shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)
     Box(
         Modifier
-            .heightIn(min = 48.dp)
+            // 차량 터치 영역: 손가락이 흔들리는 주행 환경을 감안해 높이 64dp, 폭 88dp 이상으로 둔다.
+            .heightIn(min = 64.dp)
+            .widthIn(min = 88.dp)
             .background(if (selected) c.stamp else androidx.compose.ui.graphics.Color.Transparent, shape)
             .border(1.5.dp, if (selected) c.stamp else c.inkMuted, shape)   // 괘선색(1.5:1)은 조작 칸 테두리로 너무 흐려 보조 잉크(5.8:1 이상)를 쓴다
             .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 20.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(text, style = MaterialTheme.typography.titleMedium, color = if (selected) c.onStamp else c.ink, maxLines = 1)

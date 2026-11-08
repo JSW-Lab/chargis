@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -143,12 +144,33 @@ private fun TicketPalette.toScheme(): ColorScheme {
 fun ChargisTheme(night: Boolean = isSystemInDarkTheme(), largeText: Boolean = false, content: @Composable () -> Unit) {
     val palette = if (night) NightPalette else DayPalette
     // U7: [크게]를 고르면 시스템 글자 배율 위에 15%를 더 키운다. sp로 정한 모든 글자가 함께 커진다.
-    val density = androidx.compose.ui.platform.LocalDensity.current
-    val scaled = if (largeText) androidx.compose.ui.unit.Density(density.density, density.fontScale * LARGE_TEXT_SCALE) else density
-    CompositionLocalProvider(LocalTicket provides palette, androidx.compose.ui.platform.LocalDensity provides scaled) {
-        MaterialTheme(colorScheme = palette.toScheme(), typography = typography, content = content)
+    // 넓고 밀도가 낮은 차량 화면(Pleos: 160dpi, 1dp = 1px)에서는 화면 전체를 키운다. 기준 창(1280×800dp, 태블릿 가로)보다
+    // 크면 그 비율만큼 dp·sp를 함께 키워, 같은 레이아웃이 같은 비율로 화면을 채우게 한다. 좁은 창(세로·분할)은 그대로 둔다.
+    androidx.compose.foundation.layout.BoxWithConstraints(androidx.compose.ui.Modifier.fillMaxSize()) {
+        val density = androidx.compose.ui.platform.LocalDensity.current
+        val fit = windowScale(maxWidth.value, maxHeight.value)
+        val scaled = androidx.compose.ui.unit.Density(
+            density.density * fit,
+            density.fontScale * if (largeText) LARGE_TEXT_SCALE else 1f
+        )
+        CompositionLocalProvider(LocalTicket provides palette, androidx.compose.ui.platform.LocalDensity provides scaled) {
+            MaterialTheme(colorScheme = palette.toScheme(), typography = typography, content = content)
+        }
     }
 }
+
+/** 디자인 기준 창 크기(dp). 가로 태블릿(2560×1600, 320dpi)의 앱 창이다. */
+private const val BASE_WIDTH_DP = 1280f
+private const val BASE_HEIGHT_DP = 800f
+/** 화면을 키우는 최대 배율. 너무 키우면 표 한 장이 화면을 넘친다. */
+private const val MAX_WINDOW_SCALE = 1.6f
+
+/**
+ * 창이 기준보다 크면 가로·세로 가운데 작은 비율만큼 키운다(1.0~1.6). Pleos 앱 창(약 1700×1210dp)은 약 1.33배가 된다.
+ * 기준보다 작은 창은 1.0이라 좁은 창 배치(LocalCompact)가 원래대로 동작한다.
+ */
+fun windowScale(widthDp: Float, heightDp: Float): Float =
+    minOf(widthDp / BASE_WIDTH_DP, heightDp / BASE_HEIGHT_DP).coerceIn(1f, MAX_WINDOW_SCALE)
 
 /** 글자 크기 설정 [크게]의 배율(U7) */
 const val LARGE_TEXT_SCALE = 1.15f
