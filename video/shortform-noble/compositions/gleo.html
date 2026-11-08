@@ -1,0 +1,65 @@
+<template>
+  <style>
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_semibold.ttf"); font-weight: 600; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_bold.ttf"); font-weight: 700; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_extrabold.ttf"); font-weight: 800; }
+@font-face { font-family: "Geist Mono"; src: url("assets/fonts/geist_mono_semibold.ttf"); font-weight: 600; }
+#root { position: absolute; inset: 0; background: #0f0e0d; font-family: "Wanted Sans"; color: #ede9e2; overflow: hidden; }
+.world { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.noble { position: absolute; width: 220px; height: 440px; }
+.noble svg { width: 100%; height: 100%; overflow: visible; }
+.bub { position: absolute; width: 190px; height: 170px; }
+.bub .shape { position: absolute; inset: 0; }
+.bub img { position: absolute; left: 47px; top: 22px; width: 96px; height: 96px; }
+.cap { position: absolute; left: 40px; right: 40px; top: 1120px; padding: 14px 0 18px; text-align: center; font-weight: 800; letter-spacing: -1px; background: rgba(15,14,13,.88); z-index: 30; }
+.cap .l1 { font-size: 64px; line-height: 1.22; color: #c9a44c; }
+.cap .l2 { font-size: 64px; line-height: 1.22; color: #ede9e2; }
+.cap .gold { color: #c9a44c; }
+.shot { position: absolute; border: 5px solid #c9a44c; background: #000; object-fit: cover; }
+.stampbox { position: absolute; border: 8px solid; padding: 10px 26px; font-weight: 800; font-size: 54px; line-height: 1; }
+.stampbox::after { content: ""; position: absolute; inset: 6px; border: 3px solid; border-color: inherit; }
+.mono { font-family: "Geist Mono"; font-weight: 600; }
+</style>
+  <div id="root" data-composition-id="gleo" data-width="1080" data-height="1920">
+    <div id="gleo-world" class="world clip" data-start="0" data-duration="4"><div id="gleo-in" class="world">
+
+<img class="shot" src="assets/screens/04-navigating.png" style="left:130px;top:620px;width:820px;height:440px;opacity:.9">
+<div id="g6n" class="noble" style="left:180px;top:250px;width:220px;height:440px;z-index:5">
+  <svg viewBox="-110 -170 220 440"><g fill="none" stroke="#ede9e2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-70 150 q0 -70 70 -86 q70 16 70 86 l0 110 l-140 0z" fill="#1a1917"/>
+    <path d="M-30 74 l30 18 l30 -18 l0 30 l-30 -12 l-30 12z" fill="#9e2b2b"/>
+    <path d="M0 110 l0 140" stroke="#3b3833"/>
+    <circle cx="0" cy="0" r="62" fill="#1a1917"/>
+    <g id="g6n-mono"><circle cx="24" cy="-8" r="20" stroke="#c9a44c" stroke-width="6"/><path d="M44 -4 q14 34 2 70" stroke="#c9a44c" stroke-width="3"/></g>
+    <path id="g6n-mus" d="M0 22 q-18 -14 -38 -2 q-14 10 -26 -6 q6 22 28 20 q20 -2 36 -12 q16 10 36 12 q22 2 28 -20 q-12 16 -26 6 q-20 -12 -38 2z" fill="#ede9e2" stroke-width="3"/>
+    <g id="g6n-hat"><path d="M-48 -150 l96 0 l-6 104 l-84 0z" fill="#121110"/><path d="M-44 -70 l88 0" stroke="#c9a44c" stroke-width="9"/><path d="M-92 -44 q92 -22 184 0 q-92 16 -184 0z" fill="#121110"/></g>
+  </g><g id="g6n-cup" transform="translate(120 190)"><path d="M-40 0 l80 0 q0 46 -40 46 q-40 0 -40 -46z" fill="#0f0e0d" stroke="#ede9e2" stroke-width="5"/><path d="M40 10 q24 0 20 18 q-4 14 -22 10" fill="none" stroke="#ede9e2" stroke-width="5"/><path d="M-56 52 l112 0" stroke="#c9a44c" stroke-width="5"/></g></svg></div>
+<div id="wv0" class="abs" style="left:540px;top:300px;width:22px;height:220px;border-radius:11px;background:#8fb2ee"></div><div id="wv1" class="abs" style="left:598px;top:300px;width:22px;height:220px;border-radius:11px;background:#8fb2ee"></div><div id="wv2" class="abs" style="left:656px;top:300px;width:22px;height:220px;border-radius:11px;background:#8fb2ee"></div><div id="wv3" class="abs" style="left:714px;top:300px;width:22px;height:220px;border-radius:11px;background:#8fb2ee"></div><div id="wv4" class="abs" style="left:772px;top:300px;width:22px;height:220px;border-radius:11px;background:#8fb2ee"></div><div id="wv5" class="abs" style="left:830px;top:300px;width:22px;height:220px;border-radius:11px;background:#8fb2ee"></div><div id="wv6" class="abs" style="left:888px;top:300px;width:22px;height:220px;border-radius:11px;background:#8fb2ee"></div><div id="wv7" class="abs" style="left:946px;top:300px;width:22px;height:220px;border-radius:11px;background:#8fb2ee"></div>
+<div class="abs" style="left:880px;top:540px;font-size:40px;font-weight:700;color:#8fb2ee">Gleo</div>
+<div id="g6b" class="bub" style="left:360px;top:170px;transform-origin:20% 100%;scale:0.85;z-index:8">
+  <svg class="shape" viewBox="0 0 190 170"><path d="M24 4 h142 q20 0 20 20 v92 q0 20 -20 20 h-96 l-44 30 l12 -30 h-14 q-20 0 -20 -20 v-92 q0 -20 20 -20z" fill="#ede9e2" stroke="#c9a44c" stroke-width="6"/></svg><img id="g6b-0" src="assets/emoji/1f60e.svg" style="opacity:1"></div>
+<div id="g6-stamp" class="stampbox" style="left:600px;top:820px;color:#8fb2ee;border-color:#8fb2ee;rotate:0deg;font-size:64px;z-index:9">경유지 등록</div>
+<svg id="ink" class="abs" style="left:560px;top:760px;width:460px;height:260px;opacity:0;z-index:8" viewBox="0 0 460 260"><g fill="#8fb2ee"><circle cx="20" cy="30" r="9"/><circle cx="440" cy="40" r="7"/><circle cx="30" cy="230" r="8"/><circle cx="430" cy="220" r="10"/><circle cx="230" cy="10" r="6"/></g></svg>
+<div id="g6c" class="cap"><div id="g6c-2" class="l2" style="font-size:84px"><span class="ch" style="display:inline-block">“</span><span class="ch" style="display:inline-block">거</span><span class="ch" style="display:inline-block">기</span><span class="ch" style="display:inline-block">로</span><span class="ch" style="display:inline-block">&nbsp;</span><span class="ch" style="display:inline-block">가</span><span class="ch" style="display:inline-block">자</span><span class="ch" style="display:inline-block">.</span><span class="ch" style="display:inline-block">”</span></div></div>
+    </div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    tl.fromTo("#gleo-in", {opacity: 0}, {opacity: 1, duration: 0.12}, 0);
+    // 말소리에 맞춰 글자가 하나씩 튀어나온다.
+    tl.fromTo("#g6c-2 .ch", {opacity: 0, y: 40, scale: 0.5}, {opacity: 1, y: 0, scale: 1, duration: 0.22, ease: "back.out(3)", stagger: 0.07}, 0.2);
+    // 음성 물결이 출렁인다.
+    tl.fromTo("#wv0", {scaleY: 0.15}, {keyframes: [{scaleY: 0.5}, {scaleY: 0.9}, {scaleY: 0.3}, {scaleY: 0.15}], duration: 1.3, ease: "none"}, 0.20);tl.fromTo("#wv1", {scaleY: 0.15}, {keyframes: [{scaleY: 0.8}, {scaleY: 0.4}, {scaleY: 0.9}, {scaleY: 0.15}], duration: 1.3, ease: "none"}, 0.24);tl.fromTo("#wv2", {scaleY: 0.15}, {keyframes: [{scaleY: 1}, {scaleY: 0.6}, {scaleY: 0.5}, {scaleY: 0.15}], duration: 1.3, ease: "none"}, 0.28);tl.fromTo("#wv3", {scaleY: 0.15}, {keyframes: [{scaleY: 0.6}, {scaleY: 1}, {scaleY: 0.7}, {scaleY: 0.15}], duration: 1.3, ease: "none"}, 0.32);tl.fromTo("#wv4", {scaleY: 0.15}, {keyframes: [{scaleY: 0.9}, {scaleY: 0.5}, {scaleY: 1}, {scaleY: 0.15}], duration: 1.3, ease: "none"}, 0.36);tl.fromTo("#wv5", {scaleY: 0.15}, {keyframes: [{scaleY: 0.4}, {scaleY: 0.8}, {scaleY: 0.6}, {scaleY: 0.15}], duration: 1.3, ease: "none"}, 0.40);tl.fromTo("#wv6", {scaleY: 0.15}, {keyframes: [{scaleY: 0.7}, {scaleY: 0.3}, {scaleY: 0.8}, {scaleY: 0.15}], duration: 1.3, ease: "none"}, 0.44);tl.fromTo("#wv7", {scaleY: 0.15}, {keyframes: [{scaleY: 0.3}, {scaleY: 0.6}, {scaleY: 0.4}, {scaleY: 0.15}], duration: 1.3, ease: "none"}, 0.48);
+    tl.fromTo("#g6b", {scale: 0}, {scale: 1, duration: 0.32, ease: "back.out(2.6)"}, 0.4);
+    // 찻잔 홀짝
+    tl.fromTo("#g6n-cup", {rotate: 0, transformOrigin: "50% 50%"}, {rotate: -35, y: -20, duration: 0.3, yoyo: true, repeat: 1}, 1.0);
+    // 1.7 s 도장이 회전하며 떨어져 쾅, 잉크가 튄다.
+    tl.fromTo("#g6-stamp", {y: -700, rotate: -60, scale: 1.6, opacity: 0}, {y: 0, rotate: -7, scale: 1, opacity: 1, duration: 0.42, ease: "power4.in"}, 1.7);
+    tl.fromTo("#ink", {opacity: 0, scale: 0.6}, {opacity: 1, scale: 1.1, duration: 0.2, ease: "power2.out"}, 2.12);
+    tl.to("#gleo-in", {keyframes: [{y: 8}, {y: -6}, {y: 0}], duration: 0.18}, 2.12);
+    tl.to("#gleo-in", {opacity: 0, duration: 0.14, ease: "power2.in"}, 3.86);
+    window.__timelines["gleo"] = tl;
+  </script>
+</template>

@@ -1,0 +1,64 @@
+<template>
+  <style>
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_semibold.ttf"); font-weight: 600; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_bold.ttf"); font-weight: 700; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_extrabold.ttf"); font-weight: 800; }
+@font-face { font-family: "Geist Mono"; src: url("assets/fonts/geist_mono_semibold.ttf"); font-weight: 600; }
+#root { position: absolute; inset: 0; background: #0f0e0d; font-family: "Wanted Sans"; color: #ede9e2; overflow: hidden; }
+.world { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.noble { position: absolute; width: 220px; height: 440px; }
+.noble svg { width: 100%; height: 100%; overflow: visible; }
+.bub { position: absolute; width: 190px; height: 170px; }
+.bub .shape { position: absolute; inset: 0; }
+.bub img { position: absolute; left: 47px; top: 22px; width: 96px; height: 96px; }
+.cap { position: absolute; left: 40px; right: 40px; top: 1120px; padding: 14px 0 18px; text-align: center; font-weight: 800; letter-spacing: -1px; background: rgba(15,14,13,.88); z-index: 30; }
+.cap .l1 { font-size: 64px; line-height: 1.22; color: #c9a44c; }
+.cap .l2 { font-size: 64px; line-height: 1.22; color: #ede9e2; }
+.cap .gold { color: #c9a44c; }
+.shot { position: absolute; border: 5px solid #c9a44c; background: #000; object-fit: cover; }
+.stampbox { position: absolute; border: 8px solid; padding: 10px 26px; font-weight: 800; font-size: 54px; line-height: 1; }
+.stampbox::after { content: ""; position: absolute; inset: 6px; border: 3px solid; border-color: inherit; }
+.mono { font-family: "Geist Mono"; font-weight: 600; }
+</style>
+  <div id="root" data-composition-id="hook" data-width="1080" data-height="1920">
+    <div id="hook-world" class="world clip" data-start="0" data-duration="3"><div id="hook-in" class="world">
+
+<svg id="carpet" class="abs" style="left:0;top:0;width:1080px;height:1920px" viewBox="0 0 1080 1920"><path d="M300 1100 L470 600 L610 600 L780 1100z" fill="#9e2b2b"/></svg>
+<div id="h1-label" class="abs" style="left:0;right:0;top:300px;text-align:center;font-size:44px;font-weight:700;color:#e8ae4a">충전기 6/6 사용 중</div>
+<svg id="chgh0" class="abs" style="left:130px;top:420px;width:110px;height:130px" viewBox="-40 -125 110 130"><rect x="-34" y="-120" width="68" height="120" fill="#1a1917" stroke="#ede9e2" stroke-width="4"/><rect x="-22" y="-104" width="44" height="34" fill="#e8ae4a"/><path d="M34 -60 q30 0 30 40" stroke="#ede9e2" stroke-width="4" fill="none"/></svg><svg id="chgh1" class="abs" style="left:278px;top:420px;width:110px;height:130px" viewBox="-40 -125 110 130"><rect x="-34" y="-120" width="68" height="120" fill="#1a1917" stroke="#ede9e2" stroke-width="4"/><rect x="-22" y="-104" width="44" height="34" fill="#e8ae4a"/><path d="M34 -60 q30 0 30 40" stroke="#ede9e2" stroke-width="4" fill="none"/></svg><svg id="chgh2" class="abs" style="left:426px;top:420px;width:110px;height:130px" viewBox="-40 -125 110 130"><rect x="-34" y="-120" width="68" height="120" fill="#1a1917" stroke="#ede9e2" stroke-width="4"/><rect x="-22" y="-104" width="44" height="34" fill="#e8ae4a"/><path d="M34 -60 q30 0 30 40" stroke="#ede9e2" stroke-width="4" fill="none"/></svg><svg id="chgh3" class="abs" style="left:574px;top:420px;width:110px;height:130px" viewBox="-40 -125 110 130"><rect x="-34" y="-120" width="68" height="120" fill="#1a1917" stroke="#ede9e2" stroke-width="4"/><rect x="-22" y="-104" width="44" height="34" fill="#e8ae4a"/><path d="M34 -60 q30 0 30 40" stroke="#ede9e2" stroke-width="4" fill="none"/></svg><svg id="chgh4" class="abs" style="left:722px;top:420px;width:110px;height:130px" viewBox="-40 -125 110 130"><rect x="-34" y="-120" width="68" height="120" fill="#1a1917" stroke="#ede9e2" stroke-width="4"/><rect x="-22" y="-104" width="44" height="34" fill="#e8ae4a"/><path d="M34 -60 q30 0 30 40" stroke="#ede9e2" stroke-width="4" fill="none"/></svg><svg id="chgh5" class="abs" style="left:870px;top:420px;width:110px;height:130px" viewBox="-40 -125 110 130"><rect x="-34" y="-120" width="68" height="120" fill="#1a1917" stroke="#ede9e2" stroke-width="4"/><rect x="-22" y="-104" width="44" height="34" fill="#e8ae4a"/><path d="M34 -60 q30 0 30 40" stroke="#ede9e2" stroke-width="4" fill="none"/></svg>
+<svg id="carh1" class="abs" style="left:480px;top:662px;width:120px;height:75px" viewBox="-80 -50 160 100"><g fill="#1a1917" stroke="#a19c93" stroke-width="4"><path d="M-70 0 l10 -34 q6 -14 22 -14 l76 0 q16 0 22 14 l10 34 z"/><rect x="-80" y="0" width="160" height="40" rx="10"/><circle cx="-46" cy="42" r="14" fill="#0f0e0d"/><circle cx="46" cy="42" r="14" fill="#0f0e0d"/></g></svg><svg id="carh2" class="abs" style="left:472px;top:748px;width:136px;height:85px" viewBox="-80 -50 160 100"><g fill="#1a1917" stroke="#a19c93" stroke-width="4"><path d="M-70 0 l10 -34 q6 -14 22 -14 l76 0 q16 0 22 14 l10 34 z"/><rect x="-80" y="0" width="160" height="40" rx="10"/><circle cx="-46" cy="42" r="14" fill="#0f0e0d"/><circle cx="46" cy="42" r="14" fill="#0f0e0d"/></g></svg><svg id="carh3" class="abs" style="left:464px;top:842px;width:152px;height:95px" viewBox="-80 -50 160 100"><g fill="#1a1917" stroke="#a19c93" stroke-width="4"><path d="M-70 0 l10 -34 q6 -14 22 -14 l76 0 q16 0 22 14 l10 34 z"/><rect x="-80" y="0" width="160" height="40" rx="10"/><circle cx="-46" cy="42" r="14" fill="#0f0e0d"/><circle cx="46" cy="42" r="14" fill="#0f0e0d"/></g></svg>
+<div id="h1n" class="noble" style="left:441px;top:687px;width:198px;height:396px;z-index:5">
+  <svg viewBox="-110 -170 220 440"><g fill="none" stroke="#ede9e2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-70 150 q0 -70 70 -86 q70 16 70 86 l0 110 l-140 0z" fill="#1a1917"/>
+    <path d="M-30 74 l30 18 l30 -18 l0 30 l-30 -12 l-30 12z" fill="#9e2b2b"/>
+    <path d="M0 110 l0 140" stroke="#3b3833"/>
+    <circle cx="0" cy="0" r="62" fill="#1a1917"/>
+    <g id="h1n-mono"><circle cx="24" cy="-8" r="20" stroke="#c9a44c" stroke-width="6"/><path d="M44 -4 q14 34 2 70" stroke="#c9a44c" stroke-width="3"/></g>
+    <path id="h1n-mus" d="M0 22 q-18 -14 -38 -2 q-14 10 -26 -6 q6 22 28 20 q20 -2 36 -12 q16 10 36 12 q22 2 28 -20 q-12 16 -26 6 q-20 -12 -38 2z" fill="#ede9e2" stroke-width="3"/>
+    <g id="h1n-hat"><path d="M-48 -150 l96 0 l-6 104 l-84 0z" fill="#121110"/><path d="M-44 -70 l88 0" stroke="#c9a44c" stroke-width="9"/><path d="M-92 -44 q92 -22 184 0 q-92 16 -184 0z" fill="#121110"/></g>
+  </g><g id="h1n-cup" transform="translate(120 190)"><path d="M-40 0 l80 0 q0 46 -40 46 q-40 0 -40 -46z" fill="#0f0e0d" stroke="#ede9e2" stroke-width="5"/><path d="M40 10 q24 0 20 18 q-4 14 -22 10" fill="none" stroke="#ede9e2" stroke-width="5"/><path d="M-56 52 l112 0" stroke="#c9a44c" stroke-width="5"/></g></svg></div>
+<div id="h1-ticket" class="abs" style="left:70px;top:640px;width:230px;height:130px;background:#ede9e2;color:#0f0e0d;text-align:center;rotate:-8deg;z-index:7">
+  <div style="font-size:28px;font-weight:700;margin-top:14px">대기 번호표</div><div class="mono" style="font-size:52px;color:#9e2b2b">31분</div></div>
+<div id="h1b" class="bub" style="left:650px;top:560px;transform-origin:20% 100%;scale:0.9;z-index:8">
+  <svg class="shape" viewBox="0 0 190 170"><path d="M24 4 h142 q20 0 20 20 v92 q0 20 -20 20 h-96 l-44 30 l12 -30 h-14 q-20 0 -20 -20 v-92 q0 -20 20 -20z" fill="#ede9e2" stroke="#c9a44c" stroke-width="6"/></svg><img id="h1b-0" src="assets/emoji/1f631.svg" style="opacity:1"></div>
+
+    </div><div id="h1c" class="cap"><div id="h1c-1" class="l1">귀하게 자란 내가…</div><div id="h1c-2" class="l2">충전 대기 31분을 해도 될까?</div></div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    // 0프레임은 찻잔 든 귀족 얼굴 클로즈업(썸네일). 0.5 s부터 확 빠지며 대기 줄이 드러난다.
+    tl.fromTo("#hook-in", {scale: 2.7, transformOrigin: "540px 760px"}, {scale: 1, duration: 0.9, ease: "expo.inOut"}, 0.45);
+    // 썸네일(0프레임)부터 밈 문장 두 줄이 다 보인다.
+    // 번호표가 위에서 떨어져 통 튄다.
+    tl.fromTo("#h1-ticket", {y: -900}, {y: 0, duration: 0.55, ease: "bounce.out"}, 1.35);
+    tl.fromTo("#h1b", {scale: 0}, {scale: 1, duration: 0.32, ease: "back.out(2.6)"}, 1.75);
+    // 놀라서 실크해트가 튀어 오른다.
+    tl.fromTo("#h1n-hat", {y: 0}, {y: -60, duration: 0.16, ease: "power2.out", yoyo: true, repeat: 1}, 1.75);
+    tl.fromTo("#h1n-cup", {rotate: 0, transformOrigin: "50% 50%"}, {rotate: -25, duration: 0.12, yoyo: true, repeat: 3}, 1.75);
+    tl.to("#hook-in", {opacity: 0, duration: 0.14, ease: "power2.in"}, 2.86);
+    tl.to("#h1c", {opacity: 0, duration: 0.14}, 2.86);
+    window.__timelines["hook"] = tl;
+  </script>
+</template>

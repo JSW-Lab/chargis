@@ -1,0 +1,49 @@
+<template>
+  <style>
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_semibold.ttf"); font-weight: 600; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_bold.ttf"); font-weight: 700; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_extrabold.ttf"); font-weight: 800; }
+@font-face { font-family: "Geist Mono"; src: url("assets/fonts/geist_mono_semibold.ttf"); font-weight: 600; }
+#root { position: absolute; inset: 0; background: #0f0e0d; font-family: "Wanted Sans"; color: #ede9e2; overflow: hidden; }
+.world { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.noble { position: absolute; width: 220px; height: 440px; }
+.noble svg { width: 100%; height: 100%; overflow: visible; }
+.bub { position: absolute; width: 190px; height: 170px; }
+.bub .shape { position: absolute; inset: 0; }
+.bub img { position: absolute; left: 47px; top: 22px; width: 96px; height: 96px; }
+.cap { position: absolute; left: 40px; right: 40px; top: 1120px; padding: 14px 0 18px; text-align: center; font-weight: 800; letter-spacing: -1px; background: rgba(15,14,13,.88); z-index: 30; }
+.cap .l1 { font-size: 64px; line-height: 1.22; color: #c9a44c; }
+.cap .l2 { font-size: 64px; line-height: 1.22; color: #ede9e2; }
+.cap .gold { color: #c9a44c; }
+.shot { position: absolute; border: 5px solid #c9a44c; background: #000; object-fit: cover; }
+.stampbox { position: absolute; border: 8px solid; padding: 10px 26px; font-weight: 800; font-size: 54px; line-height: 1; }
+.stampbox::after { content: ""; position: absolute; inset: 6px; border: 3px solid; border-color: inherit; }
+.mono { font-family: "Geist Mono"; font-weight: 600; }
+</style>
+  <div id="root" data-composition-id="receipt" data-width="1080" data-height="1920">
+    <div id="receipt-world" class="world clip" data-start="0" data-duration="4"><div id="receipt-in" class="world">
+
+<div id="rc-sheet" class="abs" style="left:190px;top:240px;width:700px;height:560px;overflow:hidden;border:5px solid #c9a44c;z-index:2"><img src="assets/screens/09-finished.png" style="position:absolute;left:-10px;top:0;width:900px;height:562px"></div>
+<svg id="env" class="abs" style="left:110px;top:700px;width:860px;height:380px;z-index:3" viewBox="0 0 860 380"><path d="M0 40 l860 0 l0 330 l-860 0z" fill="#d9ccaa" stroke="#ede9e2" stroke-width="5"/><path d="M0 40 l430 220 l430 -220" fill="none" stroke="#ede9e2" stroke-width="5"/></svg>
+<svg id="flap" class="abs" style="left:110px;top:500px;width:860px;height:250px;z-index:4" viewBox="0 0 860 250"><path d="M0 240 l430 -220 l430 220z" fill="#cdbf9b" stroke="#ede9e2" stroke-width="5"/></svg>
+<div id="r10-big" class="abs" style="left:0;right:0;top:810px;text-align:center;font-size:150px;font-weight:800;color:#8fb2ee;z-index:6;opacity:0">18분 <span style="font-size:70px">아낌</span></div>
+<div id="r10-stamp" class="stampbox" style="left:600px;top:300px;color:#8fb2ee;border-color:#8fb2ee;rotate:-9deg;font-size:58px;z-index:9">정산 완료</div>
+<div id="r10c" class="cap"><div id="r10c-1" class="l1"></div><div id="r10c-2" class="l2">80%까지 채울 때보다<br><span class="gold">18분 아꼈사옵니다</span></div></div>
+    </div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    tl.fromTo("#receipt-in", {opacity: 0}, {opacity: 1, duration: 0.12}, 0);
+    // 봉투가 열리고 영수증이 위로 쭉 뽑혀 나온다.
+    tl.fromTo("#flap", {scaleY: 1, transformOrigin: "50% 100%"}, {scaleY: -1, duration: 0.4, ease: "power2.inOut"}, 0.2);
+    tl.fromTo("#rc-sheet", {y: 520}, {y: 0, duration: 0.9, ease: "power3.out"}, 0.6);
+    tl.fromTo("#r10-big", {opacity: 0, scale: 0.4}, {opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2.5)"}, 1.6);
+    tl.fromTo("#r10-stamp", {scale: 2.4, opacity: 0}, {scale: 1, opacity: 1, duration: 0.18, ease: "power4.in"}, 2.3);
+    tl.to("#receipt-in", {keyframes: [{y: 8}, {y: -6}, {y: 0}], duration: 0.18}, 2.48);
+    tl.fromTo("#r10c-2", {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.3, ease: "power3.out"}, 0.5);
+    tl.to("#receipt-in", {opacity: 0, duration: 0.14, ease: "power2.in"}, 3.86);
+    window.__timelines["receipt"] = tl;
+  </script>
+</template>

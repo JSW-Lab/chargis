@@ -1,0 +1,63 @@
+<template>
+  <style>
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_semibold.ttf"); font-weight: 600; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_bold.ttf"); font-weight: 700; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_extrabold.ttf"); font-weight: 800; }
+@font-face { font-family: "Geist Mono"; src: url("assets/fonts/geist_mono_semibold.ttf"); font-weight: 600; }
+#root { position: absolute; inset: 0; background: #0f0e0d; font-family: "Wanted Sans"; color: #ede9e2; overflow: hidden; }
+.world { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.noble { position: absolute; width: 220px; height: 440px; }
+.noble svg { width: 100%; height: 100%; overflow: visible; }
+.bub { position: absolute; width: 190px; height: 170px; }
+.bub .shape { position: absolute; inset: 0; }
+.bub img { position: absolute; left: 47px; top: 22px; width: 96px; height: 96px; }
+.cap { position: absolute; left: 40px; right: 40px; top: 1120px; padding: 14px 0 18px; text-align: center; font-weight: 800; letter-spacing: -1px; background: rgba(15,14,13,.88); z-index: 30; }
+.cap .l1 { font-size: 64px; line-height: 1.22; color: #c9a44c; }
+.cap .l2 { font-size: 64px; line-height: 1.22; color: #ede9e2; }
+.cap .gold { color: #c9a44c; }
+.shot { position: absolute; border: 5px solid #c9a44c; background: #000; object-fit: cover; }
+.stampbox { position: absolute; border: 8px solid; padding: 10px 26px; font-weight: 800; font-size: 54px; line-height: 1; }
+.stampbox::after { content: ""; position: absolute; inset: 6px; border: 3px solid; border-color: inherit; }
+.mono { font-family: "Geist Mono"; font-weight: 600; }
+</style>
+  <div id="root" data-composition-id="calc" data-width="1080" data-height="1920">
+    <div id="calc-world" class="world clip" data-start="0" data-duration="4"><div id="calc-in" class="world">
+
+<div id="orbit" class="abs" style="left:0;top:0;width:1080px;height:1100px"><div id="app0" class="abs" style="left:455px;top:160px;width:170px;height:300px;border:5px solid #ede9e2;border-radius:22px;background:#1a1917;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;color:#a19c93">앱 A</div><div id="app1" class="abs" style="left:800px;top:520px;width:170px;height:300px;border:5px solid #ede9e2;border-radius:22px;background:#1a1917;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;color:#a19c93">앱 B</div><div id="app2" class="abs" style="left:455px;top:860px;width:170px;height:300px;border:5px solid #ede9e2;border-radius:22px;background:#1a1917;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;color:#a19c93">앱 C</div><div id="app3" class="abs" style="left:110px;top:520px;width:170px;height:300px;border:5px solid #ede9e2;border-radius:22px;background:#1a1917;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;color:#a19c93">계산기</div></div>
+<div id="num0" class="abs mono" style="left:120px;top:250px;font-size:64px;color:#c9a44c;z-index:6;opacity:0">50%?</div><div id="num1" class="abs mono" style="left:720px;top:260px;font-size:72px;color:#e8ae4a;z-index:6;opacity:0">80%?</div><div id="num2" class="abs mono" style="left:90px;top:860px;font-size:60px;color:#c9a44c;z-index:6;opacity:0">100%?</div><div id="num3" class="abs mono" style="left:740px;top:900px;font-size:58px;color:#ede9e2;z-index:6;opacity:0">몇 km?</div><div id="num4" class="abs mono" style="left:380px;top:120px;font-size:54px;color:#e8ae4a;z-index:6;opacity:0">대기?</div><div id="num5" class="abs mono" style="left:360px;top:1000px;font-size:56px;color:#ede9e2;z-index:6;opacity:0">제한?</div>
+<div id="c3n" class="noble" style="left:414px;top:364px;width:253px;height:506px;z-index:5">
+  <svg viewBox="-110 -170 220 440"><g fill="none" stroke="#ede9e2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-70 150 q0 -70 70 -86 q70 16 70 86 l0 110 l-140 0z" fill="#1a1917"/>
+    <path d="M-30 74 l30 18 l30 -18 l0 30 l-30 -12 l-30 12z" fill="#9e2b2b"/>
+    <path d="M0 110 l0 140" stroke="#3b3833"/>
+    <circle cx="0" cy="0" r="62" fill="#1a1917"/>
+    <g id="c3n-mono"><circle cx="24" cy="-8" r="20" stroke="#c9a44c" stroke-width="6"/><path d="M44 -4 q14 34 2 70" stroke="#c9a44c" stroke-width="3"/></g>
+    <path id="c3n-mus" d="M0 22 q-18 -14 -38 -2 q-14 10 -26 -6 q6 22 28 20 q20 -2 36 -12 q16 10 36 12 q22 2 28 -20 q-12 16 -26 6 q-20 -12 -38 2z" fill="#ede9e2" stroke-width="3"/>
+    <g id="c3n-hat"><path d="M-48 -150 l96 0 l-6 104 l-84 0z" fill="#121110"/><path d="M-44 -70 l88 0" stroke="#c9a44c" stroke-width="9"/><path d="M-92 -44 q92 -22 184 0 q-92 16 -184 0z" fill="#121110"/></g>
+  </g></svg></div>
+<div id="c3b" class="bub" style="left:660px;top:300px;transform-origin:20% 100%;scale:1.0;z-index:8">
+  <svg class="shape" viewBox="0 0 190 170"><path d="M24 4 h142 q20 0 20 20 v92 q0 20 -20 20 h-96 l-44 30 l12 -30 h-14 q-20 0 -20 -20 v-92 q0 -20 20 -20z" fill="#ede9e2" stroke="#c9a44c" stroke-width="6"/></svg><img id="c3b-0" src="assets/emoji/1f914.svg" style="opacity:1"><img id="c3b-1" src="assets/emoji/1f630.svg" style="opacity:0"><img id="c3b-2" src="assets/emoji/1f92f.svg" style="opacity:0"></div>
+<div id="c3c" class="cap"><div id="c3c-1" class="l1">귀하게 자란 내가…</div><div id="c3c-2" class="l2">이걸 직접 계산해야 될까?</div></div>
+    </div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    tl.fromTo("#calc-in", {opacity: 0}, {opacity: 1, duration: 0.12}, 0);
+    // 앱·계산기가 귀족 주위를 빙빙 돈다(점점 빨라짐).
+    tl.fromTo("#orbit", {rotate: 0, transformOrigin: "540px 690px"}, {rotate: 420, duration: 3.6, ease: "power2.in"}, 0);
+    tl.fromTo("#c3b", {scale: 0}, {scale: 1, duration: 0.32, ease: "back.out(2.6)"}, 0.25);
+    tl.to("#c3b-0", {opacity: 0, duration: 0.06}, 1.4); tl.fromTo("#c3b-1", {opacity: 0, scale: 0.6}, {opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)"}, 1.4);
+    tl.to("#c3b-1", {opacity: 0, duration: 0.06}, 2.6); tl.fromTo("#c3b-2", {opacity: 0, scale: 0.6}, {opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)"}, 2.6);
+    // 숫자들이 사방에서 튀어나와 화면을 채운다.
+    tl.fromTo("#num0", {opacity: 0, scale: 0}, {opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)"}, 0.50);tl.fromTo("#num1", {opacity: 0, scale: 0}, {opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)"}, 0.80);tl.fromTo("#num2", {opacity: 0, scale: 0}, {opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)"}, 1.10);tl.fromTo("#num3", {opacity: 0, scale: 0}, {opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)"}, 1.40);tl.fromTo("#num4", {opacity: 0, scale: 0}, {opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)"}, 1.70);tl.fromTo("#num5", {opacity: 0, scale: 0}, {opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)"}, 2.00);
+    // 🤯 순간 숫자 폭발: 바깥으로 흩어진다.
+    tl.to("#num0", {x: -300, y: -200, opacity: 0, rotate: -40, duration: 0.45, ease: "power3.in"}, 2.65);tl.to("#num1", {x: 300, y: -220, opacity: 0, rotate: 50, duration: 0.45, ease: "power3.in"}, 2.65);tl.to("#num2", {x: -300, y: 260, opacity: 0, rotate: 30, duration: 0.45, ease: "power3.in"}, 2.65);tl.to("#num3", {x: 300, y: 240, opacity: 0, rotate: -60, duration: 0.45, ease: "power3.in"}, 2.65);tl.to("#num4", {x: 0, y: -380, opacity: 0, rotate: 20, duration: 0.45, ease: "power3.in"}, 2.65);tl.to("#num5", {x: 0, y: 380, opacity: 0, rotate: -20, duration: 0.45, ease: "power3.in"}, 2.65);
+    tl.fromTo("#c3n-hat", {y: 0}, {y: -80, rotate: 15, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1}, 2.6);
+    tl.fromTo("#c3c-1", {scale: 1}, {keyframes: [{scale: 1.15, rotate: -3}, {scale: 0.95, rotate: 3}, {scale: 1, rotate: 0}], duration: 0.35}, 2.6);
+    tl.fromTo("#c3c-2", {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.3, ease: "power3.out"}, 0.3);
+    tl.to("#calc-in", {opacity: 0, duration: 0.14, ease: "power2.in"}, 3.86);
+    window.__timelines["calc"] = tl;
+  </script>
+</template>

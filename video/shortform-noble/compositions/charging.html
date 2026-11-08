@@ -1,0 +1,67 @@
+<template>
+  <style>
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_semibold.ttf"); font-weight: 600; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_bold.ttf"); font-weight: 700; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_extrabold.ttf"); font-weight: 800; }
+@font-face { font-family: "Geist Mono"; src: url("assets/fonts/geist_mono_semibold.ttf"); font-weight: 600; }
+#root { position: absolute; inset: 0; background: #0f0e0d; font-family: "Wanted Sans"; color: #ede9e2; overflow: hidden; }
+.world { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.noble { position: absolute; width: 220px; height: 440px; }
+.noble svg { width: 100%; height: 100%; overflow: visible; }
+.bub { position: absolute; width: 190px; height: 170px; }
+.bub .shape { position: absolute; inset: 0; }
+.bub img { position: absolute; left: 47px; top: 22px; width: 96px; height: 96px; }
+.cap { position: absolute; left: 40px; right: 40px; top: 1120px; padding: 14px 0 18px; text-align: center; font-weight: 800; letter-spacing: -1px; background: rgba(15,14,13,.88); z-index: 30; }
+.cap .l1 { font-size: 64px; line-height: 1.22; color: #c9a44c; }
+.cap .l2 { font-size: 64px; line-height: 1.22; color: #ede9e2; }
+.cap .gold { color: #c9a44c; }
+.shot { position: absolute; border: 5px solid #c9a44c; background: #000; object-fit: cover; }
+.stampbox { position: absolute; border: 8px solid; padding: 10px 26px; font-weight: 800; font-size: 54px; line-height: 1; }
+.stampbox::after { content: ""; position: absolute; inset: 6px; border: 3px solid; border-color: inherit; }
+.mono { font-family: "Geist Mono"; font-weight: 600; }
+</style>
+  <div id="root" data-composition-id="charging" data-width="1080" data-height="1920">
+    <div id="charging-world" class="world clip" data-start="0" data-duration="5"><div id="charging-in" class="world">
+
+<svg id="w8-frame" class="abs" style="left:60px;top:180px;width:960px;height:920px" viewBox="0 0 960 920"><rect x="10" y="10" width="940" height="900" fill="none" stroke="#c9a44c" stroke-width="18"/><rect x="40" y="40" width="880" height="840" fill="none" stroke="#c9a44c" stroke-width="4"/><g fill="#0f0e0d" stroke="#c9a44c" stroke-width="6"><circle cx="10" cy="10" r="22"/><circle cx="950" cy="10" r="22"/><circle cx="10" cy="910" r="22"/><circle cx="950" cy="910" r="22"/></g></svg>
+<img class="shot" src="assets/screens/06-charging.png" style="left:130px;top:250px;width:820px;height:582px;border:none">
+<div id="lens" class="abs" style="left:0;top:0;width:300px;height:300px;border-radius:50%;border:12px solid #c9a44c;overflow:hidden;z-index:6;background:#000">
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:34px;font-weight:700;color:#a19c93">출발 예정</div><div class="mono" style="font-size:78px;color:#c9a44c">10:14</div></div></div>
+<div id="lens-h" class="abs" style="left:0;top:0;width:22px;height:120px;background:#c9a44c;rotate:-45deg;z-index:6"></div>
+<div id="w8n" class="noble" style="left:195px;top:845px;width:110px;height:220px;z-index:7">
+  <svg viewBox="-110 -170 220 440"><g fill="none" stroke="#ede9e2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-70 150 q0 -70 70 -86 q70 16 70 86 l0 110 l-140 0z" fill="#1a1917"/>
+    <path d="M-30 74 l30 18 l30 -18 l0 30 l-30 -12 l-30 12z" fill="#9e2b2b"/>
+    <path d="M0 110 l0 140" stroke="#3b3833"/>
+    <circle cx="0" cy="0" r="62" fill="#1a1917"/>
+    <g id="w8n-mono"><circle cx="24" cy="-8" r="20" stroke="#c9a44c" stroke-width="6"/><path d="M44 -4 q14 34 2 70" stroke="#c9a44c" stroke-width="3"/></g>
+    <path id="w8n-mus" d="M0 22 q-18 -14 -38 -2 q-14 10 -26 -6 q6 22 28 20 q20 -2 36 -12 q16 10 36 12 q22 2 28 -20 q-12 16 -26 6 q-20 -12 -38 2z" fill="#ede9e2" stroke-width="3"/>
+    <g id="w8n-hat"><path d="M-48 -150 l96 0 l-6 104 l-84 0z" fill="#121110"/><path d="M-44 -70 l88 0" stroke="#c9a44c" stroke-width="9"/><path d="M-92 -44 q92 -22 184 0 q-92 16 -184 0z" fill="#121110"/></g>
+  </g></svg></div>
+<svg id="watch" class="abs" style="left:350px;top:930px;width:120px;height:120px;z-index:8" viewBox="-60 -60 120 120"><circle r="52" fill="#c9a44c" stroke="#ede9e2" stroke-width="5"/><circle r="40" fill="#ede9e2"/><path id="hand" d="M0 0 l0 -32" stroke="#0f0e0d" stroke-width="6" stroke-linecap="round"/></svg>
+<div id="w8b" class="bub" style="left:290px;top:760px;transform-origin:20% 100%;scale:0.7;z-index:8">
+  <svg class="shape" viewBox="0 0 190 170"><path d="M24 4 h142 q20 0 20 20 v92 q0 20 -20 20 h-96 l-44 30 l12 -30 h-14 q-20 0 -20 -20 v-92 q0 -20 20 -20z" fill="#ede9e2" stroke="#c9a44c" stroke-width="6"/></svg><img id="w8b-0" src="assets/emoji/231a.svg" style="opacity:1"></div>
+<div id="w8c" class="cap"><div id="w8c-1" class="l1"></div><div id="w8c-2" class="l2">귀한 시간,<br><span class="gold">출발은 10시 14분</span></div></div>
+    </div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    tl.fromTo("#charging-in", {opacity: 0}, {opacity: 1, duration: 0.12}, 0);
+    // 돋보기가 화면을 훑다가 "출발 예정"에 멈춰 확대한다. (렌즈 속 이미지는 2배, 반대로 움직여 그 자리를 비춘다)
+    const L = {x: 200, y: 280};
+    const lens = () => { const c = document.querySelector("#lens"), h = document.querySelector("#lens-h");
+      c.style.transform = `translate(${L.x}px, ${L.y}px)`; h.style.transform = `translate(${L.x + 255}px, ${L.y + 245}px)`;
+      };
+    tl.fromTo(L, {x: 160, y: 300}, {x: 560, y: 360, duration: 1.4, ease: "power2.inOut", onUpdate: lens}, 0.2);
+    tl.to(L, {x: 350, y: 190, duration: 0.6, ease: "back.out(2)", onUpdate: lens}, 1.6);
+    tl.fromTo("#w8b", {scale: 0}, {scale: 1, duration: 0.32, ease: "back.out(2.6)"}, 1.2);
+    // 회중시계 바늘이 빙글빙글 돌다 딱 멈춘다.
+    tl.fromTo("#hand", {rotate: 0, transformOrigin: "0px 0px"}, {rotate: 1080 + 60, duration: 1.6, ease: "power3.out"}, 1.3);
+    tl.fromTo("#watch", {scale: 1}, {scale: 1.18, duration: 0.12, yoyo: true, repeat: 1}, 2.9);
+    tl.fromTo("#w8c-2", {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.3, ease: "power3.out"}, 0.4);
+    tl.to("#charging-in", {opacity: 0, duration: 0.14, ease: "power2.in"}, 4.86);
+    window.__timelines["charging"] = tl;
+  </script>
+</template>

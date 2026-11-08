@@ -1,0 +1,58 @@
+<template>
+  <style>
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_semibold.ttf"); font-weight: 600; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_bold.ttf"); font-weight: 700; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_extrabold.ttf"); font-weight: 800; }
+@font-face { font-family: "Geist Mono"; src: url("assets/fonts/geist_mono_semibold.ttf"); font-weight: 600; }
+#root { position: absolute; inset: 0; background: #0f0e0d; font-family: "Wanted Sans"; color: #ede9e2; overflow: hidden; }
+.world { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.noble { position: absolute; width: 220px; height: 440px; }
+.noble svg { width: 100%; height: 100%; overflow: visible; }
+.bub { position: absolute; width: 190px; height: 170px; }
+.bub .shape { position: absolute; inset: 0; }
+.bub img { position: absolute; left: 47px; top: 22px; width: 96px; height: 96px; }
+.cap { position: absolute; left: 40px; right: 40px; top: 1120px; padding: 14px 0 18px; text-align: center; font-weight: 800; letter-spacing: -1px; background: rgba(15,14,13,.88); z-index: 30; }
+.cap .l1 { font-size: 64px; line-height: 1.22; color: #c9a44c; }
+.cap .l2 { font-size: 64px; line-height: 1.22; color: #ede9e2; }
+.cap .gold { color: #c9a44c; }
+.shot { position: absolute; border: 5px solid #c9a44c; background: #000; object-fit: cover; }
+.stampbox { position: absolute; border: 8px solid; padding: 10px 26px; font-weight: 800; font-size: 54px; line-height: 1; }
+.stampbox::after { content: ""; position: absolute; inset: 6px; border: 3px solid; border-color: inherit; }
+.mono { font-family: "Geist Mono"; font-weight: 600; }
+</style>
+  <div id="root" data-composition-id="reveal" data-width="1080" data-height="1920">
+    <div id="reveal-world" class="world clip" data-start="0" data-duration="2.5"><div id="reveal-in" class="world">
+
+<div id="r4-no" class="abs" style="left:0;right:0;top:470px;text-align:center;font-size:260px;font-weight:800;z-index:9">안 돼.</div>
+<svg id="spot" class="abs" style="left:0;top:0;width:1080px;height:1100px;opacity:0" viewBox="0 0 1080 1100"><path d="M470 0 L610 0 L900 1000 L180 1000z" fill="#c9a44c" opacity=".22"/></svg>
+<svg id="r4-frame" class="abs" style="left:60px;top:180px;width:960px;height:920px" viewBox="0 0 960 920"><rect x="10" y="10" width="940" height="900" fill="none" stroke="#c9a44c" stroke-width="18"/><rect x="40" y="40" width="880" height="840" fill="none" stroke="#c9a44c" stroke-width="4"/><g fill="#0f0e0d" stroke="#c9a44c" stroke-width="6"><circle cx="10" cy="10" r="22"/><circle cx="950" cy="10" r="22"/><circle cx="10" cy="910" r="22"/><circle cx="950" cy="910" r="22"/></g></svg>
+<svg id="bell" class="abs" style="left:820px;top:240px;width:140px;height:160px" viewBox="-70 -40 140 160"><path d="M0 0 q-46 0 -46 72 l92 0 q0 -72 -46 -72z" fill="#c9a44c"/><circle cx="0" cy="84" r="12" fill="#c9a44c"/><path d="M0 0 l0 -30" stroke="#c9a44c" stroke-width="6"/></svg>
+<svg id="tray" class="abs" style="left:230px;top:860px;width:620px;height:80px" viewBox="0 0 620 80"><path d="M10 20 q300 -40 600 0 l0 30 q-300 40 -600 0z" fill="#8e8a80" stroke="#ede9e2" stroke-width="5"/></svg>
+<div id="r4-ticket" class="abs" style="left:300px;top:640px;width:480px;height:210px;background:#1a1917;border:4px solid #ede9e2;text-align:center;z-index:4">
+  <div style="font-size:80px;font-weight:800;margin-top:22px">Chargis</div><div style="font-size:36px;font-weight:700;color:#8fb2ee">고속도로 충전 통행권</div></div>
+<svg id="cloche" class="abs" style="left:250px;top:560px;width:580px;height:320px;z-index:5" viewBox="-290 -300 580 320"><path d="M-270 0 q270 -320 540 0z" fill="#b9b4aa" stroke="#ede9e2" stroke-width="5"/><circle cx="0" cy="-180" r="24" fill="#ede9e2"/></svg>
+<svg id="sparks" class="abs" style="left:240px;top:520px;width:600px;height:400px;opacity:0;z-index:6" viewBox="0 0 600 400"><g fill="#c9a44c"><path d="M60 60 l8 22 l22 8 l-22 8 l-8 22 l-8 -22 l-22 -8 l22 -8z"/><path d="M540 80 l8 22 l22 8 l-22 8 l-8 22 l-8 -22 l-22 -8 l22 -8z"/><path d="M30 300 l8 22 l22 8 l-22 8 l-8 22 l-8 -22 l-22 -8 l22 -8z"/><path d="M570 290 l8 22 l22 8 l-22 8 l-8 22 l-8 -22 l-22 -8 l22 -8z"/><path d="M300 10 l8 22 l22 8 l-22 8 l-8 22 l-8 -22 l-22 -8 l22 -8z"/></g></svg>
+<div id="r4c" class="cap"><div id="r4c-1" class="l1"></div><div id="r4c-2" class="l2"><span class="gold">귀한 사람은</span><br>차가 먼저 알려 준다.</div></div>
+    </div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    // 0~0.45 s: 앞 장면이 멈춘 듯한 흑백 정지 + "안 돼." 쾅
+    tl.fromTo("#r4-no", {scale: 3, opacity: 0}, {scale: 1, opacity: 1, duration: 0.16, ease: "power4.in"}, 0);
+    tl.to("#r4-no", {opacity: 0, scale: 0.9, duration: 0.15}, 0.55);
+    tl.fromTo("#r4-frame", {opacity: 0, rotate: -9, y: -60}, {opacity: 1, rotate: 0, y: 0, duration: 0.5, ease: "back.out(2)"}, 0.6);
+    tl.fromTo(["#tray", "#cloche"], {opacity: 0}, {opacity: 1, duration: 0.15}, 0.6);
+    // 집사 벨 딸랑 → 금빛 스포트라이트
+    tl.fromTo("#bell", {opacity: 0, rotate: 0, transformOrigin: "50% 0%"}, {opacity: 1, keyframes: [{rotate: 22}, {rotate: -18}, {rotate: 10}, {rotate: 0}], duration: 0.5}, 0.65);
+    tl.to("#spot", {opacity: 1, duration: 0.3, ease: "power2.out"}, 0.8);
+    // 은쟁반 뚜껑이 휙 열리고 통행권이 떠오르며 반짝
+    tl.to("#cloche", {y: -380, x: 260, rotate: 35, opacity: 0, duration: 0.5, ease: "power3.in"}, 1.15);
+    tl.fromTo("#r4-ticket", {y: 60, scale: 0.9}, {y: -20, scale: 1.05, duration: 0.5, ease: "back.out(2)"}, 1.3);
+    tl.fromTo("#sparks", {opacity: 0, scale: 0.6}, {opacity: 1, scale: 1.1, duration: 0.4, ease: "power2.out"}, 1.4);
+    tl.fromTo("#r4c-2", {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.3, ease: "power3.out"}, 0.45);
+    tl.to("#reveal-in", {opacity: 0, duration: 0.14, ease: "power2.in"}, 2.36);
+    window.__timelines["reveal"] = tl;
+  </script>
+</template>

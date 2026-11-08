@@ -1,0 +1,64 @@
+<template>
+  <style>
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_semibold.ttf"); font-weight: 600; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_bold.ttf"); font-weight: 700; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_extrabold.ttf"); font-weight: 800; }
+@font-face { font-family: "Geist Mono"; src: url("assets/fonts/geist_mono_semibold.ttf"); font-weight: 600; }
+#root { position: absolute; inset: 0; background: #0f0e0d; font-family: "Wanted Sans"; color: #ede9e2; overflow: hidden; }
+.world { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.noble { position: absolute; width: 220px; height: 440px; }
+.noble svg { width: 100%; height: 100%; overflow: visible; }
+.bub { position: absolute; width: 190px; height: 170px; }
+.bub .shape { position: absolute; inset: 0; }
+.bub img { position: absolute; left: 47px; top: 22px; width: 96px; height: 96px; }
+.cap { position: absolute; left: 40px; right: 40px; top: 1120px; padding: 14px 0 18px; text-align: center; font-weight: 800; letter-spacing: -1px; background: rgba(15,14,13,.88); z-index: 30; }
+.cap .l1 { font-size: 64px; line-height: 1.22; color: #c9a44c; }
+.cap .l2 { font-size: 64px; line-height: 1.22; color: #ede9e2; }
+.cap .gold { color: #c9a44c; }
+.shot { position: absolute; border: 5px solid #c9a44c; background: #000; object-fit: cover; }
+.stampbox { position: absolute; border: 8px solid; padding: 10px 26px; font-weight: 800; font-size: 54px; line-height: 1; }
+.stampbox::after { content: ""; position: absolute; inset: 6px; border: 3px solid; border-color: inherit; }
+.mono { font-family: "Geist Mono"; font-weight: 600; }
+</style>
+  <div id="root" data-composition-id="recommend" data-width="1080" data-height="1920">
+    <div id="recommend-world" class="world clip" data-start="0" data-duration="5.5"><div id="recommend-in" class="world">
+
+<div id="scroll-top" class="abs" style="left:70px;top:200px;width:940px;height:44px;border-radius:22px;background:#c8b27a;z-index:3"></div>
+<div id="paper" class="abs" style="left:90px;top:222px;width:900px;height:660px;background:#e9dfc6"><img class="shot" src="assets/screens/03-recommend.png" style="left:25px;top:30px;width:850px;height:603px"></div>
+<div id="scroll-bot" class="abs" style="left:70px;top:860px;width:940px;height:44px;border-radius:22px;background:#c8b27a;z-index:3"></div>
+<div id="r5-pct" class="abs mono" style="left:110px;top:900px;font-size:150px;color:#c9a44c">0%</div>
+<div class="abs" style="left:120px;top:1060px;font-size:34px;font-weight:700;color:#a19c93">목표 충전 · B 휴게소</div>
+<div id="r5n" class="noble" style="left:792px;top:885px;width:136px;height:273px;z-index:5">
+  <svg viewBox="-110 -170 220 440"><g fill="none" stroke="#ede9e2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-70 150 q0 -70 70 -86 q70 16 70 86 l0 110 l-140 0z" fill="#1a1917"/>
+    <path d="M-30 74 l30 18 l30 -18 l0 30 l-30 -12 l-30 12z" fill="#9e2b2b"/>
+    <path d="M0 110 l0 140" stroke="#3b3833"/>
+    <circle cx="0" cy="0" r="62" fill="#1a1917"/>
+    <g id="r5n-mono"><circle cx="24" cy="-8" r="20" stroke="#c9a44c" stroke-width="6"/><path d="M44 -4 q14 34 2 70" stroke="#c9a44c" stroke-width="3"/></g>
+    <path id="r5n-mus" d="M0 22 q-18 -14 -38 -2 q-14 10 -26 -6 q6 22 28 20 q20 -2 36 -12 q16 10 36 12 q22 2 28 -20 q-12 16 -26 6 q-20 -12 -38 2z" fill="#ede9e2" stroke-width="3"/>
+    <g id="r5n-hat"><path d="M-48 -150 l96 0 l-6 104 l-84 0z" fill="#121110"/><path d="M-44 -70 l88 0" stroke="#c9a44c" stroke-width="9"/><path d="M-92 -44 q92 -22 184 0 q-92 16 -184 0z" fill="#121110"/></g>
+  </g></svg></div>
+<div id="r5b" class="bub" style="left:900px;top:790px;transform-origin:20% 100%;scale:0.75;z-index:8">
+  <svg class="shape" viewBox="0 0 190 170"><path d="M24 4 h142 q20 0 20 20 v92 q0 20 -20 20 h-96 l-44 30 l12 -30 h-14 q-20 0 -20 -20 v-92 q0 -20 20 -20z" fill="#ede9e2" stroke="#c9a44c" stroke-width="6"/></svg><img id="r5b-0" src="assets/emoji/1f60c.svg" style="opacity:1"></div>
+<div id="r5c" class="cap"><div id="r5c-1" class="l1"></div><div id="r5c-2" class="l2">B 휴게소,<br><span class="gold">50%까지면 충분하옵니다</span></div></div>
+    </div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    tl.fromTo("#recommend-in", {opacity: 0}, {opacity: 1, duration: 0.12}, 0);
+    // 칙서처럼 위에서 아래로 촤르륵 펼친다.
+    tl.fromTo("#scroll-bot", {y: -640}, {y: 0, duration: 0.8, ease: "power3.out"}, 0.1);
+    tl.fromTo("#paper", {clipPath: "inset(0 0 100% 0)"}, {clipPath: "inset(0 0 0% 0)", duration: 0.8, ease: "power3.out"}, 0.1);
+    const p5 = {v: 0};
+    tl.to(p5, {v: 50, duration: 1.2, ease: "power2.out", onUpdate: () => { document.querySelector("#r5-pct").textContent = Math.round(p5.v) + "%"; }}, 1.0);
+    tl.fromTo("#r5-pct", {scale: 1}, {scale: 1.12, duration: 0.15, yoyo: true, repeat: 1, transformOrigin: "0% 50%"}, 2.2);
+    tl.fromTo("#r5b", {scale: 0}, {scale: 1, duration: 0.32, ease: "back.out(2.6)"}, 2.4);
+    // 손가락 까딱 대신 고개 끄덕 두 번
+    tl.fromTo("#r5n", {rotate: 0, transformOrigin: "50% 60%"}, {keyframes: [{rotate: 6}, {rotate: 0}, {rotate: 6}, {rotate: 0}], duration: 0.8}, 2.6);
+    tl.fromTo("#r5c-2", {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.3, ease: "power3.out"}, 0.6);
+    tl.to("#recommend-in", {opacity: 0, duration: 0.14, ease: "power2.in"}, 5.36);
+    window.__timelines["recommend"] = tl;
+  </script>
+</template>

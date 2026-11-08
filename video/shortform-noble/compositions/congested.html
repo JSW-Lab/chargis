@@ -1,0 +1,73 @@
+<template>
+  <style>
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_semibold.ttf"); font-weight: 600; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_bold.ttf"); font-weight: 700; }
+@font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_extrabold.ttf"); font-weight: 800; }
+@font-face { font-family: "Geist Mono"; src: url("assets/fonts/geist_mono_semibold.ttf"); font-weight: 600; }
+#root { position: absolute; inset: 0; background: #0f0e0d; font-family: "Wanted Sans"; color: #ede9e2; overflow: hidden; }
+.world { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.noble { position: absolute; width: 220px; height: 440px; }
+.noble svg { width: 100%; height: 100%; overflow: visible; }
+.bub { position: absolute; width: 190px; height: 170px; }
+.bub .shape { position: absolute; inset: 0; }
+.bub img { position: absolute; left: 47px; top: 22px; width: 96px; height: 96px; }
+.cap { position: absolute; left: 40px; right: 40px; top: 1120px; padding: 14px 0 18px; text-align: center; font-weight: 800; letter-spacing: -1px; background: rgba(15,14,13,.88); z-index: 30; }
+.cap .l1 { font-size: 64px; line-height: 1.22; color: #c9a44c; }
+.cap .l2 { font-size: 64px; line-height: 1.22; color: #ede9e2; }
+.cap .gold { color: #c9a44c; }
+.shot { position: absolute; border: 5px solid #c9a44c; background: #000; object-fit: cover; }
+.stampbox { position: absolute; border: 8px solid; padding: 10px 26px; font-weight: 800; font-size: 54px; line-height: 1; }
+.stampbox::after { content: ""; position: absolute; inset: 6px; border: 3px solid; border-color: inherit; }
+.mono { font-family: "Geist Mono"; font-weight: 600; }
+</style>
+  <div id="root" data-composition-id="congested" data-width="1080" data-height="1920">
+    <div id="congested-world" class="world clip" data-start="0" data-duration="4.5"><div id="congested-in" class="world">
+
+<img class="shot" src="assets/screens/10-congested.png" style="left:110px;top:190px;width:860px;height:440px">
+<div id="leftp" class="abs" style="left:0;top:650px;width:540px;height:470px">
+  <div class="abs" style="left:0;right:0;top:0;text-align:center;font-size:50px;font-weight:800">B 휴게소</div>
+  <div class="abs" style="left:0;right:0;top:62px;text-align:center;font-size:38px;font-weight:700;color:#e8ae4a">대기 31분</div>
+  <svg id="chgb" class="abs" style="left:230px;top:125px;width:110px;height:130px" viewBox="-40 -125 110 130"><rect x="-34" y="-120" width="68" height="120" fill="#1a1917" stroke="#ede9e2" stroke-width="4"/><rect x="-22" y="-104" width="44" height="34" fill="#e8ae4a"/><path d="M34 -60 q30 0 30 40" stroke="#ede9e2" stroke-width="4" fill="none"/></svg>
+  <svg id="carb0" class="abs" style="left:222px;top:260px;width:96px;height:60px" viewBox="-80 -50 160 100"><g fill="#1a1917" stroke="#a19c93" stroke-width="4"><path d="M-70 0 l10 -34 q6 -14 22 -14 l76 0 q16 0 22 14 l10 34 z"/><rect x="-80" y="0" width="160" height="40" rx="10"/><circle cx="-46" cy="42" r="14" fill="#0f0e0d"/><circle cx="46" cy="42" r="14" fill="#0f0e0d"/></g></svg><svg id="carb1" class="abs" style="left:222px;top:315px;width:96px;height:60px" viewBox="-80 -50 160 100"><g fill="#1a1917" stroke="#a19c93" stroke-width="4"><path d="M-70 0 l10 -34 q6 -14 22 -14 l76 0 q16 0 22 14 l10 34 z"/><rect x="-80" y="0" width="160" height="40" rx="10"/><circle cx="-46" cy="42" r="14" fill="#0f0e0d"/><circle cx="46" cy="42" r="14" fill="#0f0e0d"/></g></svg><svg id="carb2" class="abs" style="left:222px;top:370px;width:96px;height:60px" viewBox="-80 -50 160 100"><g fill="#1a1917" stroke="#a19c93" stroke-width="4"><path d="M-70 0 l10 -34 q6 -14 22 -14 l76 0 q16 0 22 14 l10 34 z"/><rect x="-80" y="0" width="160" height="40" rx="10"/><circle cx="-46" cy="42" r="14" fill="#0f0e0d"/><circle cx="46" cy="42" r="14" fill="#0f0e0d"/></g></svg>
+</div>
+<div id="rightp" class="abs" style="left:540px;top:650px;width:540px;height:470px">
+  <div class="abs" style="left:0;right:0;top:0;text-align:center;font-size:50px;font-weight:800">C 휴게소</div>
+  <div class="abs" style="left:0;right:0;top:62px;text-align:center;font-size:38px;font-weight:700;color:#8fb2ee">대기 8분</div>
+  <svg id="chgc" class="abs" style="left:230px;top:125px;width:110px;height:130px" viewBox="-40 -125 110 130"><rect x="-34" y="-120" width="68" height="120" fill="#1a1917" stroke="#ede9e2" stroke-width="4"/><rect x="-22" y="-104" width="44" height="34" fill="#8fb2ee"/><path d="M34 -60 q30 0 30 40" stroke="#ede9e2" stroke-width="4" fill="none"/></svg>
+  <div id="carpet7" class="abs" style="left:205px;top:260px;width:140px;height:200px;background:#9e2b2b"></div>
+</div>
+<div class="abs" style="left:538px;top:660px;width:4px;height:440px;background:#3b3833"></div>
+<div id="k7n" class="noble" style="left:485px;top:895px;width:110px;height:220px;z-index:7">
+  <svg viewBox="-110 -170 220 440"><g fill="none" stroke="#ede9e2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-70 150 q0 -70 70 -86 q70 16 70 86 l0 110 l-140 0z" fill="#1a1917"/>
+    <path d="M-30 74 l30 18 l30 -18 l0 30 l-30 -12 l-30 12z" fill="#9e2b2b"/>
+    <path d="M0 110 l0 140" stroke="#3b3833"/>
+    <circle cx="0" cy="0" r="62" fill="#1a1917"/>
+    <g id="k7n-mono"><circle cx="24" cy="-8" r="20" stroke="#c9a44c" stroke-width="6"/><path d="M44 -4 q14 34 2 70" stroke="#c9a44c" stroke-width="3"/></g>
+    <path id="k7n-mus" d="M0 22 q-18 -14 -38 -2 q-14 10 -26 -6 q6 22 28 20 q20 -2 36 -12 q16 10 36 12 q22 2 28 -20 q-12 16 -26 6 q-20 -12 -38 2z" fill="#ede9e2" stroke-width="3"/>
+    <g id="k7n-hat"><path d="M-48 -150 l96 0 l-6 104 l-84 0z" fill="#121110"/><path d="M-44 -70 l88 0" stroke="#c9a44c" stroke-width="9"/><path d="M-92 -44 q92 -22 184 0 q-92 16 -184 0z" fill="#121110"/></g>
+  </g></svg></div>
+<svg id="fan" class="abs" style="left:590px;top:900px;width:150px;height:150px;z-index:8" viewBox="0 0 150 150"><path d="M10 140 L140 60 A150 150 0 0 0 90 10z" fill="#c9a44c" stroke="#ede9e2" stroke-width="4"/></svg>
+<div id="k7b" class="bub" style="left:330px;top:790px;transform-origin:20% 100%;scale:0.7;z-index:8">
+  <svg class="shape" viewBox="0 0 190 170"><path d="M24 4 h142 q20 0 20 20 v92 q0 20 -20 20 h-96 l-44 30 l12 -30 h-14 q-20 0 -20 -20 v-92 q0 -20 20 -20z" fill="#ede9e2" stroke="#c9a44c" stroke-width="6"/></svg><img id="k7b-0" src="assets/emoji/1f610.svg" style="opacity:1"><img id="k7b-1" src="assets/emoji/1f60f.svg" style="opacity:0"></div>
+<div id="k7c" class="cap"><div id="k7c-1" class="l1"></div><div id="k7c-2" class="l2">줄은 C 휴게소가<br><span class="gold">21분 짧사옵니다</span></div></div>
+    </div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    // 좌우 화면이 반대 방향에서 밀려 들어온다.
+    tl.fromTo("#leftp", {x: -560}, {x: 0, duration: 0.4, ease: "power3.out"}, 0.05);
+    tl.fromTo("#rightp", {x: 560}, {x: 0, duration: 0.4, ease: "power3.out"}, 0.05);
+    tl.fromTo("#carb0", {y: -300, opacity: 0}, {y: 0, opacity: 1, duration: 0.3, ease: "bounce.out"}, 0.50);tl.fromTo("#carb1", {y: -300, opacity: 0}, {y: 0, opacity: 1, duration: 0.3, ease: "bounce.out"}, 0.68);tl.fromTo("#carb2", {y: -300, opacity: 0}, {y: 0, opacity: 1, duration: 0.3, ease: "bounce.out"}, 0.86);
+    tl.fromTo("#k7b", {scale: 0}, {scale: 1, duration: 0.32, ease: "back.out(2.6)"}, 0.9);
+    // 부채 촥 → 😏, C 쪽 레드카펫이 굴러가며 깔린다.
+    tl.fromTo("#fan", {rotate: -70, scale: 0.4, transformOrigin: "7% 93%"}, {rotate: 0, scale: 1, duration: 0.25, ease: "back.out(3)"}, 2.0);
+    tl.to("#k7b-0", {opacity: 0, duration: 0.06}, 2.1); tl.fromTo("#k7b-1", {opacity: 0, scale: 0.6}, {opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)"}, 2.1);
+    tl.fromTo("#carpet7", {scaleY: 0, transformOrigin: "50% 0%"}, {scaleY: 1, duration: 0.45, ease: "power3.out"}, 2.2);
+    tl.fromTo("#k7c-2", {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.3, ease: "power3.out"}, 0.5);
+    tl.to("#congested-in", {opacity: 0, duration: 0.14, ease: "power2.in"}, 4.36);
+    window.__timelines["congested"] = tl;
+  </script>
+</template>

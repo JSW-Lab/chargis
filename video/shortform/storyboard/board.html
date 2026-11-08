@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Noble storyboard</title>
+<style>
+@font-face{font-family:WS;src:url(../assets/fonts/wanted_sans_extrabold.ttf);font-weight:800}
+@font-face{font-family:WS;src:url(../assets/fonts/wanted_sans_bold.ttf);font-weight:700}
+@font-face{font-family:WS;src:url(../assets/fonts/wanted_sans_semibold.ttf);font-weight:600}
+@font-face{font-family:GM;src:url(../assets/fonts/geist_mono_semibold.ttf);font-weight:600}
+:root{--ground:#0F0E0D;--stock:#1A1917;--ink:#EDE9E2;--muted:#A19C93;--rule:#3B3833;--stamp:#8FB2EE;--warn:#E8AE4A;--gold:#C9A44C;--carpet:#9E2B2B}
+html,body{margin:0;background:var(--ground)}
+#f{width:1080px;height:1920px;position:relative;overflow:hidden;background:var(--ground);font-family:WS,sans-serif;color:var(--ink)}
+svg{position:absolute;inset:0}
+.cap{position:absolute;left:70px;right:70px;top:1160px;text-align:center;font-weight:800;font-size:60px;line-height:1.25;letter-spacing:-1px}
+.cap .q{color:var(--gold)}
+.tag{position:absolute;left:60px;top:70px;font:600 30px GM,monospace;color:var(--muted)}
+.note{position:absolute;left:70px;right:70px;top:1420px;font-weight:600;font-size:34px;color:var(--muted);line-height:1.45}
+.note b{color:var(--ink)}
+.shot{position:absolute;z-index:2;border:3px solid var(--gold);background:#000;object-fit:cover}
+</style></head><body><div id="f"></div>
+<script>
+const C={ink:'#EDE9E2',muted:'#A19C93',rule:'#3B3833',stamp:'#8FB2EE',warn:'#E8AE4A',gold:'#C9A44C',carpet:'#9E2B2B',ground:'#0F0E0D',stock:'#1A1917'};
+// 귀하신 운전자: 얼굴은 외알 안경 + 콧수염만, 머리에 실크해트. 감정은 말풍선 이모티콘(e)으로 보여 준다(e=null이면 말풍선 없음).
+const EMO={shock:'😱',faint:'😵',snob:'🙄',smug:'😌'};
+function bubble(x,y,e,s=1){return `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-70 -62 q-24 0 -24 24 l0 76 q0 24 24 24 l14 0 l-22 40 l58 -40 l90 0 q24 0 24 -24 l0 -76 q0 -24 -24 -24z" fill="${C.ink}" stroke="${C.gold}" stroke-width="5"/><text x="0" y="28" text-anchor="middle" font-family="Segoe UI Emoji" font-size="78">${e}</text></g>`}
+function noble(x,y,s=1,e='snob',extra=''){
+  const emo=e==null?null:(EMO[e]||e);
+  return `<g transform="translate(${x} ${y}) scale(${s})" fill="none" stroke="${C.ink}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="0" cy="0" r="62" fill="${C.stock}"/>
+    <path d="M-48 -150 l96 0 l-6 104 l-84 0z" fill="#121110"/>
+    <path d="M-44 -70 l88 0" stroke="${C.gold}" stroke-width="9"/>
+    <path d="M-92 -44 q92 -22 184 0 q-92 16 -184 0z" fill="#121110"/>
+    <circle cx="24" cy="-8" r="20" stroke="${C.gold}" stroke-width="6"/><path d="M44 -4 q14 34 2 70" stroke="${C.gold}" stroke-width="3"/>
+    <path d="M0 22 q-18 -14 -38 -2 q-14 10 -26 -6 q6 22 28 20 q20 -2 36 -12 q16 10 36 12 q22 2 28 -20 q-12 16 -26 6 q-20 -12 -38 2z" fill="${C.ink}" stroke-width="3"/>
+    <path d="M-70 150 q0 -70 70 -86 q70 16 70 86 l0 110 l-140 0z" fill="${C.stock}"/>
+    <path d="M-30 74 l30 18 l30 -18 l0 30 l-30 -12 l-30 12z" fill="${C.carpet}" stroke="${C.ink}"/>
+    <path d="M0 110 l0 140" stroke="${C.rule}"/>${extra}</g>${emo?bubble(x+150*s,y-150*s,emo,s):''}`;}
+function teacup(x,y,s=1){return `<g transform="translate(${x} ${y}) scale(${s})" fill="${C.ground}" stroke="${C.ink}" stroke-width="5"><path d="M-40 0 l80 0 q0 46 -40 46 q-40 0 -40 -46z"/><path d="M40 10 q24 0 20 18 q-4 14 -22 10"/><path d="M-56 52 l112 0" stroke="${C.gold}"/><path d="M-10 -18 q8 -14 0 -28 M10 -18 q8 -14 0 -28" stroke="${C.muted}"/></g>`}
+function glove(x,y,r=0,s=1){return `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})" fill="#F6F3EC" stroke="${C.ground}" stroke-width="4"><rect x="-120" y="-34" width="120" height="68" rx="10" fill="${C.ink}"/><path d="M0 -40 q50 -10 70 10 l40 0 q14 10 0 20 l-40 0 q10 10 0 20 l-40 0 q8 10 -4 18 l-26 0 q-30 -4 -30 -30z"/></g>`}
+function frame(rot=0){return `<g transform="rotate(${rot} 540 600)"><rect x="70" y="190" width="940" height="900" fill="none" stroke="${C.gold}" stroke-width="18"/><rect x="100" y="220" width="880" height="840" fill="none" stroke="${C.gold}" stroke-width="4"/>${[[70,190],[1010,190],[70,1090],[1010,1090]].map(([a,b])=>`<circle cx="${a}" cy="${b}" r="22" fill="${C.ground}" stroke="${C.gold}" stroke-width="6"/>`).join('')}</g>`}
+function stamp(x,y,t,col=C.stamp,rot=-6,w=360){return `<g transform="translate(${x} ${y}) rotate(${rot})"><rect x="${-w/2}" y="-58" width="${w}" height="116" fill="none" stroke="${col}" stroke-width="7"/><rect x="${-w/2+12}" y="-46" width="${w-24}" height="92" fill="none" stroke="${col}" stroke-width="3"/><text x="0" y="16" text-anchor="middle" font-family="WS" font-weight="800" font-size="46" fill="${col}">${t}</text></g>`}
+function car(x,y,s=1){return `<g transform="translate(${x} ${y}) scale(${s})" fill="${C.stock}" stroke="${C.muted}" stroke-width="4"><path d="M-70 0 l10 -34 q6 -14 22 -14 l76 0 q16 0 22 14 l10 34 z"/><rect x="-80" y="0" width="160" height="40" rx="10"/><circle cx="-46" cy="42" r="14" fill="${C.ground}"/><circle cx="46" cy="42" r="14" fill="${C.ground}"/></g>`}
+function charger(x,y,busy=true){return `<g transform="translate(${x} ${y})"><rect x="-34" y="-120" width="68" height="120" fill="${C.stock}" stroke="${C.ink}" stroke-width="4"/><rect x="-22" y="-104" width="44" height="34" fill="${busy?C.warn:C.stamp}" opacity=".85"/><path d="M34 -60 q30 0 30 40" stroke="${C.ink}" stroke-width="4" fill="none"/></g>`}
+const T=(x,y,t,sz=40,col=C.ink,w=800,a='middle',ff='WS')=>`<text x="${x}" y="${y}" text-anchor="${a}" font-family="${ff}" font-weight="${w}" font-size="${sz}" fill="${col}">${t}</text>`;
+const IMG='../../../docs/screenshots/';
+const S=[
+{t:'0~3s · 훅',cap:'<span class=q>귀하게 자란 내가…</span><br>충전 대기 31분을 해도 될까?',
+ svg:()=>`<path d="M300 1100 L460 620 L620 620 L780 1100z" fill="${C.carpet}"/>${[0,1,2,3,4,5].map(i=>charger(170+i*148,560,true)).join('')}${T(540,410,'충전기 6/6 사용 중',40,C.warn,700)}
+ ${car(540,700,.8)}${car(540,800,.9)}${car(540,910,1)}${noble(540,830,.9,'shock',teacup(110,190,.9))}
+ <g transform="translate(890 720) rotate(10)"><rect x="-110" y="-60" width="220" height="120" fill="${C.ink}"/><text x="0" y="-12" text-anchor="middle" font-family="WS" font-weight="700" font-size="26" fill="${C.ground}">대기 번호표</text><text x="0" y="38" text-anchor="middle" font-family="GM" font-weight="600" font-size="48" fill="${C.carpet}">31분</text></g>`,
+ note:'레드카펫인 줄 알았는데, 카메라가 빠지면 <b>충전 대기 줄</b>. 번호표 “띵동”에서 우아한 하프가 툭 끊김.'},
+{t:'3~8s · 충전 끊김',cap:'<span class=q>귀하게 자란 내가…</span><br>충전이 끊겨도 될까?',
+ svg:()=>`<g transform="translate(330 640)" fill="none" stroke="${C.ink}" stroke-width="6"><path d="M-110 -330 l220 0 l-40 300 q-70 40 -140 0z"/><path d="M-96 -150 l192 0 l-26 120 q-70 40 -140 0z" fill="${C.stamp}" opacity=".7"/><path d="M0 10 l0 170 M-90 190 l180 0"/>${T(0,-200,'46%',64,C.ink,700,'middle','GM')}</g>
+ ${stamp(330,190,'40분 제한',C.warn,-10,320)}
+ <path d="M560 900 q0 -120 120 -120 l300 0 q60 0 60 60 l0 140 l-480 0z" fill="${C.carpet}" stroke="${C.ink}" stroke-width="5"/>
+ <g transform="translate(760 760) rotate(-70)">${noble(0,0,.85,null)}</g>${bubble(880,560,'😵')}${T(330,960,'게이지가 목표 80% 전에 멈춤',30,C.muted,600)}`,
+ note:'충전 게이지 = <b>샴페인 잔</b>. 46%에서 “40분 제한” 도장 쾅 → 빈 잔 또르르, 운전자는 <b>소파에 귀족 기절</b>.'},
+{t:'8~12s · 직접 계산',cap:'<span class=q>귀하게 자란 내가…</span><br>이걸 직접 계산해야 될까?',
+ svg:()=>`${noble(540,640,1.25,'🤯')}
+ ${[[220,330,-12,'앱 A'],[900,230,10,'앱 B'],[200,800,8,'앱 C']].map(([x,y,r,t])=>`<g transform="translate(${x} ${y}) rotate(${r})"><rect x="-80" y="-140" width="160" height="280" rx="18" fill="${C.stock}" stroke="${C.ink}" stroke-width="5"/>${T(0,10,t,40,C.muted,700)}</g>`).join('')}
+ <g transform="translate(860 820) rotate(-8)"><rect x="-110" y="-150" width="220" height="300" rx="16" fill="${C.stock}" stroke="${C.ink}" stroke-width="5"/><rect x="-80" y="-120" width="160" height="70" fill="${C.ground}" stroke="${C.warn}" stroke-width="4"/>${T(0,-70,'Error',40,C.warn,600,'middle','GM')}${[0,1,2].map(r=>[0,1,2].map(c=>`<rect x="${-75+c*55}" y="${-25+r*55}" width="40" height="40" fill="none" stroke="${C.muted}" stroke-width="3"/>`).join('')).join('')}</g>
+ ${T(540,1040,'50%? 80%? 100%?',40,C.gold,600,'middle','GM')}${T(540,180,'몇 % · 어디서 · 얼마 동안?',44,C.muted,700)}`,
+ note:'앱 3개·계산기가 빙빙 돌고 <b>외알 안경에 숫자</b>가 비침. 장갑 손가락으로 한 번 눌렀더니 <b>“Error”</b>.'},
+{t:'12s · 반전',cap:'안 돼.<br><span class=q>귀한 사람은 차가 먼저 알려 준다.</span>',
+ svg:()=>`${frame(0)}<path d="M240 880 q300 -40 600 0 l0 30 q-300 40 -600 0z" fill="#8E8A80" stroke="${C.ink}" stroke-width="5"/>
+ <g transform="translate(540 600) rotate(-24)"><path d="M-260 0 q260 -300 520 0z" fill="#B9B4AA" stroke="${C.ink}" stroke-width="5"/><circle cx="0" cy="-160" r="22" fill="${C.ink}"/></g>
+ <g transform="translate(540 780)"><rect x="-230" y="-110" width="460" height="200" fill="${C.stock}" stroke="${C.ink}" stroke-width="4"/>${T(0,-30,'Chargis',72,C.ink,800)}${T(0,40,'고속도로 충전 통행권',34,C.stamp,700)}</g>
+ <g transform="translate(860 330)"><path d="M0 0 q-40 0 -40 60 l80 0 q0 -60 -40 -60z" fill="${C.gold}"/><circle cx="0" cy="72" r="10" fill="${C.gold}"/><path d="M-70 -10 l-30 -20 M70 -10 l30 -20 M0 -30 l0 -30" stroke="${C.gold}" stroke-width="5"/></g>`,
+ note:'정적 0.3초 → <b>집사 벨 “딸랑”</b>. 삐뚤던 금테 액자가 똑바로 서고, <b>은쟁반 뚜껑</b>을 열면 Chargis 통행권.'},
+{t:'12~20s · 추천',cap:'B 휴게소,<br><span class=q>50%까지면 충분하옵니다</span>',
+ svg:()=>`<rect x="110" y="250" width="860" height="40" rx="20" fill="#C8B27A"/><rect x="110" y="790" width="860" height="40" rx="20" fill="#C8B27A"/><rect x="130" y="270" width="820" height="540" fill="#E9DFC6"/>${noble(880,930,.7,'😌')}`,
+ img:[IMG+'03-recommend.png',150,290,780,440],
+ note:'실제 추천 화면(에뮬레이터 캡처)을 <b>두루마리 칙서</b>처럼 펼침. 운전자는 <b>손가락 까딱</b>하며 끄덕.'},
+{t:'20~24s · Gleo 수락',cap:'“거기로 가자.”',
+ svg:()=>`${noble(330,700,1.15,'😎',teacup(120,170,.9))}
+ <g fill="none" stroke="${C.stamp}" stroke-width="7" stroke-linecap="round">${[0,1,2,3,4,5,6].map(i=>`<path d="M${560+i*55} ${520-[30,70,110,60,120,50,20][i]} l0 ${2*[30,70,110,60,120,50,20][i]}"/>`).join('')}</g>${T(720,380,'Gleo',40,C.stamp,700)}
+ ${stamp(730,800,'경유지 등록',C.stamp,-6,380)}<path d="M730 650 l0 60 M700 690 l30 30 l30 -30" stroke="${C.muted}" stroke-width="4" fill="none"/>`,
+ note:'손 하나 까딱 안 하고 <b>말로만</b> 명령 → Gleo 음성 물결 → <b>“경유지 등록” 도장이 공중에서 착</b>. 운전자는 찻잔만 홀짝.'},
+{t:'24~28s · 혼잡 비교',cap:'줄은 C 휴게소가<br><span class=q>21분 짧사옵니다</span>',
+ svg:()=>`${T(290,300,'B 휴게소',48,C.ink,800)}${T(290,350,'대기 31분',34,C.warn,700)}${T(790,300,'C 휴게소',48,C.ink,800)}${T(790,350,'대기 8분',34,C.stamp,700)}
+ <path d="M540 260 l0 700" stroke="${C.rule}" stroke-width="3" stroke-dasharray="28 20"/>
+ ${charger(290,560)}${car(290,640,.7)}${car(290,720,.7)}${car(290,800,.7)}${car(290,880,.7)}
+ ${charger(790,560,false)}<path d="M740 580 l100 0 l60 400 l-220 0z" fill="${C.carpet}"/>
+ ${noble(560,880,.7,'😏')}<g transform="translate(680 830) rotate(-30)"><path d="M0 0 l120 -60 a134 134 0 0 1 20 120z" fill="${C.gold}" stroke="${C.ink}" stroke-width="4"/></g>`,
+ note:'B 앞은 줄이 길고, C 앞에는 <b>레드카펫만 깔린 빈 충전기</b>. 운전자가 <b>부채로 C를 “촥”</b> 가리킴.'},
+{t:'28~34s · 충전 중',cap:'귀한 시간,<br><span class=q>출발은 10시 37분</span>',
+ svg:()=>`${frame(0)}<circle cx="760" cy="760" r="120" fill="none" stroke="${C.gold}" stroke-width="10"/><path d="M845 845 l90 90" stroke="${C.gold}" stroke-width="16"/>
+ ${noble(200,1010,.55,'⌚')}<g transform="translate(330 1050)"><circle r="40" fill="${C.gold}" stroke="${C.ink}" stroke-width="4"/><path d="M0 -20 l0 20 l14 10" stroke="${C.ground}" stroke-width="5" fill="none"/></g>`,
+ img:[IMG+'06-charging.png',120,250,840,520],
+ note:'실제 충전 화면의 <b>출발 예정 시각</b>을 돋보기로 확대. 작은 동승자 귀족이 <b>회중시계</b>를 꺼내 확인 후 끄덕.'},
+{t:'34~38s · 차 충전 끄기',cap:'목표에 닿으면,<br><span class=q>충전은 Chargis가 끕니다</span>',
+ svg:()=>`<g transform="translate(330 620)"><rect x="-150" y="-330" width="300" height="560" fill="${C.stock}" stroke="${C.ink}" stroke-width="5"/>${Array.from({length:10},(_,i)=>`<rect x="-110" y="${170-i*50}" width="220" height="36" fill="${i<5?C.stamp:'none'}" stroke="${C.rule}" stroke-width="3"/>`).join('')}${T(0,-280,'50%',64,C.stamp,600,'middle','GM')}</g>
+ <g transform="translate(760 560)"><rect x="-90" y="-150" width="180" height="300" rx="16" fill="${C.stock}" stroke="${C.ink}" stroke-width="5"/><rect x="-40" y="-80" width="80" height="160" rx="40" fill="${C.ground}" stroke="${C.muted}" stroke-width="4"/><circle cx="0" cy="40" r="32" fill="${C.ink}"/>${T(0,-110,'충전',28,C.muted,700)}${T(0,130,'OFF',30,C.ink,600,'middle','GM')}</g>
+ ${glove(1010,600,180,1.1)}${T(940,790,'딸깍',64,C.gold,800)}${noble(560,960,.6,'🥰')}`,
+ note:'게이지가 50%에 닿는 순간 화면 밖에서 <b>집사의 흰 장갑</b>이 나와 충전 스위치를 <b>“딸깍”</b>. 짧은 팡파르.'},
+{t:'38~42s · 영수증',cap:'일반 방식보다<br><span class=q>N분 빨리 도착</span>',
+ svg:()=>`<path d="M140 760 l800 0 l0 330 l-800 0z" fill="#D9CCAA" stroke="${C.ink}" stroke-width="5"/><path d="M140 760 l400 220 l400 -220" fill="none" stroke="${C.ink}" stroke-width="5"/>${stamp(780,860,'정산 완료',C.stamp,-8,320)}`,
+ img:[IMG+'09-finished.png',220,230,640,520],
+ note:'영수증이 <b>귀족 초대장 봉투</b>에서 쑥. 밀랍 인장 대신 <b>“정산 완료” 도장</b>.'},
+{t:'42~45s · 엔딩',cap:'<span class=q>귀하게 자란 내가 쓰는 앱,</span><br>Chargis',
+ svg:()=>`${frame(0)}${noble(540,560,1.6,'😎')}<rect x="300" y="900" width="480" height="100" fill="${C.gold}"/>${T(540,968,'Chargis',62,C.ground,800)}${T(540,1135,'#HMG차량용앱개발공모전 #전기차 #충전',30,C.muted,600)}`,
+ note:'금테 액자 속 <b>흡족한 초상화</b> + Chargis 명판. 마지막 하프 한 줄, 자막 바에 해시태그.'}
+];
+const n=Math.max(1,Math.min(S.length,parseInt(location.hash.slice(1))||1)), s=S[n-1];
+document.getElementById('f').innerHTML=`${s.img?`<img class=shot src="${s.img[0]}" style="left:${s.img[1]}px;top:${s.img[2]}px;width:${s.img[3]}px;height:${s.img[4]}px">`:''}<svg viewBox="0 0 1080 1920" width="1080" height="1920">${s.svg()}</svg><div class=tag>S${n} · ${s.t}</div><div class=cap>${s.cap}</div><div class=note>${s.note}</div>`;
+</script></body></html>
