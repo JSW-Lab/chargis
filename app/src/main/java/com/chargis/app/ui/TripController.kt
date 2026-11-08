@@ -232,18 +232,18 @@ class TripController(
                     m.naviStopNoted = naviOwn
                     m.appOnlyWaypoint = navi.lastAddSkippedNavi
                     if (m.appOnlyWaypoint) watchNaviDestination(rec.station)
-                    announcer.announce(
-                        when {
-                            navi.lastAddSkippedNavi -> phrases.waypointNoNaviDestination(rec.station.name)
-                            naviOwn != null -> phrases.waypointWithNaviStop(naviOwn, rec.station.name)
-                            else -> phrases.waypointAdded(rec.station.name)
-                        }
-                    )
+                    val phrase = when {
+                        navi.lastAddSkippedNavi -> phrases.waypointNoNaviDestination(rec.station.name)
+                        naviOwn != null -> phrases.waypointWithNaviStop(naviOwn, rec.station.name)
+                        else -> phrases.waypointAdded(rec.station.name)
+                    }
+                    // 안내 음성은 따로 낸다. 앞 안내가 끝나길 기다리면 수락 결과가 늦어져 Gleo(5초 안에 답)가 실패로 답한다(2026-11-09 에뮬레이터).
+                    scope.launch { announcer.announce(phrase) }
                 }
                 .onFailure { e ->
                     lastAcceptError = e
                     // 순정 내비 경유지 두 자리가 다른 곳으로 차 있으면 그렇게 알리고, 그 밖의 실패는 직접 추가하라고 알린다.
-                    announcer.announce(if (e is WaypointsFullException) phrases.waypointsFull() else phrases.waypointFailed(), Priority.HIGH)
+                    scope.launch { announcer.announce(if (e is WaypointsFullException) phrases.waypointsFull() else phrases.waypointFailed(), Priority.HIGH) }
                 }
         }
     }
@@ -432,6 +432,8 @@ class TripController(
         readout.flushPending()
         demo.depart()
         transition(TripEvent.Depart)
+        // 충전을 마친 충전소는 순정 내비 경유지에서 뺀다(데모에서는 내비가 그 경유지를 지나가지 않는다).
+        m.accepted?.takeIf { !m.appOnlyWaypoint }?.let { acc -> scope.launch { navi.removeWaypoint(acc.station) } }
         m.accepted = null
         m.charge = null
         m.stopResult = null
@@ -1065,6 +1067,9 @@ class TripController(
         appOnlySync?.cancel()
         appOnlySync = null
         restoreCarLimit()
+        // 수락해 두었던 충전소를 순정 내비 경유지에서 뺀다. 데모 경로는 가상이라 내비가 그 경유지를 지나가지 않아,
+        // 그대로 두면 시나리오를 몇 번 돌린 뒤 경유지 두 자리가 다 차서 수락이 실패한다(2026-11-09 Pleos 에뮬레이터).
+        m.accepted?.takeIf { !m.appOnlyWaypoint }?.let { acc -> scope.launch { navi.removeWaypoint(acc.station) } }
         m.reset()
         m.lastRoute = null
         readout.reset()

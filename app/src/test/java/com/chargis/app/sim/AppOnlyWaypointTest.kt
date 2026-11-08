@@ -55,4 +55,38 @@ class AppOnlyWaypointTest {
         val after = h.controller.state.value.card
         assertFalse(after is DriveCard.Navigating && after.appOnly)
     }
+
+    /** 내비에 넣은 경유지는 충전을 마치고 떠날 때와 여행을 다시 시작할 때 뺀다(경유지 두 자리가 쌓여 차지 않게). */
+    @Test
+    fun naviWaypointRemovedOnDepartAndRestart() = runTest {
+        val removed = mutableListOf<String>()
+        val h = harness(navi = { sim ->
+            object : NaviPort by FakeNavi(sim) {
+                private val inner = FakeNavi(sim)
+                override suspend fun removeWaypoint(station: ChargingStation): Result<Unit> {
+                    removed += station.id
+                    return inner.removeWaypoint(station)
+                }
+            }
+        })
+        h.controller.startScenario("S1")
+        drive(h) { h.controller.state.value.phase == TripPhase.AwaitingDecision }
+        h.controller.accept("rest_b")
+        runCurrent()
+        // 수락한 채 다시 시작하면 뺀다.
+        h.controller.restart()
+        runCurrent()
+        assertEquals(listOf("rest_b"), removed)
+
+        h.controller.startScenario("S1")
+        drive(h) { h.controller.state.value.phase == TripPhase.AwaitingDecision }
+        h.controller.accept("rest_b")
+        runCurrent()
+        drive(h) { h.controller.state.value.phase == TripPhase.Arrived }
+        h.controller.startCharging()
+        drive(h) { h.controller.state.value.phase == TripPhase.Done }
+        h.controller.depart()
+        runCurrent()
+        assertEquals(listOf("rest_b", "rest_b"), removed)
+    }
 }
