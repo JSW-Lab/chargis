@@ -1,0 +1,27 @@
+﻿[Script Info]
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Sub,Wanted Sans,44,&H00FFFFFF,&H00FFFFFF,&H00000000,&HC0000000,1,0,0,0,100,100,0,0,3,14,0,2,80,80,40,1
+Style: Chap,Wanted Sans,38,&H004CA4C9,&H00FFFFFF,&H00000000,&HC0000000,1,0,0,0,100,100,0,0,3,12,0,7,30,30,30,1
+Style: Card,Wanted Sans,72,&H00E2E9ED,&H00FFFFFF,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,0,0,5,80,80,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:12.12,0:00:17.28,Sub,,0,0,0,,🔊 이번 이동은 중간 충전 1회가 필요합니다.
+Dialogue: 0,0:00:42.05,0:00:48.05,Sub,,0,0,0,,🔊 다음 충전은 B 휴게소를 추천합니다. 목적지까지는 50퍼센트면 충분합니다.
+Dialogue: 0,0:00:58.96,0:01:04.96,Sub,,0,0,0,,🔊 B 휴게소로 안내합니다. 내비게이션에 목적지가 없어 경유지는 넣지 않았습니다.
+Dialogue: 0,0:00:03.00,0:00:41.05,Chap,,0,0,0,,① 발권: S1 서울→속초(가상), 출발 배터리 60%
+Dialogue: 0,0:00:41.05,0:00:57.96,Chap,,0,0,0,,② 주행 중 추천: 어디서·몇 %까지·얼마 동안
+Dialogue: 0,0:00:57.96,0:01:10.00,Chap,,0,0,0,,③ [경유지로 수락]: 내비 목적지가 없어 "앱에서 안내"
+Dialogue: 0,0:01:10.00,0:01:16.00,Chap,,0,0,0,,④ 휴게소 도착: 현재 37% → 목표 50%, 예상 9분, 제한 40분
+Dialogue: 0,0:01:16.00,0:01:22.00,Chap,,0,0,0,,⑤ 충전 중: 차량 충전 한도 60% 설정, 출발 예정 10:14
+Dialogue: 0,0:01:22.00,0:01:28.00,Chap,,0,0,0,,⑥ 동승자 화면: 출발 예정 시각만 크게
+Dialogue: 0,0:01:28.00,0:01:34.00,Chap,,0,0,0,,⑦ 목표 50%에서 Chargis가 차량 충전을 끔
+Dialogue: 0,0:01:34.00,0:01:40.00,Chap,,0,0,0,,⑧ 목적지 도착: 정산 영수증, 80%까지보다 18분 아낌
+Dialogue: 0,0:00:00.00,0:00:03.00,Card,,0,0,0,,Chargis 시연\N{\fs40\c&HA19C93&}Pleos Connect 에뮬레이터 v2.1.0 · 앱 0.2.0 · 2026-11-09 녹화
+Dialogue: 0,0:01:10.00,0:01:10.01,Card,,0,0,0,,
+Dialogue: 0,0:01:40.00,0:01:44.00,Card,,0,0,0,,github.com/JSW-Lab/chargis\N{\fs40\c&HA19C93&}④~⑧은 같은 날 에뮬레이터에서 찍은 화면입니다
