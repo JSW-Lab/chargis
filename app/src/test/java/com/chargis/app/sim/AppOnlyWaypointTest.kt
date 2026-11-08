@@ -56,7 +56,7 @@ class AppOnlyWaypointTest {
         assertFalse(after is DriveCard.Navigating && after.appOnly)
     }
 
-    /** 내비에 넣은 경유지는 충전을 마치고 떠날 때와 여행을 다시 시작할 때 뺀다(경유지 두 자리가 쌓여 차지 않게). */
+    /** 내비에 넣은 경유지는 여행을 다시 시작할 때 뺀다(충전을 마치고 떠난 곳 포함)(경유지 두 자리가 쌓여 차지 않게). */
     @Test
     fun naviWaypointRemovedOnDepartAndRestart() = runTest {
         val removed = mutableListOf<String>()
@@ -86,6 +86,10 @@ class AppOnlyWaypointTest {
         h.controller.startCharging()
         drive(h) { h.controller.state.value.phase == TripPhase.Done }
         h.controller.depart()
+        runCurrent()
+        // 출발할 때는 지우지 않는다(내비가 경로 선택 화면으로 앞에 나오므로). 다음에 다시 시작할 때 지운다.
+        assertEquals(listOf("rest_b"), removed)
+        h.controller.restart()
         runCurrent()
         assertEquals(listOf("rest_b", "rest_b"), removed)
     }

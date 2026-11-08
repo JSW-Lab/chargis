@@ -432,8 +432,9 @@ class TripController(
         readout.flushPending()
         demo.depart()
         transition(TripEvent.Depart)
-        // 충전을 마친 충전소는 순정 내비 경유지에서 뺀다(데모에서는 내비가 그 경유지를 지나가지 않는다).
-        m.accepted?.takeIf { !m.appOnlyWaypoint }?.let { acc -> scope.launch { navi.removeWaypoint(acc.station) } }
+        // 출발할 때는 내비 경유지를 지우지 않는다. 지우면 순정 내비가 경로를 다시 짜며 경로 선택 화면으로 앞에 나온다(2026-11-09 에뮬레이터).
+        // 실제 주행에서는 내비가 지나간 경유지를 스스로 빼고, 데모에서 남은 것은 여행을 다시 시작할 때(resetTrip) 지운다.
+        m.lastPassedStop = m.accepted?.takeIf { !m.appOnlyWaypoint }?.station
         m.accepted = null
         m.charge = null
         m.stopResult = null
@@ -1069,7 +1070,7 @@ class TripController(
         restoreCarLimit()
         // 수락해 두었던 충전소를 순정 내비 경유지에서 뺀다. 데모 경로는 가상이라 내비가 그 경유지를 지나가지 않아,
         // 그대로 두면 시나리오를 몇 번 돌린 뒤 경유지 두 자리가 다 차서 수락이 실패한다(2026-11-09 Pleos 에뮬레이터).
-        m.accepted?.takeIf { !m.appOnlyWaypoint }?.let { acc -> scope.launch { navi.removeWaypoint(acc.station) } }
+        (m.accepted?.takeIf { !m.appOnlyWaypoint }?.station ?: m.lastPassedStop)?.let { st -> scope.launch { navi.removeWaypoint(st) } }
         m.reset()
         m.lastRoute = null
         readout.reset()

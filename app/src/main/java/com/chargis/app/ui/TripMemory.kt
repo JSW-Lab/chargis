@@ -49,6 +49,7 @@ class TripMemory {
     var liveTurn: com.chargis.app.domain.model.TurnHint? = null   // 실제 주행: 순정 내비가 알려 준 다음 갈림길(TBT)
     var habitBase: HabitBase? = null                          // 출발 때 계산한 일반 방식과 Chargis 계획(D, 영수증 비교)
     var congestionAvoided = 0                                 // 혼잡 비교에서 붐비는 곳 대신 대안을 고른 횟수(D)
+    var lastPassedStop: com.chargis.app.domain.model.ChargingStation? = null  // 충전을 마치고 떠난 충전소. 다음에 여행을 다시 시작할 때 내비 경유지에서 뺀다
     var appOnlyWaypoint = false                               // D1: 순정 내비에 목적지가 없어 경유지를 앱 안에서만 안내 중인지
     var naviStopNoted: String? = null                         // 이번 경유지 안내에서 "순정 내비 충전소는 지나가도 됨"을 말한 충전소(B)
 
@@ -77,6 +78,7 @@ class TripMemory {
         congestionAvoided = 0
         naviStopNoted = null
         appOnlyWaypoint = false
+        lastPassedStop = null
     }
 }
 
