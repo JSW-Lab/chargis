@@ -30,6 +30,29 @@ const PARAMS = {
 const TTL_MS = { getChargerInfo: 10 * 60_000, getChargerStatus: 60_000 };
 const RATE_PER_MIN = 60;
 const MAX_CACHE = 200;
+// 응답 한 쪽이 최대 약 8MB(9,999행)라 개수만으로는 메모리를 못 막는다. 저장한 응답 글자 수의 합도 묶는다.
+const MAX_CACHE_CHARS = 100 * 1024 * 1024;
+
+/**
+ * data.go.kr은 키 오류·호출 한도 초과 같은 실패도 HTTP 200으로 돌려준다. 본문의 결과 코드로 실패를 가려낸다.
+ * JSON은 resultCode가 "00"이 아니면, XML은 resultCode가 00이 아니거나 OpenAPI 오류 응답(returnReasonCode)이면 실패다.
+ */
+export function upstreamError(body) {
+  const text = body.trimStart();
+  if (text.startsWith('{')) {
+    try {
+      const code = JSON.parse(text).resultCode;
+      return code !== undefined && String(code) !== '00' ? `resultCode ${code}` : null;
+    } catch { return 'JSON 형식 오류'; }
+  }
+  if (text.startsWith('<')) {
+    const reason = text.match(/<returnReasonCode>\s*([^<]+)/);
+    if (reason) return `returnReasonCode ${reason[1].trim()}`;
+    const code = text.match(/<resultCode>\s*([^<]+)/);
+    if (code && code[1].trim() !== '00') return `resultCode ${code[1].trim()}`;
+  }
+  return null;
+}
 
 /**
  * data.go.kr은 같은 키를 Encoding(%2B 등)과 Decoding 두 형식으로 보여 준다. 여기서는 Decoding 값을 URLSearchParams가
@@ -45,11 +68,35 @@ export function decodeServiceKey(key) {
  * 요청 처리기를 만든다. 테스트에서 [fetchImpl]과 [now]를 바꿔 끼운다.
  * @param {{apiKey: string, upstream?: string, appToken?: string, fetchImpl?: typeof fetch, now?: () => number}} opts
  */
-export function createHandler({ apiKey: rawKey, upstream = 'https://apis.data.go.kr/B552584/EvCharger', appToken, fetchImpl = fetch, now = Date.now }) {
+export function createHandler({ apiKey: rawKey, upstream = 'https://apis.data.go.kr/B552584/EvCharger', appToken, trustProxy = false, fetchImpl = fetch, now = Date.now }) {
   if (!rawKey) throw new Error('CHARGER_API_KEY가 비어 있습니다');
   const apiKey = decodeServiceKey(rawKey);
   const cache = new Map();   // 정리한 요청 → { at, status, body }
   const hits = new Map();    // IP → { windowStart, count }
+  const inflight = new Map(); // 정리한 요청 → 진행 중인 upstream 호출(같은 요청이 동시에 오면 한 번만 부른다)
+  let cacheChars = 0;
+  let lastSweep = 0;
+
+  // 1분이 지난 IP 기록과 만료된 저장본을 지운다(1분에 한 번만).
+  function sweep(t) {
+    if (t - lastSweep < 60_000) return;
+    lastSweep = t;
+    for (const [ip, h] of hits) if (t - h.windowStart >= 60_000) hits.delete(ip);
+    for (const [k, v] of cache) if (t - v.at >= TTL_MS[v.op]) dropCache(k);
+  }
+  function dropCache(k) {
+    const v = cache.get(k);
+    if (!v) return;
+    cacheChars -= v.body.length;
+    cache.delete(k);
+  }
+  function putCache(k, entry) {
+    dropCache(k);
+    if (entry.body.length > MAX_CACHE_CHARS) return;
+    while (cache.size >= MAX_CACHE || cacheChars + entry.body.length > MAX_CACHE_CHARS) dropCache(cache.keys().next().value);
+    cache.set(k, entry);
+    cacheChars += entry.body.length;
+  }
 
   return async function handle(req, res) {
     const url = new URL(req.url, 'http://local');
@@ -61,7 +108,10 @@ export function createHandler({ apiKey: rawKey, upstream = 'https://apis.data.go
     if (!OPERATIONS.has(op)) return send(res, 404, { error: '지원하지 않는 경로' });
     if (appToken && req.headers['x-chargis-token'] !== appToken) return send(res, 401, { error: '인증 실패' });
 
-    const ip = req.socket.remoteAddress ?? 'unknown';
+    // 로드밸런서 뒤에 둘 때(TRUST_PROXY=1)만 X-Forwarded-For의 첫 주소를 쓴다. 아니면 누구나 헤더로 한도를 피할 수 있다.
+    const forwarded = trustProxy ? String(req.headers['x-forwarded-for'] ?? '').split(',')[0].trim() : '';
+    const ip = forwarded || (req.socket.remoteAddress ?? 'unknown');
+    sweep(now());
     if (!allow(hits, ip, now())) return send(res, 429, { error: '요청이 너무 많습니다' });
 
     const params = new URLSearchParams();
@@ -79,18 +129,32 @@ export function createHandler({ apiKey: rawKey, upstream = 'https://apis.data.go
     if (cached && now() - cached.at < TTL_MS[op]) return sendRaw(res, cached.status, cached.body, 'HIT');
 
     params.set('serviceKey', apiKey);
+    let pending = inflight.get(cacheKey);
+    const shared = !!pending;
+    if (!pending) {
+      pending = callUpstream(`${upstream}/${op}?${params}`).finally(() => inflight.delete(cacheKey));
+      inflight.set(cacheKey, pending);
+    }
+    const result = await pending;
+    if (result.error) return send(res, 502, { error: result.error });
+    if (!shared) putCache(cacheKey, { at: now(), status: 200, body: result.body, op });
+    return sendRaw(res, 200, result.body, shared ? 'SHARED' : 'MISS');
+  };
+
+  // upstream을 한 번 부른다. 실패는 { error }로 돌려준다(키는 담지 않는다).
+  async function callUpstream(url) {
     let upstreamRes;
     try {
-      upstreamRes = await fetchImpl(`${upstream}/${op}?${params}`, { signal: AbortSignal.timeout(10_000) });
+      upstreamRes = await fetchImpl(url, { signal: AbortSignal.timeout(10_000) });
     } catch {
-      return send(res, 502, { error: '공공데이터 서버에 연결하지 못했습니다' });
+      return { error: '공공데이터 서버에 연결하지 못했습니다' };
     }
     const body = await upstreamRes.text();
-    if (!upstreamRes.ok) return send(res, 502, { error: `공공데이터 서버 오류 ${upstreamRes.status}` });
-    if (cache.size >= MAX_CACHE) cache.delete(cache.keys().next().value);
-    cache.set(cacheKey, { at: now(), status: 200, body });
-    return sendRaw(res, 200, body, 'MISS');
-  };
+    if (!upstreamRes.ok) return { error: `공공데이터 서버 오류 ${upstreamRes.status}` };
+    const bad = upstreamError(body);
+    if (bad) return { error: `공공데이터 서버 오류(${bad})` };
+    return { body };
+  }
 }
 
 // IP마다 1분 창에서 RATE_PER_MIN번까지 허용한다.
@@ -118,6 +182,6 @@ function sendRaw(res, status, body, cacheState) {
 // 직접 실행했을 때만 서버를 띄운다(테스트에서 import할 때는 띄우지 않는다).
 if (import.meta.url === new URL(process.argv[1] ?? '', 'file:').href || process.argv[1]?.endsWith('charger-proxy.mjs')) {
   const port = Number(process.env.PORT ?? 8787);
-  const handler = createHandler({ apiKey: process.env.CHARGER_API_KEY, appToken: process.env.APP_TOKEN || undefined });
+  const handler = createHandler({ apiKey: process.env.CHARGER_API_KEY, appToken: process.env.APP_TOKEN || undefined, trustProxy: process.env.TRUST_PROXY === '1' });
   http.createServer(handler).listen(port, () => console.log(`charger-proxy listening on :${port}`));
 }

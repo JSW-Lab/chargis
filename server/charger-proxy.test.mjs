@@ -13,6 +13,7 @@ async function setup(opts = {}) {
   let t = 0;
   const fetchImpl = async (url) => {
     calls.push(url);
+    if (typeof opts.upstream === 'function') return opts.upstream();
     return opts.upstream ?? new Response('{"resultCode":"00","items":{"item":[]}}', { status: 200 });
   };
   const handler = createHandler({ apiKey: KEY, fetchImpl, now: () => t, appToken: opts.appToken });
@@ -101,5 +102,61 @@ test('시설 구분(kind) 필터를 넘기고, 형식이 다르면 400', async (
     assert.equal((await get('/getChargerInfo?zcode=41&kind=H0%27')).status, 400);
   } finally {
     await close();
+  }
+});
+
+test('HTTP 200이어도 결과 코드가 실패면 502로 알리고 저장하지 않는다', async () => {
+  const s = await setup({ upstream: () => new Response('{"resultCode":"30","resultMsg":"SERVICE KEY IS NOT REGISTERED"}', { status: 200 }) });
+  const res = await s.get('/ev/getChargerStatus?pageNo=1&numOfRows=10&zcode=11');
+  assert.equal(res.status, 502);
+  assert.ok(!(await res.text()).includes(KEY));
+  await s.get('/ev/getChargerStatus?pageNo=1&numOfRows=10&zcode=11');
+  assert.equal(s.calls.length, 2);
+  await s.close();
+});
+
+test('결과 코드 판별: JSON·XML 정상과 실패', async () => {
+  const { upstreamError } = await import('./charger-proxy.mjs');
+  assert.equal(upstreamError('{"resultCode":"00","items":{}}'), null);
+  assert.equal(upstreamError('{"items":{}}'), null);
+  assert.match(upstreamError('{"resultCode":"22"}'), /22/);
+  assert.equal(upstreamError('<response><header><resultCode>00</resultCode></header></response>'), null);
+  assert.match(upstreamError('<OpenAPI_ServiceResponse><cmmMsgHeader><returnReasonCode>30</returnReasonCode></cmmMsgHeader></OpenAPI_ServiceResponse>'), /30/);
+});
+
+test('같은 요청이 동시에 오면 공공데이터 서버는 한 번만 부른다', async () => {
+  const calls = [];
+  let release;
+  const gate = new Promise((r) => { release = r; });
+  const fetchImpl = async (url) => { calls.push(url); await gate; return new Response('{"resultCode":"00"}', { status: 200 }); };
+  const handler = createHandler({ apiKey: KEY, fetchImpl });
+  const server = http.createServer(handler);
+  await new Promise((r) => server.listen(0, r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const path = '/ev/getChargerInfo?pageNo=1&numOfRows=10&zcode=11';
+  const both = Promise.all([fetch(base + path), fetch(base + path)]);
+  await new Promise((r) => setTimeout(r, 50));
+  release();
+  const [a, b] = await both;
+  assert.equal(a.status, 200);
+  assert.equal(b.status, 200);
+  assert.equal(calls.length, 1);
+  await new Promise((r) => server.close(r));
+});
+
+test('TRUST_PROXY일 때만 X-Forwarded-For로 IP를 가른다', async () => {
+  const fetchImpl = async () => new Response('{"resultCode":"00"}', { status: 200 });
+  for (const trustProxy of [false, true]) {
+    const handler = createHandler({ apiKey: KEY, fetchImpl, trustProxy });
+    const server = http.createServer(handler);
+    await new Promise((r) => server.listen(0, r));
+    const base = `http://127.0.0.1:${server.address().port}`;
+    let limited = 0;
+    for (let i = 0; i < 61; i++) {
+      const res = await fetch(`${base}/ev/getChargerInfo?pageNo=${i + 1}&numOfRows=10&zcode=11`, { headers: { 'x-forwarded-for': `10.0.0.${i}` } });
+      if (res.status === 429) limited++;
+    }
+    assert.equal(limited, trustProxy ? 0 : 1);
+    await new Promise((r) => server.close(r));
   }
 });
