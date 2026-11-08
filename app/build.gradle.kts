@@ -27,8 +27,8 @@ android {
         applicationId = "com.chargis.app"   // 앱 고유 이름(설치된 앱을 구별하는 주소)
         minSdk = 28                         // 설치 가능한 가장 낮은 안드로이드 버전(Android 9)
         targetSdk = 36
-        versionCode = 1                     // 내부 버전 번호(올릴 때마다 1씩 증가)
-        versionName = "0.1.0"               // 사용자에게 보이는 버전
+        versionCode = 2                     // 내부 버전 번호(올릴 때마다 1씩 증가)
+        versionName = "0.2.0"               // 사용자에게 보이는 버전
         // true면 데모 샘플 대신 공공 충전소 데이터를 먼저 쓴다(실패하면 샘플로 폴백). 데모 경로는 가상이라 기본은 끔.
         buildConfigField("boolean", "USE_PUBLIC_CHARGER_API", localProps.getProperty("chargis.usePublicChargerApi", "false"))
         // 충전소 API 주소. 비우면 data.go.kr. 키를 앱에 넣지 않으려면 키를 붙여 주는 중계 서버(프록시) 주소를 넣는다.
