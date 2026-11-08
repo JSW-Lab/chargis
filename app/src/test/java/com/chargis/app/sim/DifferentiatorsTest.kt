@@ -100,6 +100,32 @@ class DifferentiatorsTest {
         assertFalse(h.tts.spoken.contains("car_control_failed"))
     }
 
+    /** 충전 중에 앱이 꺼졌다 켜져도 떠날 때 차량 한도를 되돌리고 알린다(저장본에 한도를 남긴다). */
+    @Test
+    fun restoreDuringCharging_stillRestoresCarLimitOnDepart() = runTest {
+        val store = com.chargis.app.data.fake.InMemoryTripStore()
+        val control = FakeControl()
+        val first = harness(store, chargeControl = control)
+        arriveAtB(first)
+        first.controller.startCharging()
+        runCurrent()
+        val limit = ChargeLimit.forTarget(first.controller.state.value.stop!!.targetSoc)
+        val start = first.sim.state.value.simTimeSec
+        drive(first) { first.sim.state.value.simTimeSec - start >= 120 }
+        runCurrent()
+
+        // 새 컨트롤러 = 앱을 다시 켬
+        val second = harness(store, chargeControl = control)
+        runCurrent()
+        assertEquals(limit, second.controller.state.value.stop!!.carLimitPercent)
+        drive(second) { second.controller.state.value.phase == TripPhase.Done }
+        runCurrent()
+        second.controller.depart()
+        runCurrent()
+        assertEquals("limit:${ChargeLimit.RESTORE}", control.calls.last())
+        assertTrue(second.tts.spoken.contains("car_limit_restored:${ChargeLimit.RESTORE}"))
+    }
+
     @Test
     fun targetChange_resetsCarLimit_andManualStopTurnsCarOffWithoutTargetMessage() = runTest {
         val control = FakeControl()

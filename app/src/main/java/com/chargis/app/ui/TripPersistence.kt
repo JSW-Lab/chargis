@@ -45,7 +45,8 @@ class TripPersistence(private val m: TripMemory, private val gate: AnnouncementG
             odometerKm = m.odometerKm,
             elevationSoc = m.elevationSoc,
             preconditionAdvised = m.preconditionAdvised,
-            manualSoc = manualSoc
+            manualSoc = manualSoc,
+            carLimit = m.carLimit
         )
     }
 
@@ -66,6 +67,7 @@ class TripPersistence(private val m: TripMemory, private val gate: AnnouncementG
         m.odometerKm = saved.odometerKm
         m.elevationSoc = saved.elevationSoc
         m.preconditionAdvised = saved.preconditionAdvised
+        m.carLimit = saved.carLimit
         saved.charges.forEach { m.charges += it.toRecord() }
         gate.restore(saved.handled, saved.declined)
         m.accepted = saved.accepted?.let { r ->

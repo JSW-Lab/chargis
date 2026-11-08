@@ -21,6 +21,7 @@
     <string name="tts_target_reached">목표 충전량에 도달했습니다. 출발할 수 있습니다.</string>
     <string name="tts_resume">충전을 마쳤습니다. 길 안내를 이어 갑니다.</string>
     <string name="tts_car_limit_set">차량 충전 한도를 %1$d퍼센트로 맞췄습니다. 목표에 닿으면 Chargis가 충전을 멈춥니다.</string>
+    <string name="tts_car_limit_restored">차량 충전 한도를 %1$d퍼센트로 되돌렸습니다. 원래 다른 값을 쓰셨다면 차량 화면에서 다시 맞춰 주세요.</string>
     <string name="tts_car_charge_stopped">차량 충전을 멈췄습니다.</string>
     <string name="tts_map_unavailable">순정 내비 지도를 열 수 없습니다. 내비게이션에서 직접 확인해 주세요.</string>
     <string name="turn_service_area">%1$s 진입</string>
@@ -68,13 +69,11 @@
     <string name="label_distance">거리</string>
     <string name="label_start_soc">출발 배터리</string>
     <string name="label_depart">출발</string>
-    <string name="label_next_stop">다음 정차</string>
     <string name="label_target">목표 충전</string>
     <string name="label_charge_time">충전</string>
     <string name="label_limit">이용 제한</string>
     <string name="label_limit_long">충전기 이용 제한</string>
     <string name="label_target_adjust">목표 바꾸기</string>
-    <string name="label_remaining">남은 거리</string>
     <string name="label_battery">배터리</string>
     <string name="label_wait">대기</string>
     <string name="label_arrival_soc">도착 배터리</string>
@@ -100,9 +99,7 @@
     <string name="unit_won">원</string>
     <string name="value_none">없음</string>
     <string name="value_not_needed">필요 없음</string>
-    <string name="unit_km_point">km 지점</string>
     <string name="unknown">정보 없음</string>
-    <string name="available_fmt">%1$d/%2$d</string>
 
     <!-- 발권(시작) -->
     <string name="idle_lede">경로와 배터리를 읽고, 어느 휴게소·충전소에서 몇 %까지 충전할지 먼저 알려 드립니다.</string>
@@ -118,14 +115,12 @@
     <string name="drive_need_another">이번 충전 후 한 번 더 충전 필요</string>
     <string name="drive_limit_risk">%1$d분 제한 안에 약 %2$d%%까지 충전</string>
     <string name="drive_congested_title">%1$s 대기</string>
-    <string name="drive_congested_sub">목적지 도착 시각과 남는 배터리를 비교해 고르세요</string>
     <string name="drive_congested_verdict">%1$s 쪽이 %2$d분 빨리 도착</string>
     <string name="drive_congested_cost">대신 배터리가 %1$d%% 적게 남음</string>
     <string name="drive_congested_even">도착 시각이 거의 같습니다</string>
     <string name="label_dest_eta">목적지 도착</string>
     <string name="drive_faster_than_next">다음 후보보다 %1$d분 빠름</string>
     <string name="drive_two_stop">이후 %1$s에서 %2$d%%까지 한 번 더</string>
-    <string name="wait_live">실시간</string>
     <string name="wait_forecast">예측</string>
     <string name="drive_navigating">%1$s로 안내 중</string>
     <string name="drive_precondition_suggest">배터리 예열을 켜면 충전 약 %1$d분 단축</string>
@@ -142,7 +137,6 @@
     <string name="reason_low_wait">대기 짧음</string>
     <string name="reason_enough">충전기 여유</string>
     <string name="reason_latest_safe">안전하게 갈 수 있는 마지막 충전소</string>
-    <string name="reason_no_detour">경로 이탈 없음</string>
 
     <!-- 충전소 종류·우회(고속도로 휴게소는 표시하지 않는다) -->
     <string name="kind_local_rest_stop">국도 휴게소</string>
@@ -158,6 +152,8 @@
 
     <!-- 도장 -->
     <string name="stamp_waypoint">경유지 등록</string>
+    <string name="stamp_app_only">앱에서 안내</string>
+    <string name="tts_waypoint_synced">내비게이션에 목적지가 생겨 %1$s를 경유지로 넣었습니다.</string>
     <string name="stamp_arrived">도착</string>
     <string name="stamp_charged">충전 완료</string>
     <string name="stamp_settled">정산 완료</string>
@@ -246,16 +242,15 @@
     <string name="receipt_compare_limit">시간 제한에 끊긴 충전 %1$d번(일반 %2$d번)</string>
     <string name="receipt_compare_congestion">혼잡 회피 %1$d번</string>
     <string name="receipt_compare_note" formatted="false">출발 때 같은 조건으로 계산. 일반 방식: 배터리 30% 아래에서 첫 휴게소·쉼터에 들러 80%까지</string>
-    <string name="receipt_cost_total">충전 요금</string>
+    <string name="receipt_cost_total">충전 요금(어림)</string>
     <string name="receipt_cost_partial">%1$s · 일부 정보 없음</string>
-    <string name="receipt_charge_cost">요금</string>
-    <string name="finished_cost">충전 요금</string>
+    <string name="receipt_charge_cost">요금(어림)</string>
+    <string name="finished_cost">충전 요금(어림)</string>
 
     <!-- 설정(F5) -->
     <string name="settings_title">내 차 설정</string>
     <string name="settings_onboarding">처음이면 차종부터 골라 주세요. 언제든 여기서 바꿀 수 있습니다.</string>
     <string name="settings_vehicle">차종</string>
-    <string name="settings_vehicle_value">%1$.0fkWh · 최대 %2$.0fkW</string>
     <string name="settings_target">충전 상한</string>
     <string name="settings_target_hint">높이면 덜 들르는 대신 한 번에 오래 충전합니다</string>
     <string name="settings_margin">안전 여유</string>
@@ -292,7 +287,6 @@
     <string name="voice_cmd_charge">충전 시작</string>
     <string name="voice_cmd_depart">출발</string>
     <string name="voice_cmd_precondition">예열</string>
-    <string name="voice_permission_denied">마이크 권한이 없어 음성 명령을 쓸 수 없습니다</string>
     <string name="energy_measured">실측 %1$dkm · 사양보다 %2$d%% 더 씀</string>
     <string name="energy_measured_less">실측 %1$dkm · 사양보다 %2$d%% 덜 씀</string>
     <string name="energy_prior">기온·속도 반영 · 사양보다 %1$d%% 더 씀</string>

@@ -258,6 +258,18 @@ class HybridNavi(private val demo: NaviPort, private val pleos: PleosNavi) : Nav
         return Result.success(Unit)
     }
 
+    override suspend fun syncSkippedWaypoint(station: ChargingStation): Result<Boolean> {
+        if (!lastAddSkippedNavi || !pleos.isReady || pleos.destination() == null) return Result.success(false)
+        val real = pleos.addWaypoint(station)
+        (real.exceptionOrNull() as? WaypointsFullException)?.let { return Result.failure(it) }
+        if (real.isFailure) return Result.success(false)
+        lastAddSkippedNavi = false
+        lastNaviOwnStop = pleos.lastNaviOwnStop
+        pleos.requestReRoute()
+        Log.i("ChargisNavi", "navi destination appeared; waypoint added to navi")
+        return Result.success(true)
+    }
+
     override suspend fun removeWaypoint(station: ChargingStation): Result<Unit> {
         if (pleos.isReady) pleos.removeWaypoint(station).onFailure { Log.w("ChargisNavi", "navi waypoint remove failed", it) }
         return demo.removeWaypoint(station)

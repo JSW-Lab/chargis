@@ -57,7 +57,9 @@ sealed interface DriveCard {
         /** 다음 갈림길 안내(턴 안내 띠). 모르면 null이고 띠를 숨긴다 */
         val turn: com.chargis.app.domain.model.TurnHint? = null,
         /** [지도에서 보기]로 순정 내비 경로 화면을 열 수 있는지(Pleos 차량) */
-        val canShowMap: Boolean = false
+        val canShowMap: Boolean = false,
+        /** D1: 순정 내비에 목적지가 없어 경유지를 넣지 않고 Chargis만 안내하는 중인지(도장이 "앱에서 안내"로 바뀐다) */
+        val appOnly: Boolean = false
     ) : DriveCard
     /**
      * 평소 주행 상태(남은 거리, 충전 계획) (02-drive-status.png)

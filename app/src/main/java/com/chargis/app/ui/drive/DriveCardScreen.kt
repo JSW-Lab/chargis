@@ -491,7 +491,7 @@ private fun ColumnScope.NavigatingStub(card: DriveCard.Navigating, marks: List<R
                     if (card.timeLimitMin != null) Measure(stringResource(R.string.label_limit), "${card.timeLimitMin}", min)
                     else Words(stringResource(R.string.label_limit), stringResource(if (card.timeLimitKnown) R.string.value_none else R.string.unknown))
                 },
-                { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Stamp(stringResource(R.string.stamp_waypoint)) } }
+                { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Stamp(stringResource(if (card.appOnly) R.string.stamp_app_only else R.string.stamp_waypoint)) } }
             )
             HairlineH()
             when {

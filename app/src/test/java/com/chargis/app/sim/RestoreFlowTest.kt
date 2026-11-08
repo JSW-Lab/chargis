@@ -102,4 +102,17 @@ class RestoreFlowTest {
         val ids = second.controller.state.value.candidates.map { it.station.id }
         assertTrue("candidates=$ids", ids.isNotEmpty() && "rest_c" in ids)
     }
+
+    /** S3 E 휴게소 도착: 남은 후보가 F 하나여도 "앞으로의 충전소" 표가 비지 않는다(OPEN_ISSUES 2026-10-28 에뮬레이터 관찰 재현 시도). */
+    @Test
+    fun s3_arrivedAtE_candidateTableShowsF() = runTest {
+        val h = harness()
+        h.controller.startScenario("S3")
+        drive(h) { h.controller.state.value.phase == TripPhase.AwaitingDecision }
+        h.controller.accept("rest_e")
+        runCurrent()
+        drive(h) { h.controller.state.value.phase == TripPhase.Arrived }
+        runCurrent()
+        assertEquals(listOf("rest_f"), h.controller.state.value.candidates.map { it.station.id })
+    }
 }

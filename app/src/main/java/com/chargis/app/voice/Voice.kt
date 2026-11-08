@@ -21,6 +21,7 @@ interface VoicePhrases {
     fun needAnother(): String
     fun congested(name: String, waitMin: Int, altName: String): String
     fun waypointAdded(name: String): String
+    fun waypointSynced(name: String): String
     /** 수락했지만 순정 내비에 목적지가 없어 내비 경유지에는 넣지 않았을 때(Chargis 안에서만 안내). */
     fun waypointNoNaviDestination(name: String): String
     fun waypointFailed(): String
@@ -57,6 +58,7 @@ interface VoicePhrases {
     fun liveNoDestination(): String
     /** 충전을 시작하며 차량 충전 한도를 [limit]%로 넣었을 때(A). */
     fun carLimitSet(limit: Int): String
+    fun carLimitRestored(limit: Int): String
     /** 목표에 닿아 Chargis가 차량 충전을 껐을 때(A). */
     fun carChargeStopped(): String
     /** 차량 충전 한도나 충전 끄기를 차가 받지 않았을 때(A). */
@@ -82,6 +84,7 @@ class AndroidVoicePhrases(private val context: Context) : VoicePhrases {
     override fun congested(name: String, waitMin: Int, altName: String) =
         s(R.string.tts_congested, name, waitMin, altName)
     override fun waypointAdded(name: String) = s(R.string.tts_waypoint_added, name)
+    override fun waypointSynced(name: String) = s(R.string.tts_waypoint_synced, name)
     override fun waypointNoNaviDestination(name: String) = s(R.string.tts_waypoint_no_navi_destination, name)
     override fun waypointFailed() = s(R.string.tts_waypoint_failed)
     override fun waypointsFull() = s(R.string.tts_waypoints_full)
@@ -111,6 +114,7 @@ class AndroidVoicePhrases(private val context: Context) : VoicePhrases {
     override fun checkSoc() = s(R.string.tts_check_soc)
     override fun liveNoDestination() = s(R.string.tts_live_no_destination)
     override fun carLimitSet(limit: Int) = s(R.string.tts_car_limit_set, limit)
+    override fun carLimitRestored(limit: Int) = s(R.string.tts_car_limit_restored, limit)
     override fun carChargeStopped() = s(R.string.tts_car_charge_stopped)
     override fun carControlFailed() = s(R.string.tts_car_control_failed)
     override fun mapUnavailable() = s(R.string.tts_map_unavailable)

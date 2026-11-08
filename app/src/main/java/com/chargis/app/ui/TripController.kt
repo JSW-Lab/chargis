@@ -230,6 +230,8 @@ class TripController(
                     transition(TripEvent.Accepted)
                     val naviOwn = navi.lastNaviOwnStop
                     m.naviStopNoted = naviOwn
+                    m.appOnlyWaypoint = navi.lastAddSkippedNavi
+                    if (m.appOnlyWaypoint) watchNaviDestination(rec.station)
                     announcer.announce(
                         when {
                             navi.lastAddSkippedNavi -> phrases.waypointNoNaviDestination(rec.station.name)
@@ -243,6 +245,32 @@ class TripController(
                     // 순정 내비 경유지 두 자리가 다른 곳으로 차 있으면 그렇게 알리고, 그 밖의 실패는 직접 추가하라고 알린다.
                     announcer.announce(if (e is WaypointsFullException) phrases.waypointsFull() else phrases.waypointFailed(), Priority.HIGH)
                 }
+        }
+    }
+
+    private var appOnlySync: Job? = null   // D1: 앱 안에서만 안내하는 경유지를 내비에 넣으려고 목적지를 지켜보는 작업
+
+    /**
+     * D1: 순정 내비에 목적지가 없어 앱에서만 안내하는 동안 [APP_ONLY_SYNC_MS]마다 내비 목적지를 확인한다.
+     * 운전자가 목적지를 정하면 경유지를 넣고 알린다. 경유지 두 자리가 차 있으면 한 번 알리고 그만 본다.
+     */
+    private fun watchNaviDestination(station: com.chargis.app.domain.model.ChargingStation) {
+        appOnlySync?.cancel()
+        appOnlySync = scope.launch {
+            while (m.appOnlyWaypoint && m.phase == TripPhase.NavigatingToCharger && m.accepted?.station?.id == station.id) {
+                delay(APP_ONLY_SYNC_MS)
+                if (!m.appOnlyWaypoint || m.phase != TripPhase.NavigatingToCharger) break
+                val synced = navi.syncSkippedWaypoint(station)
+                    .getOrElse { e ->
+                        if (e is WaypointsFullException) { m.appOnlyWaypoint = false; publish(); announcer.announce(phrases.waypointsFull(), Priority.HIGH) }
+                        false
+                    }
+                if (synced) {
+                    m.appOnlyWaypoint = false
+                    publish()
+                    announcer.announce(phrases.waypointSynced(station.name))
+                }
+            }
         }
     }
 
@@ -450,7 +478,11 @@ class TripController(
         val control = chargeControl ?: return
         if (m.carLimit == null || !control.canControl) return
         m.carLimit = null
-        scope.launch { control.setChargeLimit(ChargeLimit.RESTORE) }
+        scope.launch {
+            // 한 번 실패하면 한 번 더 시도한다. 되돌리면 사용자가 원래 정해 둔 한도를 덮어쓰므로 그 사실을 알린다.
+            val result = control.setChargeLimit(ChargeLimit.RESTORE).recoverCatching { control.setChargeLimit(ChargeLimit.RESTORE).getOrThrow() }
+            result.onSuccess { announcer.announce(phrases.carLimitRestored(it)) }.onFailure { warnCarControl() }
+        }
     }
 
     private suspend fun warnCarControl() {
@@ -1030,6 +1062,8 @@ class TripController(
     private fun resetTrip() {
         liveJob?.cancel()
         liveJob = null
+        appOnlySync?.cancel()
+        appOnlySync = null
         restoreCarLimit()
         m.reset()
         m.lastRoute = null
@@ -1135,6 +1169,7 @@ class TripController(
         const val NAVI_STOP_ID = "navi-stop"   // C: 순정 내비 충전소를 엔진에 넣을 때의 id
         const val SAME_STOP_KM = 1.0           // C: 경로상 거리가 이만큼 안이면 같은 충전소로 본다
         const val LIVE_ID = "LIVE"             // 실제 주행 표의 시나리오 id
+        const val APP_ONLY_SYNC_MS = 10_000L   // D1: 앱에서만 안내하는 경유지가 있을 때 내비 목적지를 확인하는 간격
         const val LIVE_SYNC_MS = 3_000L        // 실제 주행: 순정 내비 값을 받는 간격
         const val LIVE_OFFER_MS = 10_000L      // 발권 화면: 내비 목적지를 다시 확인하는 간격
         const val LIVE_CORRIDOR_KM = 10.0      // 실제 주행: 직선 경로에서 이만큼 안의 번들 충전소만 후보로 본다(고속도로는 직선에서 7km 넘게 휘기도 한다)

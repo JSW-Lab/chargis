@@ -118,7 +118,8 @@ class TripPresenter(
                     turn = if (scenario.live) m.liveTurn
                         else TurnAngles.forStation(acc.station, acc.station.distanceAlongRouteKm, config.offRouteKm)
                             .takeIf { it.distanceKm <= DEMO_TURN_SHOW_KM },
-                    canShowMap = canShowMap
+                    canShowMap = canShowMap,
+                    appOnly = m.appOnlyWaypoint
                 )
             else -> when (val r = m.lastResult) {
                 is RecommendationResult.NoSafeStop ->

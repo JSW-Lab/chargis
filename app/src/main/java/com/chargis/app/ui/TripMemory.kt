@@ -49,6 +49,7 @@ class TripMemory {
     var liveTurn: com.chargis.app.domain.model.TurnHint? = null   // 실제 주행: 순정 내비가 알려 준 다음 갈림길(TBT)
     var habitBase: HabitBase? = null                          // 출발 때 계산한 일반 방식과 Chargis 계획(D, 영수증 비교)
     var congestionAvoided = 0                                 // 혼잡 비교에서 붐비는 곳 대신 대안을 고른 횟수(D)
+    var appOnlyWaypoint = false                               // D1: 순정 내비에 목적지가 없어 경유지를 앱 안에서만 안내 중인지
     var naviStopNoted: String? = null                         // 이번 경유지 안내에서 "순정 내비 충전소는 지나가도 됨"을 말한 충전소(B)
 
     /** 새 여행을 위해 모두 처음으로 돌린다. */
@@ -75,6 +76,7 @@ class TripMemory {
         habitBase = null
         congestionAvoided = 0
         naviStopNoted = null
+        appOnlyWaypoint = false
     }
 }
 
@@ -113,7 +115,9 @@ data class SavedTrip(
     val elevationSoc: Double = 0.0,
     val preconditionAdvised: Boolean = false,
     /** 배터리를 직접 넣는 중이었다면 그때의 추정값. 다시 켜면 이 값에서 이어 간다 */
-    val manualSoc: Double? = null
+    val manualSoc: Double? = null,
+    /** Chargis가 차량에 넣어 둔 충전 한도(%). 앱이 꺼졌다 켜져도 떠날 때 되돌리려고 저장한다(없던 예전 저장본은 null) */
+    val carLimit: Int? = null
 ) {
     companion object {
         const val VERSION = 1

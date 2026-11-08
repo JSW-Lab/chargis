@@ -35,6 +35,12 @@ interface NaviPort {
     val lastAddSkippedNavi: Boolean get() = false
 
     /**
+     * D1: 앱 안에서만 넣었던 경유지를 순정 내비에 목적지가 생겼으면 이제 넣는다. 넣었으면 true.
+     * 목적지가 아직 없거나 내비가 없으면 false(다음에 다시 부른다). 경유지 두 자리가 차 있으면 실패를 돌려준다.
+     */
+    suspend fun syncSkippedWaypoint(station: ChargingStation): Result<Boolean> = Result.success(false)
+
+    /**
      * 바로 전 [addWaypoint] 때 순정 내비가 스스로 넣은 충전 경유지가 경로에 있었으면 그 충전소 이름(B). 아니면 null.
      * 2026-11-06 Pleos 에뮬레이터: 이 경유지는 getWaypointInfo에 나오지 않고, removeWaypoint·재탐색 뒤에도 내비가 다시 넣어
      * 공개 API로는 뺄 수 없다. 그래서 Chargis 충전소를 넣고 운전자에게 내비 충전소는 들르지 않아도 된다고 알린다.
