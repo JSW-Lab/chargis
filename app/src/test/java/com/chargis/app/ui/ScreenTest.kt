@@ -144,6 +144,25 @@ class ScreenTest {
         assertFalse(settings.includeNonRoadside)
     }
 
+    /** 설정: 글자 크기 [크게]를 누르면 largeText 설정이 켜진다(U7). */
+    @Test
+    fun settings_largeTextToggle() {
+        var settings = UserSettings(onboarded = true)
+        compose.setContent {
+            ChargisTheme(night = true) {
+                ParkedScreen(
+                    state = TripUiState(settings = settings),
+                    onStartScenario = {}, onStartCharging = {}, onStopCharging = {}, onDepart = {}, onRestart = {},
+                    onSettings = { transform -> settings = transform(settings) }
+                )
+            }
+        }
+        compose.onNodeWithText("설정").performClick()
+        compose.onNodeWithText("글자 크기").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("크게").performScrollTo().performClick()
+        assertEquals(true, settings.largeText)
+    }
+
     /** 경유지 안내 중 배터리가 차가우면 예열을 권하고, [배터리 예열 켜기]를 누르면 알린다. */
     @Test
     fun navigatingCard_suggestsPreconditioning() {
@@ -179,7 +198,7 @@ class ScreenTest {
         compose.onAllNodesWithText("배터리 예열 켜기").assertCountEquals(0)
     }
 
-    /** 충전 중: 차량이 출력을 주지 않으면 곡선에서 읽은 값이라 "추정 출력"으로 표시한다. */
+    /** 충전 중: 차량이 출력을 주지 않으면 곡선에서 읽은 값이라 "추정 충전 속도"으로 표시한다. */
     @Test
     fun charging_labelsPowerAsEstimateWithoutVehicleValue() {
         val curve = (0..100 step 10).map { CurveSample(it.toFloat(), 100f - it * 0.6f) }
@@ -196,10 +215,13 @@ class ScreenTest {
                 )
             }
         }
-        compose.onNodeWithText("추정 출력").assertIsDisplayed()
+        // U3: 충전 속도 곡선은 기본으로 접혀 있고 [충전 속도 보기]를 누르면 열린다.
+        compose.onNodeWithText("추정 충전 속도").assertDoesNotExist()
+        compose.onNodeWithText("충전 속도 보기").performClick()
+        compose.onNodeWithText("추정 충전 속도").assertIsDisplayed()
         // 출력 값이 있어도 차량이 준 값이 아니라(Pleos Vehicle SDK에는 충전 출력이 없다) 모델값이므로 늘 "추정"이다.
         current = stop(75.0)
-        compose.onNodeWithText("추정 출력").assertIsDisplayed()
+        compose.onNodeWithText("추정 충전 속도").assertIsDisplayed()
         compose.onNodeWithText("75").assertIsDisplayed()
     }
 

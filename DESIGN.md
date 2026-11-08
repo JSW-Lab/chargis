@@ -91,7 +91,7 @@ typography:
     lineHeight: "30px"
   label:
     fontFamily: "Wanted Sans, sans-serif"
-    fontSize: "16px"
+    fontSize: "22px"
     fontWeight: 600
     lineHeight: "20px"
 rounded:
@@ -218,9 +218,11 @@ Two paper-and-ink palettes with one reserved stamp ink and one warning ink; ever
 - **Display Small** (Sans 700, 40sp): status sentences on the driving stub, congestion title, planned stop name.
 - **Headline** (Sans 700, 30sp): station names in parked and choice views, "unknown" values in cells.
 - **Title Large / Title** (Sans 600, 24 / 20sp): wordmark in the header; reasons, sub-lines, stamp text, table titles.
-- **Body Large / Body** (Sans 500, 20 / 17sp): voice captions, receipt lines; table cells and scenario title.
+- **Body Large / Body** (Sans 500, 20 / 20sp): voice captions, receipt lines; table cells and scenario title.
 - **Label Large** (Sans 700, 26sp): button text.
-- **Label** (Sans 600, 16sp): printed field labels, route-strip stop names, source and battery labels.
+- **Label** (Sans 600, 22sp): printed field labels, route-strip stop names, source and battery labels. Raised from 16sp (2026-11-08) so drivers in their 50s and 60s can read a label at arm's length on the Pleos display (160dpi, 2560×1440).
+- **Plain words over jargon (2026-11-08):** field labels say what the number is for a non-expert: 도착 배터리 (not 도착 시), 이용 제한 (not 제한), 빈 충전기 (not 가용), 충전 속도 (not 출력), and "10% 적게 남음" (not %p). The charge-speed curve is collapsed behind [충전 속도 보기].
+- **Text size setting:** 보통 / 크게 (font scale ×1.15) in 내 차 설정.
 
 ### Named Rules
 **The Mono-for-Measures Rule.** Any distance, percent, minute count, time, or kW value is set in Geist Mono; its unit is set in Wanted Sans beside it. Words never go in Mono.

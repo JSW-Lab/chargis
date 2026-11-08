@@ -44,7 +44,7 @@ val NightPalette = TicketPalette(
     ground = Color(0xFF0F0E0D),
     stock = Color(0xFF1A1917),
     ink = Color(0xFFEDE9E2),
-    inkMuted = Color(0xFFA19C93),
+    inkMuted = Color(0xFFBDB8AF),   // 50~60대도 읽도록 라벨 대비를 올림(U1)
     rule = Color(0xFF3B3833),
     stamp = Color(0xFF8FB2EE),
     onStamp = Color(0xFF0F1A2E),
@@ -56,7 +56,7 @@ val DayPalette = TicketPalette(
     ground = Color(0xFFE1E5E8),
     stock = Color(0xFFF3F5F6),
     ink = Color(0xFF181B1E),
-    inkMuted = Color(0xFF57606A),
+    inkMuted = Color(0xFF454D56),   // 50~60대도 읽도록 라벨 대비를 올림(U1)
     rule = Color(0xFFC4CACF),
     stamp = Color(0xFF2448A6),
     onStamp = Color(0xFFF3F5F6),
@@ -90,7 +90,7 @@ object FigureStyle {
     val Monumental = TextStyle(fontFamily = MonoFamily, fontWeight = FontWeight.SemiBold, fontSize = 112.sp, lineHeight = 112.sp, letterSpacing = (-4).sp)
     val Large = TextStyle(fontFamily = MonoFamily, fontWeight = FontWeight.SemiBold, fontSize = 72.sp, lineHeight = 76.sp, letterSpacing = (-2).sp)
     val Medium = TextStyle(fontFamily = MonoFamily, fontWeight = FontWeight.Medium, fontSize = 40.sp, lineHeight = 44.sp, letterSpacing = (-1).sp)
-    val Small = TextStyle(fontFamily = MonoFamily, fontWeight = FontWeight.Medium, fontSize = 22.sp, lineHeight = 28.sp)
+    val Small = TextStyle(fontFamily = MonoFamily, fontWeight = FontWeight.Medium, fontSize = 24.sp, lineHeight = 30.sp)   // 영수증·보조 측정값(U1에서 22sp → 24sp)
     val Unit = TextStyle(fontFamily = SansFamily, fontWeight = FontWeight.SemiBold, fontSize = 26.sp, lineHeight = 30.sp)
 }
 
@@ -107,9 +107,10 @@ private val baseTypography = Typography(
     titleLarge = TextStyle(fontFamily = SansFamily, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 30.sp),
     titleMedium = TextStyle(fontFamily = SansFamily, fontWeight = FontWeight.SemiBold, fontSize = 20.sp, lineHeight = 26.sp),
     bodyLarge = TextStyle(fontFamily = SansFamily, fontWeight = FontWeight.Medium, fontSize = 20.sp, lineHeight = 28.sp),
-    bodyMedium = TextStyle(fontFamily = SansFamily, fontWeight = FontWeight.Medium, fontSize = 17.sp, lineHeight = 24.sp),
+    bodyMedium = TextStyle(fontFamily = SansFamily, fontWeight = FontWeight.Medium, fontSize = 20.sp, lineHeight = 28.sp),
     labelLarge = TextStyle(fontFamily = SansFamily, fontWeight = FontWeight.Bold, fontSize = 26.sp, lineHeight = 30.sp),
-    labelMedium = TextStyle(fontFamily = SansFamily, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 20.sp)
+    // 숫자 위 라벨: 운전석 거리에서 50~60대도 읽도록 16sp에서 22sp로 키웠다(U1)
+    labelMedium = TextStyle(fontFamily = SansFamily, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, lineHeight = 28.sp)
 )
 
 // 문장이 들어가는 글자 단계에만 한국어 어절 단위 줄바꿈을 적용한다.
@@ -139,12 +140,18 @@ private fun TicketPalette.toScheme(): ColorScheme {
 
 /** 앱 전체를 감싸는 테마. 기기가 다크 모드면 밤 색, 아니면 낮 색을 쓴다. */
 @Composable
-fun ChargisTheme(night: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+fun ChargisTheme(night: Boolean = isSystemInDarkTheme(), largeText: Boolean = false, content: @Composable () -> Unit) {
     val palette = if (night) NightPalette else DayPalette
-    CompositionLocalProvider(LocalTicket provides palette) {
+    // U7: [크게]를 고르면 시스템 글자 배율 위에 15%를 더 키운다. sp로 정한 모든 글자가 함께 커진다.
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val scaled = if (largeText) androidx.compose.ui.unit.Density(density.density, density.fontScale * LARGE_TEXT_SCALE) else density
+    CompositionLocalProvider(LocalTicket provides palette, androidx.compose.ui.platform.LocalDensity provides scaled) {
         MaterialTheme(colorScheme = palette.toScheme(), typography = typography, content = content)
     }
 }
+
+/** 글자 크기 설정 [크게]의 배율(U7) */
+const val LARGE_TEXT_SCALE = 1.15f
 
 /** 화면 코드에서 `Ticket.colors.ink`처럼 지금 색을 짧게 꺼내 쓰기 위한 바로가기. */
 object Ticket {

@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import com.chargis.app.ui.ChargisRoot
 import com.chargis.app.ui.TripViewModel
+import androidx.compose.runtime.collectAsState
 import com.chargis.app.ui.theme.ChargisTheme
 
 /**
@@ -25,7 +26,9 @@ class MainActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         // 테마(색·글꼴)를 씌우고 그 안에 앱 화면을 그린다.
         setContent {
-            ChargisTheme { ChargisRoot(viewModel.controller) }
+            // U7: 설정의 글자 크기를 테마에 넘겨 앱 전체 글자를 함께 키운다.
+            val largeText = viewModel.controller.state.collectAsState().value.settings.largeText
+            ChargisTheme(largeText = largeText) { ChargisRoot(viewModel.controller) }
         }
     }
 }

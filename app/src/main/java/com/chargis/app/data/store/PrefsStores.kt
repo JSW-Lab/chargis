@@ -35,7 +35,8 @@ class PrefsSettingsStore(context: Context) : SettingsStore {
             onboarded = p[ONBOARDED] ?: false,
             includeNonRoadside = p[NON_ROADSIDE] ?: true,
             destinationSocPercent = p[DEST_SOC] ?: UserSettings().destinationSocPercent,
-            manualSoc = p[MANUAL_SOC] ?: false
+            manualSoc = p[MANUAL_SOC] ?: false,
+            largeText = p[LARGE_TEXT] ?: false
         )
     }
 
@@ -50,6 +51,7 @@ class PrefsSettingsStore(context: Context) : SettingsStore {
             p[NON_ROADSIDE] = next.includeNonRoadside
             p[DEST_SOC] = next.destinationSocPercent
             p[MANUAL_SOC] = next.manualSoc
+            p[LARGE_TEXT] = next.largeText
         }
     }
 
@@ -58,6 +60,7 @@ class PrefsSettingsStore(context: Context) : SettingsStore {
         val MAX_TARGET = doublePreferencesKey("max_target_soc")
         val MARGIN = intPreferencesKey("safety_margin_pct")
         val VOICE = booleanPreferencesKey("voice_commands")
+        val LARGE_TEXT = booleanPreferencesKey("large_text")
         val ONBOARDED = booleanPreferencesKey("onboarded")
         val NON_ROADSIDE = booleanPreferencesKey("include_non_roadside")
         val DEST_SOC = intPreferencesKey("destination_soc_pct")

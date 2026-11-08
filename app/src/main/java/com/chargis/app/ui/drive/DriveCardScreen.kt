@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.chargis.app.R
 import com.chargis.app.domain.model.ReasonCode
 import com.chargis.app.domain.model.Recommendation
@@ -123,6 +124,8 @@ fun DriveCardScreen(
     }
 }
 
+private val StubTextSize = 15.sp
+
 /** 절취선 왼쪽 꼬리 칸: 세로로 인쇄된 표 이름과 표 번호. */
 @Composable
 private fun StubTail(meta: TicketMeta) {
@@ -132,9 +135,10 @@ private fun StubTail(meta: TicketMeta) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(meta.ticketNo, style = FigureStyle.Small.copy(fontSize = MaterialTheme.typography.labelMedium.fontSize), color = c.ink, maxLines = 1, modifier = Modifier.vertical())
-        Text(stringResource(R.string.ticket_kind), style = MaterialTheme.typography.labelMedium, color = c.inkMuted, maxLines = 1, modifier = Modifier.vertical())
-        Text(meta.issuedAt, style = FigureStyle.Small.copy(fontSize = MaterialTheme.typography.labelMedium.fontSize), color = c.inkMuted, maxLines = 1, modifier = Modifier.vertical())
+        // U4: 꼬리 칸은 통행권 장식이라 주행 중 시선을 끌지 않게 작고 흐리게 둔다(숫자 위 라벨이 커져도 따라 커지지 않게 고정 크기).
+        Text(meta.ticketNo, style = FigureStyle.Small.copy(fontSize = StubTextSize), color = c.inkMuted, maxLines = 1, modifier = Modifier.vertical())
+        Text(stringResource(R.string.ticket_kind), style = MaterialTheme.typography.labelMedium.copy(fontSize = StubTextSize), color = c.rule, maxLines = 1, modifier = Modifier.vertical())
+        Text(meta.issuedAt, style = FigureStyle.Small.copy(fontSize = StubTextSize), color = c.rule, maxLines = 1, modifier = Modifier.vertical())
     }
 }
 
@@ -381,19 +385,18 @@ private fun ColumnScope.CongestedStub(card: DriveCard.Congested, onAccept: (Stri
     val slower = if (faster === alternative) primary else alternative
     val gainMin = (slower.etaMinutes - faster.etaMinutes).roundToInt()
     val socCost = (slower.arrivalSocPercent - faster.arrivalSocPercent).roundToInt()
-    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-        WarnGlyph(size = 34.dp, modifier = Modifier.padding(bottom = 8.dp))
-        Text(uxText(stringResource(R.string.drive_congested_title, primary.station.name)), style = MaterialTheme.typography.displaySmall, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-        Figure("${primary.waitMinutes}", stringResource(R.string.unit_min), FigureStyle.Medium, color = c.warn)
+    // U5: 운전자가 먼저 알아야 할 것은 "어디가 빠른가"다. 판정을 맨 위에 가장 크게, 혼잡 경고와 그 대가는 아래 줄에 둔다.
+    if (gainMin >= 1) {
+        Text(uxText(stringResource(R.string.drive_congested_verdict, faster.station.name, gainMin)), style = MaterialTheme.typography.displaySmall, color = c.stamp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+    } else {
+        Text(stringResource(R.string.drive_congested_even), style = MaterialTheme.typography.displaySmall, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
-    // 판정 한 줄: "C 휴게소 쪽이 23분 빨리 도착 · 대신 도착 배터리 11%p 낮음"
-    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (gainMin >= 1) {
-            Text(uxText(stringResource(R.string.drive_congested_verdict, faster.station.name, gainMin)), style = MaterialTheme.typography.titleLarge, color = c.stamp)
-            if (socCost >= 1 && uxShowSecondary()) Text(stringResource(R.string.drive_congested_cost, socCost), style = MaterialTheme.typography.titleMedium, color = c.inkMuted)
-        } else {
-            Text(stringResource(R.string.drive_congested_even), style = MaterialTheme.typography.titleLarge, color = c.inkMuted)
-        }
+    Spacer(Modifier.height(6.dp))
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        WarnGlyph(size = 28.dp)
+        Text(uxText(stringResource(R.string.drive_congested_title, primary.station.name)), style = MaterialTheme.typography.titleLarge, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+        Figure("${primary.waitMinutes}", stringResource(R.string.unit_min), FigureStyle.Small.copy(fontSize = MaterialTheme.typography.titleLarge.fontSize), color = c.warn)
+        if (gainMin >= 1 && socCost >= 1 && uxShowSecondary()) Text("· " + stringResource(R.string.drive_congested_cost, socCost), style = MaterialTheme.typography.titleMedium, color = c.inkMuted, maxLines = 1)
     }
     Spacer(Modifier.height(16.dp))
     HairlineH()

@@ -78,7 +78,7 @@ class CompactScreenTest {
                 }
             }
         }
-        listOf("B 휴게소", "목표 충전", "충전", "대기", "도착 시", "제한", "다음 충전소").forEach {
+        listOf("B 휴게소", "목표 충전", "충전", "대기", "도착 배터리", "이용 제한", "다음 충전소").forEach {
             compose.onNodeWithText(it).assertIsDisplayed()
         }
         compose.onNodeWithText("경유지로 수락").assertIsDisplayed().performClick()

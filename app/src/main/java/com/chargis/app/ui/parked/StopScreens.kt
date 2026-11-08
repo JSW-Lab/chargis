@@ -23,6 +23,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -33,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.chargis.app.R
 import com.chargis.app.ui.CandidateTable
 import com.chargis.app.ui.ChargeRecord
@@ -219,9 +224,9 @@ private fun SocCorrector(onCorrect: (Int) -> Unit, modifier: Modifier = Modifier
 private fun LimitField(limit: Int?, known: Boolean, modifier: Modifier) {
     val c = Ticket.colors
     if (limit != null) {
-        MeasureField(stringResource(R.string.label_limit), "$limit", stringResource(R.string.unit_min), FigureStyle.Medium, modifier)
+        MeasureField(stringResource(R.string.label_limit_long), "$limit", stringResource(R.string.unit_min), FigureStyle.Medium, modifier)
     } else {
-        Field(stringResource(R.string.label_limit), modifier) {
+        Field(stringResource(R.string.label_limit_long), modifier) {
             Text(stringResource(if (known) R.string.value_none else R.string.unknown), style = MaterialTheme.typography.headlineMedium, color = c.inkMuted)
         }
     }
@@ -246,7 +251,12 @@ internal fun ColumnScope.ChargingBody(
         Figure("${stop.currentSoc.roundToInt()}", stringResource(R.string.unit_percent), FigureStyle.Monumental)
         Figure("→ ${stop.targetSoc.roundToInt()}", stringResource(R.string.unit_percent), FigureStyle.Medium, color = c.stamp, modifier = Modifier.padding(bottom = 14.dp))
         Spacer(Modifier.weight(1f))
-        TargetStepper(stop, onAdjust, Modifier.padding(bottom = 14.dp))
+        // U2: [−5%][+5%]만으로는 무엇을 바꾸는지 몰라 "목표 바꾸기" 라벨을 붙인다.
+        Column(Modifier.padding(bottom = 14.dp)) {
+            Text(stringResource(R.string.label_target_adjust), style = MaterialTheme.typography.labelMedium, color = c.inkMuted)
+            Spacer(Modifier.height(6.dp))
+            TargetStepper(stop, onAdjust)
+        }
     }
     Spacer(Modifier.height(12.dp))
     CellGauge(stop.currentSoc, stop.targetSoc)
@@ -289,7 +299,23 @@ internal fun ColumnScope.ChargingBody(
         InfoLine(stringResource(R.string.stop_car_limit, it), singleLine = true)
     }
     Spacer(Modifier.height(16.dp))
-    PowerCurve(stop, warning, Modifier.weight(1f).fillMaxWidth())
+    // U3: 출력 곡선과 kW는 운전자 대부분이 해석하기 어려워 기본은 접어 둔다. 경고 줄은 접어도 늘 보인다.
+    var showCurve by rememberSaveable { mutableStateOf(false) }
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Box(Modifier.weight(1f)) { warning?.let { WarnLine(it, glyphSize = 26.dp) } }
+        if (stop.powerCurve.isNotEmpty()) {
+            TicketButton(
+                stringResource(if (showCurve) R.string.curve_hide else R.string.curve_show), { showCurve = !showCurve },
+                Modifier.width(260.dp), primary = false, minHeight = 60.dp
+            )
+        }
+    }
+    if (showCurve) {
+        Spacer(Modifier.height(8.dp))
+        PowerCurve(stop, null, Modifier.weight(1f).fillMaxWidth())
+    } else {
+        Spacer(Modifier.weight(1f))
+    }
     TearLine(Modifier.padding(vertical = 8.dp))
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         // 동승자 화면: 차가 서 있는 충전 중에만 열 수 있다(센터 화면 하나를 함께 본다).
@@ -311,7 +337,8 @@ internal fun PassengerChargingScreen(stop: StopInfo, onBack: () -> Unit, modifie
             Text(stringResource(R.string.passenger_title, stop.stationName), style = MaterialTheme.typography.headlineMedium, color = c.ink)
             Spacer(Modifier.height(16.dp))
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(48.dp)) {
-                MeasureField(stringResource(R.string.label_depart_at), stop.departAt, null, FigureStyle.Monumental)
+                // U8: 휴게소에서 돌아오는 동승자가 멀리서도 읽도록 출발 시각을 화면에서 가장 크게 쓴다.
+                MeasureField(stringResource(R.string.label_depart_at), stop.departAt, null, FigureStyle.Monumental.copy(fontSize = 168.sp, lineHeight = 168.sp, letterSpacing = (-6).sp))
                 MeasureField(
                     stringResource(R.string.label_until_depart), "${stop.minutesUntilDepart}", stringResource(R.string.unit_min),
                     FigureStyle.Large, color = if (stop.willHitLimit) c.warn else c.ink
@@ -323,10 +350,10 @@ internal fun PassengerChargingScreen(stop: StopInfo, onBack: () -> Unit, modifie
             Spacer(Modifier.height(24.dp))
             Text(
                 stringResource(R.string.passenger_battery, stop.currentSoc.roundToInt(), stop.targetSoc.roundToInt()),
-                style = MaterialTheme.typography.titleLarge, color = c.inkMuted
+                style = MaterialTheme.typography.headlineMedium, color = c.ink
             )
             Spacer(Modifier.height(8.dp))
-            CellGauge(stop.currentSoc, stop.targetSoc)
+            CellGauge(stop.currentSoc, stop.targetSoc, height = 72.dp)
             Spacer(Modifier.weight(1f))
             TearLine(Modifier.padding(vertical = 8.dp))
             TicketButton(stringResource(R.string.passenger_back), onBack, Modifier.fillMaxWidth(), primary = false, minHeight = 88.dp)
@@ -408,10 +435,10 @@ private fun PowerCurve(stop: StopInfo, warning: String?, modifier: Modifier) {
 
 /** 20칸 막대: 현재까지 잉크로 채우고, 목표까지는 도장 잉크 테두리로 남긴다. */
 @Composable
-private fun CellGauge(current: Double, target: Double) {
+private fun CellGauge(current: Double, target: Double, height: androidx.compose.ui.unit.Dp = 40.dp) {
     val c = Ticket.colors
     val desc = "${current.roundToInt()}% / ${target.roundToInt()}%"
-    Canvas(Modifier.fillMaxWidth().height(40.dp).semantics { contentDescription = desc }) {
+    Canvas(Modifier.fillMaxWidth().height(height).semantics { contentDescription = desc }) {
         // 한 칸 = 5%. 칸마다 네 가지 중 하나로 그린다:
         // 다 찬 칸(잉크), 일부 찬 칸(부분 채움), 목표까지 채울 칸(강조색 테두리), 목표 밖 칸(흐린 테두리)
         val cells = 20

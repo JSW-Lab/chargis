@@ -211,6 +211,10 @@ private fun TripSettings(state: TripUiState, onSettings: ((UserSettings) -> User
 private fun AppSettings(state: TripUiState, onSettings: ((UserSettings) -> UserSettings) -> Unit) {
     val st = state.settings
     HairlineH()
+    SettingRow(stringResource(R.string.settings_text_size), stringResource(R.string.settings_text_size_hint)) {
+        ChoiceCell(stringResource(R.string.settings_text_normal), !st.largeText) { onSettings { s -> s.copy(largeText = false) } }
+        ChoiceCell(stringResource(R.string.settings_text_large), st.largeText) { onSettings { s -> s.copy(largeText = true) } }
+    }
     SettingRow(stringResource(R.string.settings_voice), stringResource(R.string.settings_voice_hint)) {
         ChoiceCell(stringResource(R.string.settings_on), st.voiceCommands) { onSettings { s -> s.copy(voiceCommands = true) } }
         ChoiceCell(stringResource(R.string.settings_off), !st.voiceCommands) { onSettings { s -> s.copy(voiceCommands = false) } }

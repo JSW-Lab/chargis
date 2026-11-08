@@ -19,7 +19,8 @@ data class UserSettings(
     val onboarded: Boolean = false,
     val includeNonRoadside: Boolean = true,  // 휴게소·쉼터 밖 충전소(국도변·상업·공공시설)도 후보로 볼지
     val destinationSocPercent: Int = 10,
-    val manualSoc: Boolean = false
+    val manualSoc: Boolean = false,
+    val largeText: Boolean = false            // U7: 글자를 15% 키운다(멀리서·50~60대도 읽기 쉽게)
 ) {
     /** 기본 추천 기준값에 이 설정을 덮어쓴다. */
     fun applyTo(base: RecommendationConfig): RecommendationConfig = base.copy(

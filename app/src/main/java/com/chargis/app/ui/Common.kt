@@ -21,6 +21,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import com.chargis.app.R
 import com.chargis.app.domain.model.ChargingStation
 import com.chargis.app.domain.model.DataSource
@@ -63,11 +65,12 @@ fun TicketHeader(state: TripUiState, modifier: Modifier = Modifier) {
         )
         // 여행을 시작하기 전(Idle)에는 시각·배터리를 숨긴다.
         if (state.phase != com.chargis.app.domain.session.TripPhase.Idle) {
-            Text(state.clock, style = FigureStyle.Small, color = c.ink)
+            // U6: 시계와 배터리 %는 상단 바에서 가장 자주 보는 값이라 보조 측정값보다 크게 쓴다.
+            Text(state.clock, style = FigureStyle.Small.copy(fontSize = 28.sp, lineHeight = 34.sp), color = c.ink)
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(stringResource(R.string.label_battery), style = MaterialTheme.typography.labelMedium, color = c.inkMuted)
                 Spacer(Modifier.width(8.dp))
-                Text("${state.socPercent.roundToInt()}%", style = FigureStyle.Small, color = c.ink)
+                Text("${state.socPercent.roundToInt()}%", style = FigureStyle.Small.copy(fontSize = 32.sp, lineHeight = 36.sp, fontWeight = FontWeight.SemiBold), color = c.ink)
             }
             Text(sourceLabel(state.dataSource), style = MaterialTheme.typography.labelMedium, color = c.inkMuted)
         }
@@ -279,10 +282,11 @@ private fun TableRow(cells: List<String>, header: Boolean = false) {
         cells.forEachIndexed { i, text ->
             Text(
                 text,
-                style = MaterialTheme.typography.labelMedium,
+                // 칸 이름이 "도착 배터리", "빈 충전기"처럼 풀어 쓴 말이라(U2) 좁은 칸에서는 두 줄로 접는다.
+                style = MaterialTheme.typography.bodyMedium,
                 color = c.inkMuted,
-                modifier = Modifier.weight(if (i == 0) 1.5f else 1f),
-                maxLines = 1
+                modifier = Modifier.weight(if (i == 0) 1.5f else 1f).padding(end = 8.dp),
+                maxLines = 2
             )
         }
     }
