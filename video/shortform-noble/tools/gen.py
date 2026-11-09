@@ -404,7 +404,7 @@ scene("stop", 4, body, script)
 
 # ---------------- S10 receipt 37-41 s: 봉투 개봉 + 영수증 ----------------
 body = f"""
-<div id="rc-sheet" class="abs" style="left:190px;top:240px;width:700px;height:560px;overflow:hidden;border:5px solid {C['gold']};z-index:2"><img src="assets/screens/09-finished.png" style="position:absolute;left:-10px;top:0;width:900px;height:562px"></div>
+<div id="rc-sheet" class="abs" style="left:190px;top:240px;width:700px;height:560px;overflow:hidden;border:5px solid {C['gold']};z-index:2"><img src="assets/screens/09-finished.png" style="position:absolute;left:0;top:0;width:700px;height:497px"></div>
 <svg id="env" class="abs" style="left:110px;top:700px;width:860px;height:380px;z-index:3" viewBox="0 0 860 380"><path d="M0 40 l860 0 l0 330 l-860 0z" fill="#d9ccaa" stroke="{C['ink']}" stroke-width="5"/><path d="M0 40 l430 220 l430 -220" fill="none" stroke="{C['ink']}" stroke-width="5"/></svg>
 <svg id="flap" class="abs" style="left:110px;top:500px;width:860px;height:250px;z-index:4" viewBox="0 0 860 250"><path d="M0 240 l430 -220 l430 220z" fill="#cdbf9b" stroke="{C['ink']}" stroke-width="5"/></svg>
 <div id="r10-big" class="abs" style="left:0;right:0;top:810px;text-align:center;font-size:150px;font-weight:800;color:{C['stamp']};z-index:6;opacity:0">18분 <span style="font-size:70px">아낌</span></div>

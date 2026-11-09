@@ -22,3 +22,4 @@ video/shortform-noble/renders/
 video/shortform-noble/.hyperframes/cache/
 # 출처를 모르는 박수 음원은 로컬에만 둔다(섞은 결과는 assets/bgm/music.mp3로 올린다)
 video/shortform-noble/sound/aplausos_3.mp3
+video/demo/fonts/
