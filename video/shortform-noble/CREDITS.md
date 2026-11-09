@@ -2,9 +2,6 @@
 
 ## 소재 출처
 - 이모티콘: Twemoji (jdecked/twemoji 15.1.0), © Twitter, Inc and other contributors, **CC BY 4.0** — https://github.com/jdecked/twemoji
-- 효과음 (CC BY 4.0, 표기 필요)
-  - "MITSUBISHI IMIEV electric car ACCELERATE into pass by.wav" by jakobthiesen — https://freesound.org/s/174829/ (파일만 복사, 이 영상에는 쓰지 않음)
-  - "Sci-Fi Large Machine Power-Up" by Hybrid_V — https://freesound.org/s/321217/ (파일만 복사, 이 영상에는 쓰지 않음)
 - 효과음 (CC0): Stamp by kermite607, piecz_17/19 by radwoc, Deep Whoosh #1 by Kinoton (freesound)
 - 효과음 (Pixabay Content License): click, whoosh_short
 - 효과음 (직접 합성, ffmpeg): harp, bell, dingdong, scratch, sparkle, tick, thud

@@ -65,7 +65,7 @@ parts += ['[in][app]' + ''.join(f'[s{i}]' for i in range(len(SLIDES))) + f'[out]
 fontdir = here / 'fonts'
 fontdir.mkdir(exist_ok=True)
 for f in ['wanted_sans_bold.ttf']:
-    (fontdir / f).write_bytes((here.parent / 'shortform' / 'assets' / 'fonts' / f).read_bytes())
+    (fontdir / f).write_bytes((here.parent / 'shortform-noble' / 'assets' / 'fonts' / f).read_bytes())
 subprocess.check_call(['ffmpeg', '-v', 'error', '-y', *inputs, '-filter_complex', ';'.join(parts), '-map', '[v]',
                        '-c:v', 'libx264', '-crf', '20', '-preset', 'medium', '-an', out], cwd=here)
 print('ok', round(end + OUTRO, 1), 's,', len(events), 'voice lines')
