@@ -11,8 +11,8 @@
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="45" data-width="1080" data-height="1920">
-      <!-- 귀하게 자란 내가: 투덜(0-11.5) / 반전(11.5-14) / 집사 Chargis(14-41) / 엔딩·루프(41-45) -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="46" data-width="1080" data-height="1920">
+      <!-- 귀하게 자란 내가: 투덜(0-11.5) / 반전(11.5-14) / 집사 Chargis(14-41) / 엔딩·윙크·TV 꺼짐(41-46) -->
       <div id="hook" data-composition-id="hook" data-composition-src="compositions/hook.html" data-start="0" data-duration="3" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:2"></div>
       <div id="cutoff" data-composition-id="cutoff" data-composition-src="compositions/cutoff.html" data-start="3" data-duration="4.5" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:2"></div>
       <div id="calc" data-composition-id="calc" data-composition-src="compositions/calc.html" data-start="7.5" data-duration="4" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:2"></div>
@@ -23,11 +23,11 @@
       <div id="charging" data-composition-id="charging" data-composition-src="compositions/charging.html" data-start="28" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:2"></div>
       <div id="stop" data-composition-id="stop" data-composition-src="compositions/stop.html" data-start="33" data-duration="4" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:2"></div>
       <div id="receipt" data-composition-id="receipt" data-composition-src="compositions/receipt.html" data-start="37" data-duration="4" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:2"></div>
-      <div id="ending" data-composition-id="ending" data-composition-src="compositions/ending.html" data-start="41" data-duration="4" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:2"></div>
+      <div id="ending" data-composition-id="ending" data-composition-src="compositions/ending.html" data-start="41" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:2"></div>
       <div id="clubbg" data-composition-id="clubbg" data-composition-src="compositions/clubbg.html" data-start="11.5" data-duration="30.0" data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:1"></div>
       <div id="clubsax" data-composition-id="clubsax" data-composition-src="compositions/clubsax.html" data-start="11.5" data-duration="30.0" data-track-index="4" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:1"></div>
       <!-- 음악(music.mp3): 0-11.5 1-jwajeol / 11.5-41.12 epicsaxguy 두 번 / 41.05-45 박수+환호. tools/make_music.sh -->
-      <audio id="bgm" class="clip" src="assets/bgm/music.mp3" data-start="0" data-duration="45" data-track-index="5" data-volume="0.55"></audio>
+      <audio id="bgm" class="clip" src="assets/bgm/music.mp3" data-start="0" data-duration="46" data-track-index="5" data-volume="0.55"></audio>
       <audio id="sfx-harp-in" class="clip" src="assets/sfx/harp.wav" data-start="0.0" data-duration="1.5" data-track-index="3" data-volume="0.55"></audio>
       <audio id="sfx-scratch" class="clip" src="assets/sfx/scratch.wav" data-start="1.38" data-duration="0.5" data-track-index="3" data-volume="0.5"></audio>
       <audio id="sfx-dingdong" class="clip" src="assets/sfx/dingdong.wav" data-start="1.45" data-duration="1.3" data-track-index="3" data-volume="0.5"></audio>
@@ -88,7 +88,10 @@
       <audio id="sfx-whoosh-6" class="clip" src="assets/sfx/whoosh_short.mp3" data-start="37.2" data-duration="0.8" data-track-index="3" data-volume="0.45"></audio>
       <audio id="sfx-stamp-3" class="clip" src="assets/sfx/stamp_1.mp3" data-start="39.3" data-duration="0.8" data-track-index="3" data-volume="0.9"></audio>
       <audio id="sfx-thud-3" class="clip" src="assets/sfx/thud.wav" data-start="41.65" data-duration="0.6" data-track-index="3" data-volume="0.6"></audio>
-      <audio id="sfx-whoosh-7" class="clip" src="assets/sfx/whoosh_deep.mp3" data-start="44.4" data-duration="0.6" data-track-index="3" data-volume="0.4"></audio>
+      <audio id="sfx-whoosh-7" class="clip" src="assets/sfx/whoosh_deep.mp3" data-start="43.45" data-duration="0.6" data-track-index="3" data-volume="0.4"></audio>
+      <audio id="sfx-wink" class="clip" src="assets/sfx/wink.wav" data-start="44.4" data-duration="0.35" data-track-index="3" data-volume="0.8"></audio>
+      <audio id="sfx-sparkle-4" class="clip" src="assets/sfx/sparkle.wav" data-start="44.48" data-duration="0.9" data-track-index="3" data-volume="0.45"></audio>
+      <audio id="sfx-tvoff" class="clip" src="assets/sfx/tvoff.wav" data-start="44.9" data-duration="0.45" data-track-index="3" data-volume="0.85"></audio>
     </div>
     <script>
       window.__timelines = window.__timelines || {};

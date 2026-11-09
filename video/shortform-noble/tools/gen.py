@@ -343,7 +343,7 @@ body = f"""
   <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:34px;font-weight:700;color:{C['muted']}">출발 예정</div><div class="mono" style="font-size:78px;color:{C['gold']}">10:14</div></div></div>
 <div id="lens-h" class="abs" style="left:0;top:0;width:22px;height:120px;background:{C['gold']};rotate:-45deg;z-index:6"></div>
 {noble('w8n', 250, 930, .5, z=7)}
-<svg id="watch" class="abs" style="left:350px;top:930px;width:120px;height:120px;z-index:8" viewBox="-60 -60 120 120"><circle r="52" fill="{C['gold']}" stroke="{C['ink']}" stroke-width="5"/><circle r="40" fill="{C['ink']}"/><path id="hand" d="M0 0 l0 -32" stroke="{C['ground']}" stroke-width="6" stroke-linecap="round"/></svg>
+<svg id="watch" class="abs" style="left:350px;top:930px;width:120px;height:120px;z-index:8" viewBox="-60 -60 120 120"><circle r="52" fill="{C['gold']}" stroke="{C['ink']}" stroke-width="5"/><circle r="40" fill="{C['ink']}"/>{''.join(f'<path d="M0 -36 l0 7" stroke="{C["ground"]}" stroke-width="3" transform="rotate({i*30})"/>' for i in range(12))}<path id="hand-h" d="M0 4 L0 -20" stroke="{C['ground']}" stroke-width="7" stroke-linecap="round"/><path id="hand" d="M0 5 L0 -31" stroke="{C['carpet']}" stroke-width="4" stroke-linecap="round"/><circle r="5" fill="{C['ground']}"/></svg>
 {bubble('w8b', 290, 760, [E['watch']], .7)}
 {cap('w8c', '', '귀한 시간,<br><span class="gold">출발은 10시 14분</span>')}"""
 script = f"""
@@ -356,8 +356,9 @@ script = f"""
     tl.fromTo(L, {{x: 160, y: 300}}, {{x: 560, y: 360, duration: 1.4, ease: "power2.inOut", onUpdate: lens}}, 0.2);
     tl.to(L, {{x: 350, y: 190, duration: 0.6, ease: "back.out(2)", onUpdate: lens}}, 1.6);
     {POP.format(b="#w8b", t=1.2)}
-    // 회중시계 바늘이 빙글빙글 돌다 딱 멈춘다.
-    tl.fromTo("#hand", {{rotate: 0, transformOrigin: "0px 0px"}}, {{rotate: 1080 + 60, duration: 1.6, ease: "power3.out"}}, 1.3);
+    // 회중시계 바늘이 시계 가운데를 축으로 빙글빙글 빨리 감기다 10시 14분에 딱 멈춘다(분침 3바퀴 = 시침 3칸).
+    tl.fromTo("#hand", {{rotation: 0, svgOrigin: "0 0"}}, {{rotation: 1080 + 84, svgOrigin: "0 0", duration: 1.6, ease: "power3.out"}}, 1.3);
+    tl.fromTo("#hand-h", {{rotation: 217, svgOrigin: "0 0"}}, {{rotation: 307, svgOrigin: "0 0", duration: 1.6, ease: "power3.out"}}, 1.3);
     tl.fromTo("#watch", {{scale: 1}}, {{scale: 1.18, duration: 0.12, yoyo: true, repeat: 1}}, 2.9);
     tl.fromTo("#w8c-2", {{opacity: 0, y: 30}}, {{opacity: 1, y: 0, duration: 0.3, ease: "power3.out"}}, 0.4);
     {BLUR_OUT.format(s="charging", t=4.86)}"""
@@ -421,14 +422,19 @@ script = f"""
     {BLUR_OUT.format(s="receipt", t=3.86)}"""
 scene("receipt", 4, body, script)
 
-# ---------------- S11 ending 41-45 s: 액자 걸기 + 루프 ----------------
+# ---------------- S11 ending 41-46 s: 액자 걸기 → 얼굴 확대 → 외알 안경 윙크 → 브라운관 TV 꺼짐 ----------------
 body = f"""
+<div id="e11-zoom" class="abs" style="left:0;top:0;width:1080px;height:1920px">
 <div id="e11-frame" class="abs" style="left:0;top:0;width:1080px;height:1120px">{GOLD_FRAME('e11-frame-art')}
   {noble('e11n', 540, 520, 1.5)}
   <div class="abs" style="left:300px;top:880px;width:480px;height:110px;background:{C['gold']};color:{C['ground']};text-align:center;font-size:72px;font-weight:800;line-height:110px">Chargis</div></div>
 {bubble('e11b', 700, 260, [E['cool']], 1.0)}
 <div id="e11-tags" class="abs" style="left:0;right:0;top:1322px;z-index:31;text-align:center;font-size:30px;font-weight:600;color:{C['muted']}">#HMG차량용앱개발공모전 #전기차 #충전</div>
-{cap('e11c', '귀하게 자란 내가 쓰는 앱,', 'Chargis')}"""
+{cap('e11c', '귀하게 자란 내가 쓰는 앱,', 'Chargis')}
+<svg id="e11-star" class="abs" style="left:600px;top:448px;width:44px;height:44px;opacity:0;z-index:12" viewBox="-22 -22 44 44"><path d="M0 -22 L5 -5 L22 0 L5 5 L0 22 L-5 5 L-22 0 L-5 -5z" fill="#fff"/></svg>
+</div>
+<style>#ending-in {{ overflow: hidden; }}</style><div id="tv-white" class="abs" style="left:0;top:0;width:1080px;height:1920px;background:#fff;opacity:0;z-index:40"></div>"""
+END_OUTER = '<div id="tv-dot" class="abs" style="left:530px;top:950px;width:20px;height:20px;border-radius:50%;background:#fff;opacity:0;z-index:2"></div>'
 script = f"""
     tl.fromTo("#ending-in", {{opacity: 0}}, {{opacity: 1, duration: 0.12}}, 0);
     // 액자가 위에서 내려와 덜컹 걸린다.
@@ -439,9 +445,21 @@ script = f"""
     tl.fromTo("#e11c-1", {{opacity: 0, y: 30}}, {{opacity: 1, y: 0, duration: 0.3, ease: "power3.out"}}, 0.5);
     tl.fromTo("#e11c-2", {{opacity: 0, scale: 0.5}}, {{opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2.5)"}}, 0.9);
     tl.fromTo("#e11-tags", {{opacity: 0}}, {{opacity: 1, duration: 0.3}}, 1.4);
-    // 루프: 마지막 0.5 s 귀족 얼굴로 확 들어가 첫 장면(클로즈업)과 이어진다.
-    tl.to("#ending-in", {{scale: 2.7, transformOrigin: "540px 480px", duration: 0.5, ease: "expo.in"}}, 3.5);"""
-scene("ending", 4, body, script)
+    // 2.5 s: 외알 안경 쪽 얼굴로 확 들어가(3.2배) 화면 가운데에 둔다.
+    tl.fromTo("#e11-zoom", {{scale: 1, x: 0, y: 0, transformOrigin: "576px 508px"}}, {{scale: 3.2, x: -36, y: 252, duration: 0.5, ease: "expo.inOut"}}, 2.5);
+    // 3.4 s 윙크: 외알 안경이 찡긋 눌렸다 튀고, 같은 쪽 콧수염이 올라가고, 반짝.
+    tl.to("#e11n-mono", {{keyframes: [{{scaleY: 0.12, scaleX: 1.15, rotation: -14, duration: 0.08, ease: "power3.in"}}, {{scaleY: 1.15, scaleX: 0.95, rotation: 4, duration: 0.12, ease: "power2.out"}}, {{scaleY: 1, scaleX: 1, rotation: 0, duration: 0.12}}], svgOrigin: "24 -8"}}, 3.4);
+    tl.to("#e11n-mus", {{keyframes: [{{rotation: -9, y: -4, duration: 0.08}}, {{rotation: 0, y: 0, duration: 0.25, ease: "power2.out"}}], svgOrigin: "0 22"}}, 3.4);
+    tl.to("#e11n-hat", {{keyframes: [{{rotation: 6, y: -6, duration: 0.1}}, {{rotation: 0, y: 0, duration: 0.25, ease: "back.out(3)"}}], svgOrigin: "0 -60"}}, 3.42);
+    tl.fromTo("#e11-star", {{opacity: 0, scale: 0, rotation: 0}}, {{opacity: 1, scale: 1.25, rotation: 90, duration: 0.18, ease: "back.out(3)"}}, 3.48);
+    tl.to("#e11-star", {{opacity: 0, scale: 0.6, rotation: 160, duration: 0.3, ease: "power2.in"}}, 3.75);
+    // 3.9 s 브라운관 TV 꺼짐: 하얗게 번쩍이며 가로 한 줄로 눌리고 → 점으로 줄어 → 점이 사라진다.
+    tl.to("#tv-white", {{opacity: 1, duration: 0.09, ease: "power2.in"}}, 3.9);
+    tl.to("#ending-in", {{scaleY: 0.004, transformOrigin: "540px 960px", duration: 0.17, ease: "power3.in"}}, 3.9);
+    tl.to("#ending-in", {{scaleX: 0, transformOrigin: "540px 960px", duration: 0.14, ease: "power3.in"}}, 4.08);
+    tl.fromTo("#tv-dot", {{opacity: 0, scale: 1.4}}, {{opacity: 1, scale: 1, duration: 0.05}}, 4.2);
+    tl.to("#tv-dot", {{opacity: 0, scale: 0.2, duration: 0.4, ease: "power2.in"}}, 4.28);"""
+scene("ending", 5, body, script, END_OUTER)
 
 # ---------------- 클럽 11.5-41.5 s: "안 돼."부터 epicsaxguy.mp3가 도는 동안 ----------------
 # 곡은 14.811 s = 정확히 8마디(32박, 약 129.6 BPM). 두 번 이어 11.5 s부터 41.12 s까지(64박). 움직임은 모두 이 박자에 맞춘다.
@@ -560,7 +578,7 @@ html = f"""<template>
 
 # ---------------- index.html ----------------
 SC = [("hook", 0, 3), ("cutoff", 3, 4.5), ("calc", 7.5, 4), ("reveal", 11.5, 2.5), ("recommend", 14, 5.5), ("gleo", 19.5, 4),
-      ("congested", 23.5, 4.5), ("charging", 28, 5), ("stop", 33, 4), ("receipt", 37, 4), ("ending", 41, 4)]
+      ("congested", 23.5, 4.5), ("charging", 28, 5), ("stop", 33, 4), ("receipt", 37, 4), ("ending", 41, 5)]
 hosts = "\n".join(f'      <div id="{s}" data-composition-id="{s}" data-composition-src="compositions/{s}.html" data-start="{a}" data-duration="{d}" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:2"></div>' for s, a, d in SC)
 hosts += f'\n      <div id="clubbg" data-composition-id="clubbg" data-composition-src="compositions/clubbg.html" data-start="11.5" data-duration="{CLUB_DUR}" data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:1"></div>'
 hosts += f'\n      <div id="clubsax" data-composition-id="clubsax" data-composition-src="compositions/clubsax.html" data-start="11.5" data-duration="{CLUB_DUR}" data-track-index="4" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:1"></div>'
@@ -575,7 +593,7 @@ SFX = [  # id, file, start, duration, volume
     ("fan", "whoosh_short.mp3", 25.5, 0.6, 0.5), *[(f"tick8-{i}", "tick.wav", round(29.3 + i*0.15, 2), 0.12, 0.3) for i in range(10)],
     *[(f"tick9-{i}", "tick.wav", round(33.2 + i*0.15, 2), 0.12, 0.35) for i in range(10)], ("click-9", "click.mp3", 35.1, 0.4, 0.9),
     ("sparkle-3", "sparkle.wav", 35.12, 0.9, 0.55), ("whoosh-6", "whoosh_short.mp3", 37.2, 0.8, 0.45), ("stamp-3", "stamp_1.mp3", 39.3, 0.8, 0.9),
-    ("thud-3", "thud.wav", 41.65, 0.6, 0.6), ("whoosh-7", "whoosh_deep.mp3", 44.4, 0.6, 0.4)]
+    ("thud-3", "thud.wav", 41.65, 0.6, 0.6), ("whoosh-7", "whoosh_deep.mp3", 43.45, 0.6, 0.4), ("wink", "wink.wav", 44.4, 0.35, 0.8), ("sparkle-4", "sparkle.wav", 44.48, 0.9, 0.45), ("tvoff", "tvoff.wav", 44.9, 0.45, 0.85)]
 sfx = "\n".join(f'      <audio id="sfx-{i}" class="clip" src="assets/sfx/{f}" data-start="{s}" data-duration="{d}" data-track-index="3" data-volume="{v}"></audio>' for i, f, s, d, v in SFX)
 index = f"""<!doctype html>
 <html lang="ko" data-resolution="portrait">
@@ -590,11 +608,11 @@ index = f"""<!doctype html>
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="45" data-width="1080" data-height="1920">
-      <!-- 귀하게 자란 내가: 투덜(0-11.5) / 반전(11.5-14) / 집사 Chargis(14-41) / 엔딩·루프(41-45) -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="46" data-width="1080" data-height="1920">
+      <!-- 귀하게 자란 내가: 투덜(0-11.5) / 반전(11.5-14) / 집사 Chargis(14-41) / 엔딩·윙크·TV 꺼짐(41-46) -->
 {hosts}
       <!-- 음악(music.mp3): 0-11.5 1-jwajeol / 11.5-41.12 epicsaxguy 두 번 / 41.05-45 박수+환호. tools/make_music.sh -->
-      <audio id="bgm" class="clip" src="assets/bgm/music.mp3" data-start="0" data-duration="45" data-track-index="5" data-volume="0.55"></audio>
+      <audio id="bgm" class="clip" src="assets/bgm/music.mp3" data-start="0" data-duration="46" data-track-index="5" data-volume="0.55"></audio>
 {sfx}
     </div>
     <script>
