@@ -11,7 +11,7 @@ CSS = """
 @font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_bold.ttf"); font-weight: 700; }
 @font-face { font-family: "Wanted Sans"; src: url("assets/fonts/wanted_sans_extrabold.ttf"); font-weight: 800; }
 @font-face { font-family: "Geist Mono"; src: url("assets/fonts/geist_mono_semibold.ttf"); font-weight: 600; }
-#root { position: absolute; inset: 0; background: #0f0e0d; font-family: "Wanted Sans"; color: #ede9e2; overflow: hidden; }
+#root { position: absolute; inset: 0; background: transparent; font-family: "Wanted Sans"; color: #ede9e2; overflow: hidden; }
 .world { position: absolute; inset: 0; }
 .abs { position: absolute; }
 .noble { position: absolute; width: 220px; height: 440px; }
@@ -112,31 +112,56 @@ script = f"""
     tl.to("#h1c", {{opacity: 0, duration: 0.14}}, 2.86);"""
 scene("hook", 3, body, script, HOOK_CAP)
 
-# ---------------- S2 cutoff 3-7.5 s: 도장 쾅 + 흔들림 + 모자 튀기 ----------------
+# ---------------- S2 cutoff 3-7.5 s: 차량 배터리 + 도장 쾅 + 플러그 튕김 + 기절 ----------------
+cells = "".join(f'<path d="M{24 + i*45.2:.1f} 34 l0 162" stroke="{C["ink"]}" stroke-width="3" opacity=".55"/>' for i in range(1, 10))
 body = f"""
-<svg id="glass" class="abs" style="left:150px;top:300px;width:360px;height:620px" viewBox="-180 -330 360 620">
-  <g fill="none" stroke="{C['ink']}" stroke-width="7"><path d="M-130 -300 l260 0 l-46 330 q-84 46 -168 0z"/><path d="M0 50 l0 200 M-100 260 l200 0"/></g>
-  <clipPath id="gclip"><path d="M-130 -300 l260 0 l-46 330 q-84 46 -168 0z"/></clipPath>
-  <rect id="liquid" x="-140" y="-300" width="280" height="360" fill="{C['stamp']}" opacity=".75" clip-path="url(#gclip)"/>
-  <g id="crack" stroke="{C['ink']}" stroke-width="4" fill="none" opacity="0"><path d="M-40 -260 l20 60 l-30 50 l26 70"/><path d="M50 -200 l-26 40 l30 40"/></g>
+<div id="bat" class="abs" style="left:70px;top:250px;width:520px;height:230px;z-index:4">
+  <svg class="abs" style="left:0;top:0;width:520px;height:230px;overflow:visible" viewBox="0 0 520 230">
+    <rect x="10" y="20" width="480" height="190" rx="18" fill="{C['stock']}" stroke="{C['ink']}" stroke-width="7"/>
+    <rect x="492" y="80" width="22" height="70" rx="4" fill="{C['ink']}"/>
+    <rect id="bfill" x="24" y="34" width="172" height="162" rx="8" fill="{C['stamp']}" opacity=".85"/>
+    {cells}
+    <g id="crack" stroke="{C['ink']}" stroke-width="5" fill="none" opacity="0"><path d="M150 26 l24 50 l-30 40 l28 56"/><path d="M330 30 l-20 44 l34 36 l-14 60"/></g>
+  </svg>
+  <div id="c2-pct" class="abs mono" style="left:0;width:500px;top:58px;text-align:center;font-size:110px;line-height:1">38%</div>
+</div>
+<svg id="lead" class="abs" style="left:0;top:0;width:1080px;height:1100px;z-index:2" viewBox="0 0 1080 1100"><g stroke="{C['stamp']}" stroke-width="4" stroke-dasharray="14 12" fill="none"><path d="M90 480 L240 752"/><path d="M570 480 L420 752"/></g></svg>
+<svg id="ev" class="abs" style="left:80px;top:600px;width:480px;height:230px;overflow:visible;z-index:3" viewBox="0 0 480 230">
+  <path id="cable" d="M-90 250 Q-40 150 20 124" stroke="{C['ink']}" stroke-width="8" fill="none"/>
+  <g id="plug"><rect x="6" y="110" width="30" height="26" rx="5" fill="{C['ink']}"/></g>
+  <path d="M24 168 L28 128 Q34 108 70 102 L150 92 L200 52 Q216 40 246 40 L330 40 Q356 42 378 66 L404 94 Q452 100 462 124 L466 168 Z" fill="{C['stock']}" stroke="{C['ink']}" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M206 60 Q218 50 244 50 L290 50 L290 92 L172 94 Z" fill="{C['ground']}" stroke="{C['muted']}" stroke-width="4"/>
+  <path d="M300 50 L328 50 Q350 52 368 72 L384 92 L300 92 Z" fill="{C['ground']}" stroke="{C['muted']}" stroke-width="4"/>
+  <rect id="pack-glow" x="150" y="142" width="200" height="40" rx="10" fill="none" stroke="{C['stamp']}" stroke-width="6"/>
+  <rect id="pack" x="160" y="150" width="180" height="24" rx="6" fill="{C['stamp']}" stroke="{C['ink']}" stroke-width="3"/>
+  <g fill="{C['ground']}" stroke="{C['ink']}" stroke-width="6"><circle cx="118" cy="170" r="38"/><circle cx="380" cy="170" r="38"/></g>
+  <g fill="none" stroke="{C['muted']}" stroke-width="4"><circle cx="118" cy="170" r="16"/><circle cx="380" cy="170" r="16"/></g>
 </svg>
-<div id="c2-pct" class="abs mono" style="left:150px;width:360px;top:420px;text-align:center;font-size:84px">38%</div>
-{stampbox('c2-stamp', '40분 제한', 160, 190, C['warn'], -10, 60)}
+<div id="c2-cut" class="abs" style="left:30px;top:880px;font-size:46px;font-weight:800;color:{C['warn']};rotate:-6deg;opacity:0;z-index:6">충전 끊김!</div>
+{stampbox('c2-stamp', '40분 제한', 300, 196, C['warn'], -10, 60)}
 <svg id="sofa" class="abs" style="left:560px;top:760px;width:480px;height:300px" viewBox="0 0 480 300"><path d="M0 160 q0 -120 120 -120 l300 0 q60 0 60 60 l0 140 l-480 0z" fill="{C['carpet']}" stroke="{C['ink']}" stroke-width="5"/><rect x="20" y="240" width="440" height="40" fill="#6e1f1f" stroke="{C['ink']}" stroke-width="5"/></svg>
-{noble('c2n', 760, 600, .85)}
-{bubble('c2b', 820, 420, [E['dizzy']], .9)}
+{noble('c2n', 790, 600, .85)}
+{bubble('c2b', 850, 420, [E['dizzy']], .9)}
 {cap('c2c', '귀하게 자란 내가…', '충전이 끊겨도 될까?')}"""
 script = f"""
     tl.fromTo("#cutoff-in", {{opacity: 0}}, {{opacity: 1, duration: 0.12}}, 0);
-    // 샴페인 잔 게이지가 38 → 46%로 차오른다.
-    tl.fromTo("#liquid", {{attr: {{y: 0}}}}, {{attr: {{y: -150}}, duration: 1.4, ease: "none"}}, 0.1);
+    // 차 바닥 배터리 팩이 숨 쉬듯 빛나고, 확대한 배터리 칸이 38 → 46%로 찬다.
+    tl.fromTo("#pack-glow", {{opacity: 0.2}}, {{opacity: 1, duration: 0.35, yoyo: true, repeat: 3, ease: "sine.inOut"}}, 0);
+    tl.fromTo("#bat", {{scale: 0.6, opacity: 0, transformOrigin: "50% 100%"}}, {{scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2)"}}, 0.05);
+    tl.fromTo("#lead", {{opacity: 0}}, {{opacity: 1, duration: 0.2}}, 0.1);
+    tl.fromTo("#bfill", {{attr: {{width: 172}}}}, {{attr: {{width: 208}}, duration: 1.4, ease: "none"}}, 0.1);
     const pct = {{v: 38}};
     tl.to(pct, {{v: 46, duration: 1.4, ease: "none", onUpdate: () => {{ document.querySelector("#c2-pct").textContent = Math.round(pct.v) + "%"; }}}}, 0.1);
-    // 1.6 s 도장 쾅 + 화면 흔들림 + 잔에 금
+    // 1.5 s 도장 쾅 + 화면 흔들림 + 플러그 튕김 + 배터리에 금
     tl.fromTo("#c2-stamp", {{scale: 2.6, opacity: 0}}, {{scale: 1, opacity: 1, duration: 0.18, ease: "power4.in"}}, 1.5);
     tl.to("#cutoff-in", {{keyframes: [{{x: -18, y: 8}}, {{x: 16, y: -10}}, {{x: -10, y: 6}}, {{x: 6, y: -3}}, {{x: 0, y: 0}}], duration: 0.3, ease: "none"}}, 1.68);
+    tl.to("#plug", {{x: -120, y: 70, rotate: -60, transformOrigin: "50% 50%", duration: 0.35, ease: "power3.out"}}, 1.68);
+    tl.to("#cable", {{attr: {{d: "M-90 250 Q-80 220 -100 186"}}, duration: 0.35, ease: "power3.out"}}, 1.68);
     tl.to("#crack", {{opacity: 1, duration: 0.05}}, 1.7);
+    tl.to(["#bfill", "#pack"], {{fill: "{C['warn']}", duration: 0.1}}, 1.7);
+    tl.to("#pack-glow", {{stroke: "{C['warn']}", opacity: 1, duration: 0.1}}, 1.7);
     tl.to("#c2-pct", {{color: "{C['warn']}", duration: 0.1}}, 1.7);
+    tl.fromTo("#c2-cut", {{opacity: 0, scale: 0.4}}, {{opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)"}}, 1.8);
     // 2.1 s 귀족 기절: 뒤로 천천히 쓰러지고 실크해트가 붕 떴다가 떨어진다.
     tl.fromTo("#c2n", {{rotate: 0, transformOrigin: "50% 90%"}}, {{rotate: -72, x: 40, y: 80, duration: 0.9, ease: "power2.in"}}, 2.1);
     tl.fromTo("#c2n-hat", {{y: 0, rotate: 0}}, {{keyframes: [{{y: -220, rotate: -40, duration: 0.45, ease: "power2.out"}}, {{y: 30, rotate: -100, duration: 0.5, ease: "bounce.out"}}]}}, 2.2);
@@ -146,30 +171,50 @@ script = f"""
     {BLUR_OUT.format(s="cutoff", t=4.36)}"""
 scene("cutoff", 4.5, body, script)
 
-# ---------------- S3 calc 7.5-11.5 s: 빙빙 도는 앱 + 숫자 폭탄 ----------------
-apps = "".join(f'<div id="app{i}" class="abs" style="left:{x}px;top:{y}px;width:170px;height:300px;border:5px solid {C["ink"]};border-radius:22px;background:{C["stock"]};display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;color:{C["muted"]}">{t}</div>'
-               for i, (x, y, t) in enumerate([(455, 160, '앱 A'), (800, 520, '앱 B'), (455, 860, '앱 C'), (110, 520, '계산기')]))
-nums = "".join(f'<div id="num{i}" class="abs mono" style="left:{x}px;top:{y}px;font-size:{s}px;color:{c};z-index:6;opacity:0">{t}</div>'
-               for i, (x, y, s, t, c) in enumerate([(120, 250, 64, '50%?', C['gold']), (720, 260, 72, '80%?', C['warn']), (90, 860, 60, '100%?', C['gold']),
-                                                   (740, 900, 58, '몇 km?', C['ink']), (380, 120, 54, '대기?', C['warn']), (360, 1000, 56, '제한?', C['ink'])]))
+# ---------------- S3 calc 7.5-11.5 s: 펭귄 밈 구도. 가운데 아기 펭귄 자리 귀족을 계산기·앱이 쏘아붙인다 ----------------
+def device(did, cx, cy, rot, label, calc=False):
+    if calc:
+        keys = "".join(f'<div style="position:absolute;left:{22 + (i % 3) * 52}px;top:{120 + (i // 3) * 46}px;width:40px;height:34px;border-radius:6px;background:{C["rule"]}"></div>' for i in range(12))
+        inner = f'<div style="position:absolute;left:18px;top:20px;width:154px;height:80px;background:#26302a;border:3px solid {C["muted"]};font-family:Geist Mono;font-size:40px;color:#9fd0a8;text-align:right;padding:16px 10px 0 0">%?</div>{keys}'
+    else:
+        inner = f'<div style="position:absolute;left:0;right:0;top:24px;text-align:center;font-size:42px;font-weight:800;color:{C["ink"]}">{label}</div>' \
+                f'<div style="position:absolute;left:22px;right:22px;top:96px;height:120px;border:3px solid {C["muted"]};border-radius:10px"></div>' \
+                f'<div style="position:absolute;left:22px;right:22px;top:236px;height:16px;border-radius:8px;background:{C["rule"]}"></div><div style="position:absolute;left:22px;width:90px;top:266px;height:16px;border-radius:8px;background:{C["rule"]}"></div>'
+    return f'<div id="{did}" class="abs" style="left:{cx-95}px;top:{cy-160}px;width:190px;height:320px;rotate:{rot}deg;border:6px solid {C["ink"]};border-radius:24px;background:{C["stock"]};z-index:4">{inner}</div>'
+
+DEV = [("dv0", 135, 650, 34, "계산기", True, (120, 50)), ("dv1", 330, 285, 18, "앱 A", False, (70, 120)),
+       ("dv2", 750, 285, -18, "앱 B", False, (-70, 120)), ("dv3", 945, 650, -34, "앱 C", False, (-120, 50))]
+JABS = [(0.30, 0), (0.70, 2), (1.05, 1), (1.35, 3), (1.62, 0), (1.86, 2), (2.08, 1), (2.28, 3)]
+WORDS = [(540, 410, "50%?", C['gold']), (750, 530, "대기?", C['warn']), (330, 530, "몇 km?", C['ink']), (790, 790, "80%?", C['gold']),
+         (300, 1010, "제한?", C['warn']), (540, 200, "100%?", C['gold']), (300, 790, "몇 분?", C['ink']), (790, 1010, "어디서?", C['warn'])]
+words = "".join(f'<div id="w{i}" class="abs mono" style="left:{x-90}px;top:{y-40}px;width:180px;text-align:center;white-space:nowrap;font-size:52px;color:{c};z-index:7;opacity:0">{t}</div>' for i, (x, y, t, c) in enumerate(WORDS))
 body = f"""
-<div id="orbit" class="abs" style="left:0;top:0;width:1080px;height:1100px">{apps}</div>
-{nums}
-{noble('c3n', 540, 560, 1.15)}
-{bubble('c3b', 660, 300, [E['think'], E['sweat'], E['boom']], 1.0)}
+<svg class="abs" style="left:0;top:0;width:1080px;height:1100px" viewBox="0 0 1080 1100"><ellipse cx="540" cy="1010" rx="420" ry="60" fill="{C['stock']}"/></svg>
+{''.join(device(d, x, y, r, l, k) for d, x, y, r, l, k, _ in DEV)}
+<div id="chick" class="abs" style="left:0;top:0;width:1080px;height:1100px">{noble('c3n', 540, 720, 1.0)}</div>
+{words}
 {cap('c3c', '귀하게 자란 내가…', '이걸 직접 계산해야 될까?')}"""
+jab_js = ""
+for t, k in JABS:
+    d, *_, (dx, dy) = DEV[k]
+    jab_js += f'tl.to("#{d}", {{x: {dx}, y: {dy}, duration: 0.09, ease: "power3.in", yoyo: true, repeat: 1}}, {t});\n'
+    jab_js += f'tl.to("#chick", {{x: {-dx*0.12:.0f}, y: {abs(dy)*0.06:.0f}, duration: 0.07, yoyo: true, repeat: 1}}, {t + 0.08:.2f});\n'
+    jab_js += f'tl.fromTo("#c3n-hat", {{y: 0}}, {{y: -26, duration: 0.07, yoyo: true, repeat: 1}}, {t + 0.08:.2f});\n'
+for i, (t, _) in enumerate(JABS):
+    jab_js += f'tl.fromTo("#w{i}", {{opacity: 0, scale: 0}}, {{opacity: 1, scale: 1, duration: 0.2, ease: "back.out(3)"}}, {t + 0.08:.2f});\n'
 script = f"""
     tl.fromTo("#calc-in", {{opacity: 0}}, {{opacity: 1, duration: 0.12}}, 0);
-    // 앱·계산기가 귀족 주위를 빙빙 돈다(점점 빨라짐).
-    tl.fromTo("#orbit", {{rotate: 0, transformOrigin: "540px 690px"}}, {{rotate: 420, duration: 3.6, ease: "power2.in"}}, 0);
-    {POP.format(b="#c3b", t=0.25)}
-    {SWAP.format(a="#c3b-0", b="#c3b-1", t=1.4)}
-    {SWAP.format(a="#c3b-1", b="#c3b-2", t=2.6)}
-    // 숫자들이 사방에서 튀어나와 화면을 채운다.
-    {''.join(f'tl.fromTo("#num{i}", {{opacity: 0, scale: 0}}, {{opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)"}}, {0.5 + i*0.3:.2f});' for i in range(6))}
-    // 🤯 순간 숫자 폭발: 바깥으로 흩어진다.
-    {''.join(f'tl.to("#num{i}", {{x: {dx}, y: {dy}, opacity: 0, rotate: {r}, duration: 0.45, ease: "power3.in"}}, 2.65);' for i, (dx, dy, r) in enumerate([(-300, -200, -40), (300, -220, 50), (-300, 260, 30), (300, 240, -60), (0, -380, 20), (0, 380, -20)]))}
-    tl.fromTo("#c3n-hat", {{y: 0}}, {{y: -80, rotate: 15, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1}}, 2.6);
+    // 아기 펭귄처럼 웅크린 귀족(살짝 눌림). 표정·말풍선 없음.
+    tl.fromTo("#chick", {{scaleY: 0.92, transformOrigin: "540px 1000px"}}, {{scaleY: 0.92, duration: 0.01}}, 0);
+    tl.fromTo([{', '.join(f'"#{d}"' for d, *_ in DEV)}], {{opacity: 0, scale: 0.7}}, {{opacity: 1, scale: 1, duration: 0.25, stagger: 0.05, ease: "back.out(2)"}}, 0.02);
+    // 계산기·앱이 번갈아 고개를 들이밀며 쏘아붙인다(점점 빨라짐).
+    {jab_js}
+    // 2.55 s 넷이 한꺼번에 몰려들고, 실크해트가 튀어 오른다.
+    {''.join(f'tl.to("#{d}", {{x: {dx*1.3:.0f}, y: {dy*1.3:.0f}, duration: 0.12, ease: "power4.in", yoyo: true, repeat: 1}}, 2.55);' for d, *_, (dx, dy) in DEV)}
+    tl.to("#chick", {{keyframes: [{{x: -12}}, {{x: 12}}, {{x: -8}}, {{x: 0}}], duration: 0.3}}, 2.62);
+    tl.fromTo("#c3n-hat", {{y: 0, rotate: 0}}, {{y: -150, rotate: 25, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1}}, 2.62);
+    // 질문 글자가 바깥으로 흩어진다.
+    {''.join(f'tl.to("#w{i}", {{x: {(x-540)*0.9:.0f}, y: {(y-640)*1.4:.0f}, opacity: 0, rotate: {(-1)**i*35}, duration: 0.45, ease: "power3.in"}}, 2.95);' for i, (x, y, _, _) in enumerate(WORDS))}
     tl.fromTo("#c3c-1", {{scale: 1}}, {{keyframes: [{{scale: 1.15, rotate: -3}}, {{scale: 0.95, rotate: 3}}, {{scale: 1, rotate: 0}}], duration: 0.35}}, 2.6);
     tl.fromTo("#c3c-2", {{opacity: 0, y: 30}}, {{opacity: 1, y: 0, duration: 0.3, ease: "power3.out"}}, 0.3);
     {BLUR_OUT.format(s="calc", t=3.86)}"""
@@ -382,7 +427,7 @@ body = f"""
   {noble('e11n', 540, 520, 1.5)}
   <div class="abs" style="left:300px;top:880px;width:480px;height:110px;background:{C['gold']};color:{C['ground']};text-align:center;font-size:72px;font-weight:800;line-height:110px">Chargis</div></div>
 {bubble('e11b', 700, 260, [E['cool']], 1.0)}
-<div id="e11-tags" class="abs" style="left:0;right:0;top:1290px;text-align:center;font-size:30px;font-weight:600;color:{C['muted']}">#HMG차량용앱개발공모전 #전기차 #충전</div>
+<div id="e11-tags" class="abs" style="left:0;right:0;top:1322px;z-index:31;text-align:center;font-size:30px;font-weight:600;color:{C['muted']}">#HMG차량용앱개발공모전 #전기차 #충전</div>
 {cap('e11c', '귀하게 자란 내가 쓰는 앱,', 'Chargis')}"""
 script = f"""
     tl.fromTo("#ending-in", {{opacity: 0}}, {{opacity: 1, duration: 0.12}}, 0);
@@ -398,22 +443,139 @@ script = f"""
     tl.to("#ending-in", {{scale: 2.7, transformOrigin: "540px 480px", duration: 0.5, ease: "expo.in"}}, 3.5);"""
 scene("ending", 4, body, script)
 
+# ---------------- 클럽 11.5-41.5 s: "안 돼."부터 epicsaxguy.mp3가 도는 동안 ----------------
+# 곡은 14.811 s = 정확히 8마디(32박, 약 129.6 BPM). 두 번 이어 11.5 s부터 41.12 s까지(64박). 움직임은 모두 이 박자에 맞춘다.
+# clubbg: 미러볼·빛줄기·빛 점, clubsax: 네 모서리 색소폰 귀족. 둘 다 장면 뒤에 깔려 앱 화면·자막을 가리지 않는다.
+CLUB_DUR = 30.0
+BEAT = 14.811429 / 32
+BEATS = 64  # 곡이 끝나는 박
+MUSIC_END = BEATS * BEAT
+BEAT_OFS = 0.07  # 원곡 박의 어택이 박 격자보다 약 0.07 s 늦다(파형으로 잰 값). 움직임을 여기에 맞춘다.
+BEAMS = [("#c9a44c", -38), ("#8fb2ee", -16), ("#d0508f", 6), ("#5fc39a", 24), ("#e8ae4a", 42)]
+beams = "".join(f'<g id="bm{i}" transform="rotate({a} 540 150)"><path d="M540 150 L470 1900 L610 1900z" fill="{c}" opacity=".20"/></g>' for i, (c, a) in enumerate(BEAMS))
+DOTS = [((i * 211) % 1080, 260 + (i * 137) % 980, 6 + (i * 7) % 9, ["#ede9e2", "#8fb2ee", "#d0508f", "#c9a44c", "#5fc39a"][i % 5]) for i in range(42)]
+dots = "".join(f'<circle cx="{x}" cy="{y}" r="{r}" fill="{c}" opacity=".55"/>' for x, y, r, c in DOTS)
+facets = "".join(f'<rect x="{-400 + col*26}" y="{-90 + row*26}" width="24" height="24" fill="{["#d8d4cc", "#8e8a80", "#f4f1ea", "#a8b8d8", "#6f6b63"][(col*3 + row*2) % 5]}"/>' for col in range(64) for row in range(7))
+body = f"""
+<svg id="cb-light" class="abs" style="left:0;top:0;width:1080px;height:1920px" viewBox="0 0 1080 1920">
+  <g id="cb-dots" style="transform-origin:540px 150px">{dots}</g>
+  <g id="cb-beams">{beams}</g>
+  <rect id="cb-flash" x="0" y="0" width="1080" height="1920" fill="#fff" opacity="0"/>
+</svg>
+<svg id="ball" class="abs" style="left:440px;top:0;width:200px;height:260px;overflow:visible" viewBox="-100 -110 200 260">
+  <path d="M0 -400 L0 -88" stroke="{C['muted']}" stroke-width="4"/>
+  <clipPath id="ballclip"><circle cx="0" cy="0" r="88"/></clipPath>
+  <g clip-path="url(#ballclip)"><g id="facets">{facets}</g></g>
+  <circle cx="0" cy="0" r="88" fill="none" stroke="{C['ink']}" stroke-width="4"/>
+  <path id="glint" d="M-34 -40 l6 16 l16 6 l-16 6 l-6 16 l-6 -16 l-16 -6 l16 -6z" fill="#fff"/>
+</svg>"""
+beam_js = "".join(f'tl.fromTo("#bm{i}", {{rotation: {a}, svgOrigin: "540 150"}}, {{rotation: {a}, svgOrigin: "540 150", duration: 0.01}}, 0);' for i, (_, a) in enumerate(BEAMS))
+# 빛줄기는 2박마다 방향을 홱 바꾸고, 마디 첫 박마다 한 번 번쩍인다.
+for k in range(2, BEATS, 2):
+    d = 1 if (k // 2) % 2 else -1
+    beam_js += "".join(f'tl.to("#bm{i}", {{rotation: {a + 24 * d * (1 if i % 2 else -1)}, svgOrigin: "540 150", duration: 0.28, ease: "power2.inOut"}}, {k*BEAT + BEAT_OFS:.3f});' for i, (_, a) in enumerate(BEAMS))
+for k in range(4, BEATS, 4):
+    beam_js += f'tl.to("#cb-flash", {{keyframes: [{{opacity: 0.09, duration: 0.04}}, {{opacity: 0, duration: 0.3}}]}}, {k*BEAT + BEAT_OFS:.3f});'
+script = f"""
+    // 0.25 s: 미러볼이 위에서 내려와 통 튀고, 빛줄기가 켜진다.
+    tl.fromTo("#ball", {{y: -320}}, {{y: 0, duration: 0.6, ease: "bounce.out"}}, 0.25);
+    tl.fromTo("#cb-light", {{opacity: 0}}, {{opacity: 1, duration: 0.3}}, 0.6);
+    // 미러볼 면이 옆으로 흘러 도는 것처럼 보인다.
+    tl.fromTo("#facets", {{x: 0}}, {{x: -26 * 40, duration: {CLUB_DUR}, ease: "none"}}, 0);
+    tl.fromTo("#glint", {{opacity: 1, scale: 1, transformOrigin: "50% 50%"}}, {{opacity: 0.2, scale: 0.5, duration: {BEAT/2:.4f}, yoyo: true, repeat: {2*BEATS - 2}}}, {BEAT_OFS});
+    {beam_js}
+    tl.fromTo("#cb-dots", {{rotation: 0, svgOrigin: "540 150"}}, {{rotation: 140, svgOrigin: "540 150", duration: {CLUB_DUR - 0.6}, ease: "none"}}, 0.6);
+    // 곡이 끝나는 박(41.12 s): 미러볼이 올라가고 빛이 꺼진다.
+    tl.to("#cb-light", {{opacity: 0, duration: 0.25}}, {MUSIC_END:.3f});
+    tl.to("#ball", {{y: -320, duration: 0.35, ease: "power2.in"}}, {MUSIC_END:.3f});"""
+html = f"""<template>
+  <style>{CSS} #root {{ background: transparent; }}</style>
+  <div id="root" data-composition-id="clubbg" data-width="1080" data-height="1920">
+    <div id="clubbg-world" class="world clip" data-start="0" data-duration="{CLUB_DUR}">
+{body}
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({{ paused: true }});
+{script}
+    window.__timelines["clubbg"] = tl;
+  </script>
+</template>
+"""
+(ROOT / "compositions" / "clubbg.html").write_text(html, encoding="utf-8")
+
+def sax_noble(pid, x, y, s, flip):
+    """색소폰 부는 귀족. 몸은 noble()과 같고 금색 색소폰을 든다. flip이면 좌우 반전."""
+    base = noble(f"{pid}-n", 110, 170, 1.0)
+    sax = f"""<g id="{pid}-sax"><path d="M10 26 L34 40 L44 150 Q48 192 84 178 L98 130" fill="none" stroke="{C['gold']}" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="100" cy="122" rx="22" ry="12" fill="{C['gold']}" stroke="#8a6d2a" stroke-width="4"/><g fill="#8a6d2a"><circle cx="38" cy="70" r="5"/><circle cx="40" cy="96" r="5"/><circle cx="42" cy="122" r="5"/></g></g>"""
+    base = base.replace("</svg></div>", sax + "</svg></div>")
+    w, h = 220 * s, 440 * s
+    return f"""<div id="{pid}" class="abs" style="left:{x - w/2:.0f}px;top:{y - 170*s:.0f}px;width:{w:.0f}px;height:{h:.0f}px">
+  <div id="{pid}-d" style="position:absolute;inset:0"><div style="position:absolute;inset:0;transform:scaleX({-1 if flip else 1})"><div style="position:absolute;left:0;top:0;width:220px;height:440px;transform:scale({s});transform-origin:0 0">{base}</div></div></div></div>"""
+
+SAX = [("sx0", 105, 300, 0.58, False, -1), ("sx1", 975, 300, 0.58, True, 1), ("sx2", 105, 890, 0.58, False, -1), ("sx3", 975, 890, 0.58, True, 1)]
+body = "".join(sax_noble(p, x, y, s, f) for p, x, y, s, f, _ in SAX)
+js = ""
+for i, (p, x, y, s_, f, side) in enumerate(SAX):
+    # 첫 박 뒤(1박)에 모서리로 뛰어 들어온다.
+    js += f'tl.fromTo("#{p}", {{x: {side * 260}, opacity: 0}}, {{x: 0, opacity: 1, duration: 0.2, ease: "back.out(2)"}}, {BEAT:.3f});\n'
+    js += f'tl.fromTo("#{p}-d", {{rotation: 0, x: 0, y: 0, scaleY: 1, transformOrigin: "50% 95%"}}, {{rotation: 0, duration: 0.01}}, 0);\n'
+    js += f'tl.fromTo("#{p}-sax", {{rotation: 0, svgOrigin: "10 26"}}, {{rotation: 0, svgOrigin: "10 26", duration: 0.01}}, 0);\n'
+    for k in range(2, BEATS):
+        t = k * BEAT + BEAT_OFS; sk = 1 if k % 2 else -1
+        # 매 박: 골반을 반대쪽으로 홱 튕기고(±14°, ±30 px) 몸이 눌렸다 펴진다.
+        js += f'tl.to("#{p}-d", {{rotation: {14*sk*side}, x: {30*sk*side}, duration: 0.11, ease: "power3.out"}}, {t:.3f});'
+        js += f'tl.to("#{p}-d", {{keyframes: [{{scaleY: 0.88, duration: 0.05}}, {{scaleY: 1, duration: 0.25, ease: "power2.out"}}]}}, {t:.3f});'
+        if k % 4 == 0:
+            # 마디 첫 박: 크게 튀어 오르고 실크해트가 머리 위로 떴다 떨어진다.
+            js += f'tl.to("#{p}-d", {{keyframes: [{{y: -38, duration: 0.12, ease: "power2.out"}}, {{y: 0, duration: 0.2, ease: "power2.in"}}]}}, {t:.3f});'
+            js += f'tl.to("#{p}-n-hat", {{keyframes: [{{y: -90, rotation: {-12*side}, duration: 0.16, ease: "power2.out"}}, {{y: 0, rotation: 0, duration: 0.2, ease: "power2.in"}}]}}, {t:.3f});'
+        else:
+            # 반 박 뒤: 고개 까딱 + 모자 들썩
+            js += f'tl.to("#{p}-n-hat", {{keyframes: [{{y: -24, duration: 0.09}}, {{y: 0, duration: 0.12}}]}}, {t + BEAT/2:.3f});'
+        if k % 2 == 0:
+            # 2박마다 색소폰을 크게 휘두르고, 4마디마다 하늘로 치켜든다.
+            r = -55 if k % 16 == 0 else (20 if k % 4 == 0 else -20)
+            js += f'tl.to("#{p}-sax", {{rotation: {r}, svgOrigin: "10 26", duration: 0.14, ease: "power3.out"}}, {t:.3f});'
+        js += "\n"
+    # 곡이 끝나는 박: 자세를 풀고 모서리 밖으로 빠진다.
+    js += f'tl.to("#{p}-d", {{rotation: 0, x: 0, duration: 0.1}}, {MUSIC_END:.3f});\n'
+    js += f'tl.to("#{p}", {{x: {side * 300}, opacity: 0, duration: 0.25, ease: "power2.in"}}, {MUSIC_END:.3f});\n'
+html = f"""<template>
+  <style>{CSS} #root {{ background: transparent; }}</style>
+  <div id="root" data-composition-id="clubsax" data-width="1080" data-height="1920">
+    <div id="clubsax-world" class="world clip" data-start="0" data-duration="{CLUB_DUR}" data-layout-allow-overlap>
+{body}
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({{ paused: true }});
+{js}
+    window.__timelines["clubsax"] = tl;
+  </script>
+</template>
+"""
+(ROOT / "compositions" / "clubsax.html").write_text(html, encoding="utf-8")
+
 # ---------------- index.html ----------------
 SC = [("hook", 0, 3), ("cutoff", 3, 4.5), ("calc", 7.5, 4), ("reveal", 11.5, 2.5), ("recommend", 14, 5.5), ("gleo", 19.5, 4),
       ("congested", 23.5, 4.5), ("charging", 28, 5), ("stop", 33, 4), ("receipt", 37, 4), ("ending", 41, 4)]
-hosts = "\n".join(f'      <div id="{s}" data-composition-id="{s}" data-composition-src="compositions/{s}.html" data-start="{a}" data-duration="{d}" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920"></div>' for s, a, d in SC)
+hosts = "\n".join(f'      <div id="{s}" data-composition-id="{s}" data-composition-src="compositions/{s}.html" data-start="{a}" data-duration="{d}" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:2"></div>' for s, a, d in SC)
+hosts += f'\n      <div id="clubbg" data-composition-id="clubbg" data-composition-src="compositions/clubbg.html" data-start="11.5" data-duration="{CLUB_DUR}" data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:1"></div>'
+hosts += f'\n      <div id="clubsax" data-composition-id="clubsax" data-composition-src="compositions/clubsax.html" data-start="11.5" data-duration="{CLUB_DUR}" data-track-index="4" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:1"></div>'
 SFX = [  # id, file, start, duration, volume
     ("harp-in", "harp.wav", 0.0, 1.5, 0.55), ("scratch", "scratch.wav", 1.38, 0.5, 0.5), ("dingdong", "dingdong.wav", 1.45, 1.3, 0.5),
     ("whoosh-1", "whoosh_deep.mp3", 0.45, 1.0, 0.4), ("stamp-1", "stamp_1.mp3", 4.6, 0.8, 0.9), ("thud-1", "thud.wav", 4.66, 0.6, 0.7),
     ("whoosh-2", "whoosh_short.mp3", 5.1, 0.8, 0.5), ("thud-2", "thud.wav", 6.0, 0.6, 0.5),
-    *[(f"pop-{i}", "click.mp3", round(8.0 + i*0.3, 2), 0.3, 0.45) for i in range(6)], ("whoosh-3", "whoosh_deep.mp3", 10.1, 1.0, 0.45),
+    *[(f"pop-{i}", "click.mp3", round(7.5 + t + 0.08, 2), 0.3, 0.45) for i, (t, _) in enumerate(JABS)], ("whoosh-3", "whoosh_deep.mp3", 10.1, 1.0, 0.45),
     ("stamp-no", "stamp_2.mp3", 11.5, 0.8, 0.9), ("bell", "bell.wav", 12.15, 1.4, 0.6), ("sparkle-1", "sparkle.wav", 12.85, 0.9, 0.5),
     ("whoosh-4", "whoosh_short.mp3", 14.1, 0.8, 0.4), *[(f"tick5-{i}", "tick.wav", round(15.0 + i*0.12, 2), 0.12, 0.35) for i in range(10)],
     ("sparkle-2", "sparkle.wav", 16.2, 0.9, 0.4), ("stamp-2", "stamp_3.mp3", 21.6, 0.8, 0.9), ("whoosh-5", "whoosh_short.mp3", 23.5, 0.8, 0.45),
     ("fan", "whoosh_short.mp3", 25.5, 0.6, 0.5), *[(f"tick8-{i}", "tick.wav", round(29.3 + i*0.15, 2), 0.12, 0.3) for i in range(10)],
     *[(f"tick9-{i}", "tick.wav", round(33.2 + i*0.15, 2), 0.12, 0.35) for i in range(10)], ("click-9", "click.mp3", 35.1, 0.4, 0.9),
     ("sparkle-3", "sparkle.wav", 35.12, 0.9, 0.55), ("whoosh-6", "whoosh_short.mp3", 37.2, 0.8, 0.45), ("stamp-3", "stamp_1.mp3", 39.3, 0.8, 0.9),
-    ("thud-3", "thud.wav", 41.65, 0.6, 0.6), ("harp-out", "harp.wav", 42.0, 2.6, 0.55), ("whoosh-7", "whoosh_deep.mp3", 44.4, 0.6, 0.4)]
+    ("thud-3", "thud.wav", 41.65, 0.6, 0.6), ("whoosh-7", "whoosh_deep.mp3", 44.4, 0.6, 0.4)]
 sfx = "\n".join(f'      <audio id="sfx-{i}" class="clip" src="assets/sfx/{f}" data-start="{s}" data-duration="{d}" data-track-index="3" data-volume="{v}"></audio>' for i, f, s, d, v in SFX)
 index = f"""<!doctype html>
 <html lang="ko" data-resolution="portrait">
@@ -431,8 +593,8 @@ index = f"""<!doctype html>
     <div id="root" data-composition-id="main" data-start="0" data-duration="45" data-width="1080" data-height="1920">
       <!-- 귀하게 자란 내가: 투덜(0-11.5) / 반전(11.5-14) / 집사 Chargis(14-41) / 엔딩·루프(41-45) -->
 {hosts}
-      <!-- 음악: 우아한 하프로 열고, 번호표 순간 레코드 긁힘으로 끊는다. 반전부터 배경음악 -->
-      <audio id="bgm" class="clip" src="assets/bgm/track.mp3" data-start="11.6" data-duration="33.4" data-media-start="4" data-track-index="5" data-volume="0.09" data-fade-in="0.4" data-fade-out="1.2"></audio>
+      <!-- 음악(music.mp3): 0-11.5 1-jwajeol / 11.5-41.12 epicsaxguy 두 번 / 41.05-45 박수+환호. tools/make_music.sh -->
+      <audio id="bgm" class="clip" src="assets/bgm/music.mp3" data-start="0" data-duration="45" data-track-index="5" data-volume="0.55"></audio>
 {sfx}
     </div>
     <script>

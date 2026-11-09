@@ -5,8 +5,10 @@
 - 효과음 (CC0): Stamp by kermite607, piecz_17/19 by radwoc, Deep Whoosh #1 by Kinoton (freesound)
 - 효과음 (Pixabay Content License): click, whoosh_short
 - 효과음 (직접 합성, ffmpeg): harp, bell, dingdong, scratch, sparkle, tick, thud
-- 배경음악: HeyGen 음악 카탈로그 "Astral Generated Music: 3bdb6d02"(AI 생성), HeyGen 이용약관
-- 밈: "귀하게 자란 내가 이런 걸 봐도 되는 걸까?" 문장 형식만 사용(원본 영상·음원·인물 미사용)
+- 배경음악(사용자 제공 파일, `sound/`): `1-jwajeol.mp3`(틱톡 음원으로 보임), `epicsaxguy.mp3`("Epic Sax Guy" 밈 곡 Run Away - SunStroke Project & Olia Tira의 색소폰 부분으로 보임), `aplausos_3.mp3`(출처 미상). **세 곡 모두 게시 전에 이용 권한 확인 필요**
+- 환호: "Crowd.Yay.Applause.25ppl.Short.wav" by jessepash, **CC0** — https://freesound.org/people/jessepash/sounds/139972/
+- 색소폰 귀족 동작: "Epic Sax Guy" 밈의 몸짓만 따라 그림(원본 영상·인물 미사용)
+- 밈: "귀하게 자란 내가 이런 걸 봐도 되는 걸까?" 문장 형식만 사용(원본 영상·음원·인물 미사용), 펭귄 밈은 구도만 따라 그림(사진 미사용)
 
 ## 설명란 (붙여 넣기용)
 ```

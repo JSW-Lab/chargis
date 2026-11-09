@@ -19,3 +19,7 @@ scripts/privacy_patterns.local
 .impeccable/build/
 video/shortform-noble/.hyperframes/artifacts/
 video/shortform-noble/renders/
+video/shortform-noble/.hyperframes/cache/
+# 사용자 제공 음원(저작권 확인 전): 로컬에만 둔다
+video/shortform-noble/sound/
+video/shortform-noble/assets/bgm/music.mp3
