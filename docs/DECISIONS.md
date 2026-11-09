@@ -155,3 +155,4 @@
 - 2026-11-09 · 제출 정보: 팀명 JSW_Lab(신청서 팀명 칸·메일 제목), 신청서 v4 서명일 2026/11/10. 시연 영상·숏폼 링크는 게시 뒤 넣는다.
 - 2026-11-09 · 숏폼 v2: 밈 "귀하게 자란 내가 이런 걸 봐도 되는 걸까?"의 문장 형식만 빌려(원본 영상·음원 미사용) `video/shortform-noble/`에 새로 만들었다. 이모티콘은 Twemoji(CC BY 4.0). 콘티는 `video/shortform-noble/storyboard/`.
 - 2026-11-10 · 이전 45초 숏폼(`video/shortform/`)과 그 음성 녹음(`video/voice-raw-45`, `voice-raw-f`)을 지웠다. 제출 숏폼은 `shortform-noble` 하나다.
+- 2026-11-10 · 숏폼 배경음악을 바꿨다. 쓰던 곡(틱톡 음원 1-jwajeol, "Epic Sax Guy" 원곡 Run Away 색소폰 부분, 코난 테마)은 저작권이 있어 공개 게시·공개 저장소에 쓸 수 없고, 소리를 바꿔도 곡의 저작권은 남는다. 대신 "Fluffing a Duck"(Kevin MacLeod, CC BY 4.0)과 "Classic Party (Saxophone Beat)"(9JackJack8, Pixabay, 120 BPM)를 쓰고 옛 파일은 지웠다. 출처는 영상 안이 아니라 설명란과 CREDITS.md에 적는다. 첫 구간 효과음은 새 곡이 묻히지 않게 절반쯤으로 줄였다.

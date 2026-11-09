@@ -461,14 +461,15 @@ script = f"""
     tl.to("#tv-dot", {{opacity: 0, scale: 0.2, duration: 0.4, ease: "power2.in"}}, 4.28);"""
 scene("ending", 5, body, script, END_OUTER)
 
-# ---------------- 클럽 11.5-41.5 s: "안 돼."부터 epicsaxguy.mp3가 도는 동안 ----------------
-# 곡은 14.811 s = 정확히 8마디(32박, 약 129.6 BPM). 두 번 이어 11.5 s부터 41.12 s까지(64박). 움직임은 모두 이 박자에 맞춘다.
+# ---------------- 클럽 11.5-41.5 s: "안 돼."부터 Classic Party(색소폰 하우스)가 도는 동안 ----------------
+# 곡은 120 BPM. 11.5 s부터 41.5 s까지 30 s = 60박(15마디), 마디 첫 박에서 시작한다. 움직임은 모두 이 박자에 맞춘다.
 # clubbg: 미러볼·빛줄기·빛 점, clubsax: 네 모서리 색소폰 귀족. 둘 다 장면 뒤에 깔려 앱 화면·자막을 가리지 않는다.
 CLUB_DUR = 30.0
-BEAT = 14.811429 / 32
-BEATS = 64  # 곡이 끝나는 박
+BEAT = 0.5  # Classic Party (Saxophone Beat), 120 BPM
+BEATS = 60  # 30 s = 60박(15마디). 41.5 s에 곡이 끝난다
 MUSIC_END = BEATS * BEAT
-BEAT_OFS = 0.07  # 원곡 박의 어택이 박 격자보다 약 0.07 s 늦다(파형으로 잰 값). 움직임을 여기에 맞춘다.
+BEAT_OFS = 0.0  # 렌더한 영상에서 잰 박 소리와 박 격자의 차이. 움직임을 여기에 맞춘다.
+EXIT_AT = BEATS * BEAT - 0.3  # 곡 끝 직전 반 박에 퇴장을 시작해 41.5 s에 사라진다
 BEAMS = [("#c9a44c", -38), ("#8fb2ee", -16), ("#d0508f", 6), ("#5fc39a", 24), ("#e8ae4a", 42)]
 beams = "".join(f'<g id="bm{i}" transform="rotate({a} 540 150)"><path d="M540 150 L470 1900 L610 1900z" fill="{c}" opacity=".20"/></g>' for i, (c, a) in enumerate(BEAMS))
 DOTS = [((i * 211) % 1080, 260 + (i * 137) % 980, 6 + (i * 7) % 9, ["#ede9e2", "#8fb2ee", "#d0508f", "#c9a44c", "#5fc39a"][i % 5]) for i in range(42)]
@@ -489,7 +490,7 @@ body = f"""
 </svg>"""
 beam_js = "".join(f'tl.fromTo("#bm{i}", {{rotation: {a}, svgOrigin: "540 150"}}, {{rotation: {a}, svgOrigin: "540 150", duration: 0.01}}, 0);' for i, (_, a) in enumerate(BEAMS))
 # 빛줄기는 2박마다 방향을 홱 바꾸고, 마디 첫 박마다 한 번 번쩍인다.
-for k in range(2, BEATS, 2):
+for k in range(2, BEATS - 1, 2):
     d = 1 if (k // 2) % 2 else -1
     beam_js += "".join(f'tl.to("#bm{i}", {{rotation: {a + 24 * d * (1 if i % 2 else -1)}, svgOrigin: "540 150", duration: 0.28, ease: "power2.inOut"}}, {k*BEAT + BEAT_OFS:.3f});' for i, (_, a) in enumerate(BEAMS))
 for k in range(4, BEATS, 4):
@@ -503,9 +504,9 @@ script = f"""
     tl.fromTo("#glint", {{opacity: 1, scale: 1, transformOrigin: "50% 50%"}}, {{opacity: 0.2, scale: 0.5, duration: {BEAT/2:.4f}, yoyo: true, repeat: {2*BEATS - 2}}}, {BEAT_OFS});
     {beam_js}
     tl.fromTo("#cb-dots", {{rotation: 0, svgOrigin: "540 150"}}, {{rotation: 140, svgOrigin: "540 150", duration: {CLUB_DUR - 0.6}, ease: "none"}}, 0.6);
-    // 곡이 끝나는 박(41.12 s): 미러볼이 올라가고 빛이 꺼진다.
-    tl.to("#cb-light", {{opacity: 0, duration: 0.25}}, {MUSIC_END:.3f});
-    tl.to("#ball", {{y: -320, duration: 0.35, ease: "power2.in"}}, {MUSIC_END:.3f});"""
+    // 곡이 끝나기 직전(41.2 s): 미러볼이 올라가고 빛이 꺼진다.
+    tl.to("#cb-light", {{opacity: 0, duration: 0.25}}, {EXIT_AT:.3f});
+    tl.to("#ball", {{y: -320, duration: 0.35, ease: "power2.in"}}, {EXIT_AT:.3f});"""
 html = f"""<template>
   <style>{CSS} #root {{ background: transparent; }}</style>
   <div id="root" data-composition-id="clubbg" data-width="1080" data-height="1920">
@@ -540,7 +541,7 @@ for i, (p, x, y, s_, f, side) in enumerate(SAX):
     js += f'tl.fromTo("#{p}", {{x: {side * 260}, opacity: 0}}, {{x: 0, opacity: 1, duration: 0.2, ease: "back.out(2)"}}, {BEAT:.3f});\n'
     js += f'tl.fromTo("#{p}-d", {{rotation: 0, x: 0, y: 0, scaleY: 1, transformOrigin: "50% 95%"}}, {{rotation: 0, duration: 0.01}}, 0);\n'
     js += f'tl.fromTo("#{p}-sax", {{rotation: 0, svgOrigin: "10 26"}}, {{rotation: 0, svgOrigin: "10 26", duration: 0.01}}, 0);\n'
-    for k in range(2, BEATS):
+    for k in range(2, BEATS - 1):
         t = k * BEAT + BEAT_OFS; sk = 1 if k % 2 else -1
         # 매 박: 골반을 반대쪽으로 홱 튕기고(±14°, ±30 px) 몸이 눌렸다 펴진다.
         js += f'tl.to("#{p}-d", {{rotation: {14*sk*side}, x: {30*sk*side}, duration: 0.11, ease: "power3.out"}}, {t:.3f});'
@@ -557,9 +558,9 @@ for i, (p, x, y, s_, f, side) in enumerate(SAX):
             r = -55 if k % 16 == 0 else (20 if k % 4 == 0 else -20)
             js += f'tl.to("#{p}-sax", {{rotation: {r}, svgOrigin: "10 26", duration: 0.14, ease: "power3.out"}}, {t:.3f});'
         js += "\n"
-    # 곡이 끝나는 박: 자세를 풀고 모서리 밖으로 빠진다.
-    js += f'tl.to("#{p}-d", {{rotation: 0, x: 0, duration: 0.1}}, {MUSIC_END:.3f});\n'
-    js += f'tl.to("#{p}", {{x: {side * 300}, opacity: 0, duration: 0.25, ease: "power2.in"}}, {MUSIC_END:.3f});\n'
+    # 곡이 끝나기 직전: 자세를 풀고 모서리 밖으로 빠진다.
+    js += f'tl.to("#{p}-d", {{rotation: 0, x: 0, duration: 0.1}}, {EXIT_AT:.3f});\n'
+    js += f'tl.to("#{p}", {{x: {side * 300}, opacity: 0, duration: 0.25, ease: "power2.in"}}, {EXIT_AT:.3f});\n'
 html = f"""<template>
   <style>{CSS} #root {{ background: transparent; }}</style>
   <div id="root" data-composition-id="clubsax" data-width="1080" data-height="1920">
@@ -583,10 +584,10 @@ hosts = "\n".join(f'      <div id="{s}" data-composition-id="{s}" data-compositi
 hosts += f'\n      <div id="clubbg" data-composition-id="clubbg" data-composition-src="compositions/clubbg.html" data-start="11.5" data-duration="{CLUB_DUR}" data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:1"></div>'
 hosts += f'\n      <div id="clubsax" data-composition-id="clubsax" data-composition-src="compositions/clubsax.html" data-start="11.5" data-duration="{CLUB_DUR}" data-track-index="4" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:1"></div>'
 SFX = [  # id, file, start, duration, volume
-    ("harp-in", "harp.wav", 0.0, 1.5, 0.55), ("scratch", "scratch.wav", 1.38, 0.5, 0.5), ("dingdong", "dingdong.wav", 1.45, 1.3, 0.5),
-    ("whoosh-1", "whoosh_deep.mp3", 0.45, 1.0, 0.4), ("stamp-1", "stamp_1.mp3", 4.6, 0.8, 0.9), ("thud-1", "thud.wav", 4.66, 0.6, 0.7),
-    ("whoosh-2", "whoosh_short.mp3", 5.1, 0.8, 0.5), ("thud-2", "thud.wav", 6.0, 0.6, 0.5),
-    *[(f"pop-{i}", "click.mp3", round(7.5 + t + 0.08, 2), 0.3, 0.45) for i, (t, _) in enumerate(JABS)], ("whoosh-3", "whoosh_deep.mp3", 10.1, 1.0, 0.45),
+    ("harp-in", "harp.wav", 0.0, 1.5, 0.28), ("scratch", "scratch.wav", 1.38, 0.5, 0.25), ("dingdong", "dingdong.wav", 1.45, 1.3, 0.25),
+    ("whoosh-1", "whoosh_deep.mp3", 0.45, 1.0, 0.2), ("stamp-1", "stamp_1.mp3", 4.6, 0.8, 0.55), ("thud-1", "thud.wav", 4.66, 0.6, 0.4),
+    ("whoosh-2", "whoosh_short.mp3", 5.1, 0.8, 0.25), ("thud-2", "thud.wav", 6.0, 0.6, 0.3),
+    *[(f"pop-{i}", "click.mp3", round(7.5 + t + 0.08, 2), 0.3, 0.25) for i, (t, _) in enumerate(JABS)], ("whoosh-3", "whoosh_deep.mp3", 10.1, 1.0, 0.22),
     ("stamp-no", "stamp_2.mp3", 11.5, 0.8, 0.9), ("bell", "bell.wav", 12.15, 1.4, 0.6), ("sparkle-1", "sparkle.wav", 12.85, 0.9, 0.5),
     ("whoosh-4", "whoosh_short.mp3", 14.1, 0.8, 0.4), *[(f"tick5-{i}", "tick.wav", round(15.0 + i*0.12, 2), 0.12, 0.35) for i in range(10)],
     ("sparkle-2", "sparkle.wav", 16.2, 0.9, 0.4), ("stamp-2", "stamp_3.mp3", 21.6, 0.8, 0.9), ("whoosh-5", "whoosh_short.mp3", 23.5, 0.8, 0.45),
@@ -611,7 +612,7 @@ index = f"""<!doctype html>
     <div id="root" data-composition-id="main" data-start="0" data-duration="46" data-width="1080" data-height="1920">
       <!-- 귀하게 자란 내가: 투덜(0-11.5) / 반전(11.5-14) / 집사 Chargis(14-41) / 엔딩·윙크·TV 꺼짐(41-46) -->
 {hosts}
-      <!-- 음악(music.mp3): 0-11.5 1-jwajeol / 11.5-41.12 epicsaxguy 두 번 / 41.05-45 박수+환호. tools/make_music.sh -->
+      <!-- 음악(music.mp3): 0-11.5 Fluffing a Duck / 11.5-41.5 Classic Party 120 BPM / 41.45-44.9 박수+환호. tools/make_music.sh -->
       <audio id="bgm" class="clip" src="assets/bgm/music.mp3" data-start="0" data-duration="46" data-track-index="5" data-volume="0.55"></audio>
 {sfx}
     </div>

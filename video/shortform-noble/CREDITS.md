@@ -5,9 +5,13 @@
 - 효과음 (CC0): Stamp by kermite607, piecz_17/19 by radwoc, Deep Whoosh #1 by Kinoton (freesound)
 - 효과음 (Pixabay Content License): click, whoosh_short
 - 효과음 (직접 합성, ffmpeg): harp, bell, dingdong, scratch, sparkle, tick, thud, wink, tvoff
-- 배경음악(사용자 제공 파일, `sound/`): `1-jwajeol.mp3`(틱톡 음원으로 보임), `epicsaxguy.mp3`("Epic Sax Guy" 밈 곡 Run Away - SunStroke Project & Olia Tira의 색소폰 부분으로 보임), `aplausos_3.mp3`(출처 미상). **세 곡 모두 게시 전에 이용 권한 확인 필요**
+- 배경음악 0-11.5 s: "Fluffing a Duck" by Kevin MacLeod (incompetech.com), **CC BY 4.0** — https://incompetech.com (설명란에 출처 표기 필요)
+- 배경음악 11.5-41.5 s: "Classic Party (Saxophone Beat)" by 9JackJack8, **Pixabay Content License**(출처 표기 의무 없음) — https://pixabay.com/music/upbeat-classic-party-saxophone-beat-405066/
+  - 이 곡은 작곡자가 YouTube Content ID에 등록해 두었다. 올린 뒤 저작권 알림이 뜨면 Pixabay 라이선스로 쓴 곡이라고 이의 제기하고 위 곡 페이지 주소를 근거로 낸다.
+- 박수 41.45-44.9 s: `sound/aplausos_3.mp3`(사용자 제공, 출처 미상 — 원본 파일은 저장소에 올리지 않는다)
+- 2026-11-10까지 쓰던 배경음악(1-jwajeol, epicsaxguy, 30-konan)은 저작권 문제로 빼고 파일을 지웠다.
 - 환호: "Crowd.Yay.Applause.25ppl.Short.wav" by jessepash, **CC0** — https://freesound.org/people/jessepash/sounds/139972/
-- 색소폰 귀족 동작: "Epic Sax Guy" 밈의 몸짓만 따라 그림(원본 영상·인물 미사용)
+- 색소폰 귀족 동작: "Epic Sax Guy" 밈의 몸짓만 따라 그림(원본 영상·음원·인물 미사용)
 - 밈: "귀하게 자란 내가 이런 걸 봐도 되는 걸까?" 문장 형식만 사용(원본 영상·음원·인물 미사용), 펭귄 밈은 구도만 따라 그림(사진 미사용)
 
 ## 설명란 (붙여 넣기용)
@@ -18,8 +22,12 @@ Chargis는 Pleos Connect 차량에서 "어느 휴게소에서, 몇 %까지, 얼�
 
 #HMG차량용앱개발공모전 #전기차 #Chargis
 
-이모티콘: Twemoji (CC BY 4.0) · 효과음: freesound.org CC0, Pixabay
+Music: "Fluffing a Duck" by Kevin MacLeod (incompetech.com), CC BY 4.0
+"Classic Party (Saxophone Beat)" by 9JackJack8 (Pixabay)
+Emoji: Twemoji (CC BY 4.0) · SFX: freesound.org CC0, Pixabay
 ```
+
+출처는 영상 안에 넣지 않고 설명란에 적는다(CC BY는 매체에 맞는 합리적인 방식이면 된다). 영상 파일만 따로 낼 때는 이 파일을 함께 낸다.
 
 ## 고정 댓글
 ```

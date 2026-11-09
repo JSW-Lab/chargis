@@ -124,5 +124,5 @@ MAU ≈ Pleos Connect 탑재 EV 수 × 앱 설치율 × 월 1회 이상 장거�
 
 - GitHub: 저장소 주소(README에 실행 방법, 테스트 환경, APK 위치)
 - APK: `apk/JSW_Lab_Chargis_release.apk`
-- 시연 영상: Pleos Connect 에뮬레이터 화면 녹화(S1 기본 흐름 + S3 충전 시간 제한)
+- 시연 영상: Pleos Connect 에뮬레이터 화면 녹화(S1 기본 흐름. 발권~추천~경유지 수락은 실제 녹화, 도착~영수증은 같은 날 찍은 화면, 1분 44초)
 - 숏폼: 게시 후 링크 기재(`#HMG차량용앱개발공모전` 포함 해시태그 2~3개)

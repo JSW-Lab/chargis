@@ -20,6 +20,5 @@ scripts/privacy_patterns.local
 video/shortform-noble/.hyperframes/artifacts/
 video/shortform-noble/renders/
 video/shortform-noble/.hyperframes/cache/
-# 사용자 제공 음원(저작권 확인 전): 로컬에만 둔다
-video/shortform-noble/sound/
-video/shortform-noble/assets/bgm/music.mp3
+# 출처를 모르는 박수 음원은 로컬에만 둔다(섞은 결과는 assets/bgm/music.mp3로 올린다)
+video/shortform-noble/sound/aplausos_3.mp3
